@@ -1,0 +1,89 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 15 23 42;     /* gray-900 */
+  --foreground: 241 245 249;  /* slate-100 */
+  --card: 30 41 59;           /* slate-800 */
+  --card-foreground: 241 245 249;
+  --popover: 30 41 59;
+  --popover-foreground: 241 245 249;
+  --primary: 59 130 246;      /* blue-500 */
+  --primary-foreground: 241 245 249;
+  --secondary: 96 165 250;    /* blue-400 */
+  --secondary-foreground: 241 245 249;
+  --muted: 30 41 59;
+  --muted-foreground: 148 163 184; /* slate-400 */
+  --accent: 96 165 250;
+  --accent-foreground: 241 245 249;
+  --destructive: 239 68 68;
+  --destructive-foreground: 255 255 255;
+  --border: 51 65 85;         /* slate-700 */
+  --input: 51 65 85;
+  --ring: 59 130 246;
+  
+  /* Custom color variables for advanced customization */
+  --custom-bg: 15 23 42;
+  --custom-text: 241 245 249;
+  --custom-card: 30 41 59;
+  --custom-border: 51 65 85;
+  --custom-accent: 96 165 250;
+  --custom-secondary: 59 130 246;
+  --custom-muted: 148 163 184;
+}
+
+.dark {
+  --background: 15 23 42;
+  --foreground: 241 245 249;
+  --card: 30 41 59;
+  --card-foreground: 241 245 249;
+  --popover: 30 41 59;
+  --popover-foreground: 241 245 249;
+  --primary: 59 130 246;
+  --primary-foreground: 241 245 249;
+  --secondary: 96 165 250;
+  --secondary-foreground: 241 245 249;
+  --muted: 30 41 59;
+  --muted-foreground: 148 163 184;
+  --accent: 96 165 250;
+  --accent-foreground: 241 245 249;
+  --destructive: 239 68 68;
+  --destructive-foreground: 255 255 255;
+  --border: 51 65 85;
+  --input: 51 65 85;
+  --ring: 59 130 246;
+}
+
+body {
+  @apply bg-background text-foreground;
+}
+
+/* Custom color utility classes */
+.bg-custom-bg {
+  background-color: hsl(var(--custom-bg));
+}
+
+.text-custom-text {
+  color: hsl(var(--custom-text));
+}
+
+.bg-custom-card {
+  background-color: hsl(var(--custom-card));
+}
+
+.border-custom-border {
+  border-color: hsl(var(--custom-border));
+}
+
+.text-custom-accent {
+  color: hsl(var(--custom-accent));
+}
+
+.bg-custom-secondary {
+  background-color: hsl(var(--custom-secondary));
+}
+
+.text-custom-muted {
+  color: hsl(var(--custom-muted));
+}

@@ -21,7 +21,7 @@ const MOCK_THERAPISTS: Therapist[] = [
     name: "Dr. Maya Johnson, PsyD",
     specialty: "Anxiety - CBT / Mindfulness",
     distance: "1.2 mi",
-    city: "Your City",
+    city: "Los Angeles, CA",
     phone: "555-432-1122",
   },
   {
@@ -29,7 +29,7 @@ const MOCK_THERAPISTS: Therapist[] = [
     name: "Carlos Ramirez, LCSW",
     specialty: "Depression • Trauma-Informed",
     distance: "2.5 mi",
-    city: "Your City",
+    city: "Los Angeles, CA",
     phone: "555-987-2233",
   },
   {
@@ -37,7 +37,7 @@ const MOCK_THERAPISTS: Therapist[] = [
     name: "Priya Patel, LMFT",
     specialty: "Couples • Family Systems",
     distance: "4.1 mi",
-    city: "Your City",
+    city: "Los Angeles, CA",
     phone: "555-318-4455",
   },
 ]
@@ -46,7 +46,8 @@ export default function TherapistFinder() {
   const [locationGranted, setLocationGranted] = useState(false)
   const [loadingGeo, setLoadingGeo] = useState(false)
   const [query, setQuery] = useState("")
-  const [results, setResults] = useState<Therapist[]>(MOCK_THERAPISTS)
+  const [results, setResults] = useState<Therapist[]>([])
+  const [hasSearched, setHasSearched] = useState(false)
 
   // Ask for location and (in real app) fetch therapists by coords
   const handleLocate = () => {
@@ -56,6 +57,8 @@ export default function TherapistFinder() {
       (pos) => {
         setLocationGranted(true)
         // TODO: call real API with pos.coords.latitude / longitude
+        setResults(MOCK_THERAPISTS)
+        setHasSearched(true)
         setLoadingGeo(false)
       },
       () => {
@@ -64,15 +67,28 @@ export default function TherapistFinder() {
     )
   }
 
+  // Search by zip code or city
+  const handleSearch = () => {
+    if (!query.trim()) {
+      setResults([])
+      setHasSearched(false)
+      return
+    }
+
+    // For demo purposes, just show mock therapists
+    // In production, you would make an API call with the zip code
+    setResults(MOCK_THERAPISTS)
+    setHasSearched(true)
+  }
+
   // Simple name/city filter for mock data
   useEffect(() => {
-    if (!query) {
-      setResults(MOCK_THERAPISTS)
+    if (!query || !hasSearched) {
       return
     }
     const q = query.toLowerCase()
     setResults(MOCK_THERAPISTS.filter((t) => t.name.toLowerCase().includes(q) || t.city.toLowerCase().includes(q)))
-  }, [query])
+  }, [query, hasSearched])
 
   return (
     <section className="space-y-6">
@@ -89,8 +105,16 @@ export default function TherapistFinder() {
               placeholder="City or ZIP"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleSearch()
+                }
+              }}
               className="w-40 sm:w-52"
             />
+            <Button onClick={handleSearch} variant="default" size="sm">
+              Search
+            </Button>
             <Button variant="secondary" size="icon" onClick={handleLocate} disabled={loadingGeo} aria-label="Locate me">
               {loadingGeo ? <RefreshCw className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
             </Button>

@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2023-10-16",
-});
-
 const priceMap: Record<string, Record<string, string>> = {
   premium: {
     monthly: "price_1Rgy9yHc0HPmM6HNPf15gTLT",
@@ -20,6 +16,15 @@ const priceMap: Record<string, Record<string, string>> = {
 
 export async function POST(req: Request) {
   try {
+    const stripeKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeKey) {
+      return NextResponse.json({ error: "Missing Stripe key" }, { status: 500 });
+    }
+    
+    const stripe = new Stripe(stripeKey, {
+      apiVersion: "2023-10-16",
+    });
+
     const { tier } = await req.json();
 
     if (!tier || typeof tier !== "string" || !tier.includes("_")) {

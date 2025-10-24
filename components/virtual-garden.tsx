@@ -245,7 +245,7 @@ export default function VirtualGarden({ moodHistory }: VirtualGardenProps) {
                 )}
                 {getGardenTitle()}
               </CardTitle>
-              <CardDescription>{getGardenDescription()}</CardDescription>
+              <CardDescription className={gardenStage === "reflective" ? "text-blue-400" : ""}>{getGardenDescription()}</CardDescription>
             </div>
             {gardenStage === "reflective" && (
               <Button onClick={() => setShowReflectiveSpace(true)} className="bg-purple-600 hover:bg-purple-700">

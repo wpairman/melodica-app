@@ -15,6 +15,9 @@ interface NavigationSidebarProps {
 export function NavigationSidebar({ isOpen, onOpenChange }: NavigationSidebarProps) {
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
+      <SheetTrigger asChild>
+        <span />
+      </SheetTrigger>
       <SheetContent side="left" className="w-80 bg-gray-900 border-gray-700">
         <div className="flex flex-col h-full">
           {/* Header */}

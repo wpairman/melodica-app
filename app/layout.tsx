@@ -29,12 +29,12 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
-      <body className={`${inter.className} bg-gray-900 text-white`}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.className}`}>
         <AppErrorBoundary>
           <AuthProvider>
             <ColorCustomizationProvider>
-              <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+              <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
                 <ToastProvider>
                   {children}
                   <ConditionalGroundMe />

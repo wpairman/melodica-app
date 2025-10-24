@@ -394,23 +394,23 @@ Remember: This is general information only. Always consult with your healthcare 
                   value={formData.favoriteActivities}
                   onChange={handleChange}
                   onBlur={handleActivitiesBlur}
-                  className="min-h-[60px] text-sm"
+                  className="min-h-[60px] text-sm bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                 />
 
                 {isAnalyzing.activities && (
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <div className="flex items-center space-x-2 text-sm text-gray-300">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     <span>Analyzing your activity preferences...</span>
                   </div>
                 )}
 
                 {analyses.activities && (
-                  <div className="p-3 bg-green-50 rounded-md border">
-                    <h4 className="text-sm font-semibold text-gray-900 mb-2 flex items-center">
+                  <div className="p-3 bg-green-900/20 rounded-md border border-green-800">
+                    <h4 className="text-sm font-semibold text-white mb-2 flex items-center">
                       <Activity className="h-4 w-4 mr-1" />
                       Activity Recommendations:
                     </h4>
-                    <div className="text-xs text-gray-700 whitespace-pre-line">{analyses.activities}</div>
+                    <div className="text-xs text-gray-300 whitespace-pre-line">{analyses.activities}</div>
                   </div>
                 )}
               </div>
@@ -483,21 +483,21 @@ Remember: This is general information only. Always consult with your healthcare 
                         value={formData.medications}
                         onChange={handleChange}
                         onBlur={handleMedicationBlur}
-                        className="min-h-[60px] text-sm"
+                        className="min-h-[60px] text-sm bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                       />
                     </div>
 
                     {isAnalyzing.medications && (
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
+                      <div className="flex items-center space-x-2 text-sm text-gray-300">
                         <Loader2 className="h-4 w-4 animate-spin" />
                         <span>Analyzing medications...</span>
                       </div>
                     )}
 
                     {analyses.medications && (
-                      <div className="p-3 bg-blue-50 rounded-md border">
-                        <h4 className="text-sm font-semibold text-gray-900 mb-2">Medical Analysis:</h4>
-                        <div className="text-xs text-gray-700 whitespace-pre-line">{analyses.medications}</div>
+                      <div className="p-3 bg-blue-900/20 rounded-md border border-blue-800">
+                        <h4 className="text-sm font-semibold text-white mb-2">Medical Analysis:</h4>
+                        <div className="text-xs text-gray-300 whitespace-pre-line">{analyses.medications}</div>
                       </div>
                     )}
                   </div>

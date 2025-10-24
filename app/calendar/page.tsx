@@ -9,6 +9,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
+import { MenuButton } from "@/components/navigation-sidebar"
 import {
   Dialog,
   DialogContent,
@@ -220,16 +221,22 @@ export default function CalendarPage() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4">
-        <div className="max-w-7xl mx-auto space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Calendar
-              </h1>
-              <p className="text-gray-600 mt-1">Manage your events, appointments, and mood tracking</p>
-            </div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+        {/* Fixed header with menu button */}
+        <div className="sticky top-0 z-50 bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
+          <MenuButton />
+          <div>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Calendar
+            </h1>
+            <p className="text-gray-600 text-sm">Manage your events, appointments, and mood tracking</p>
+          </div>
+        </div>
+        
+        <div className="p-4">
+          <div className="max-w-7xl mx-auto space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-end">
             <Button
               onClick={() => {
                 if (typeof window !== 'undefined') {
@@ -539,6 +546,7 @@ export default function CalendarPage() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
       </div>
     </DashboardLayout>

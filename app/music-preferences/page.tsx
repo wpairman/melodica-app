@@ -14,6 +14,7 @@ import SimpleMusicQuiz from "@/components/music-quiz/simple-music-quiz"
 import ArtistSongsList from "@/components/music-quiz/artist-songs-list"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
+import { MenuButton } from "@/components/navigation-sidebar"
 
 export default function MusicPreferences() {
   const router = useRouter()
@@ -77,18 +78,14 @@ export default function MusicPreferences() {
 
   return (
     <DashboardLayout>
-      <div className="flex min-h-screen bg-gradient-to-b from-blue-50 to-green-50">
-      <div className="container max-w-4xl mx-auto p-8">
-        <div className="flex items-center mb-8">
-          <Link href="/dashboard" className="inline-flex items-center text-sm">
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            Back to Dashboard
-          </Link>
-          <div className="ml-auto flex items-center">
-            <Music className="h-6 w-6 text-rose-500 mr-2" />
-            <span className="font-semibold">Melodica</span>
-          </div>
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-green-50">
+        {/* Fixed header with menu button */}
+        <div className="sticky top-0 z-50 bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
+          <MenuButton />
+          <h1 className="text-2xl font-bold text-gray-900">Music Preferences</h1>
         </div>
+        
+        <div className="container max-w-4xl mx-auto p-8">
 
         <Tabs defaultValue="quiz" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-8">
@@ -126,8 +123,8 @@ export default function MusicPreferences() {
             </Card>
           </TabsContent>
         </Tabs>
+        </div>
       </div>
-    </div>
     </DashboardLayout>
   )
 }

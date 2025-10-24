@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
+import { MenuButton } from "@/components/navigation-sidebar"
 
 type MoodEntry = {
   mood: number
@@ -133,13 +134,19 @@ export default function MoodHistoryPage() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 p-6">
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-white">Mood History</h1>
-              <p className="text-gray-300">Calendar view of your mood journey</p>
-            </div>
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
+        {/* Fixed header with menu button */}
+        <div className="sticky top-0 z-50 bg-gray-900 border-b border-gray-700 px-6 py-4 flex items-center gap-4">
+          <MenuButton />
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-white">Mood History</h1>
+            <p className="text-gray-300 text-sm">Calendar view of your mood journey</p>
+          </div>
+        </div>
+        
+        <div className="p-6">
+          <div className="space-y-6">
+            <div className="flex items-center justify-end">
           {trend && (
             <Card className="p-4 bg-gray-800 border-gray-700">
               <div className="flex items-center gap-2">
@@ -367,7 +374,6 @@ export default function MoodHistoryPage() {
             </Card>
           </div>
         </div>
-      </div>
       </div>
     </DashboardLayout>
   )

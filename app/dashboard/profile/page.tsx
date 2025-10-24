@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge"
 import { Camera, Lock, User, Heart, Music, Activity, Save, Edit3 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
+import { MenuButton } from "@/components/navigation-sidebar"
 
 export default function ProfilePage() {
   const { toast } = useToast()
@@ -200,11 +201,15 @@ export default function ProfilePage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">Profile</h1>
-            <p className="text-gray-300">Manage your account and customize your experience</p>
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
+        {/* Fixed header with menu button */}
+        <div className="sticky top-0 z-50 bg-gray-900 border-b border-gray-700 px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <MenuButton />
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-white">Profile</h1>
+              <p className="text-gray-300 text-sm">Manage your account and customize your experience</p>
+            </div>
           </div>
           <Button onClick={() => {
             if (typeof window !== 'undefined') {
@@ -215,8 +220,10 @@ export default function ProfilePage() {
             {isEditing ? "Save Changes" : "Edit Profile"}
           </Button>
         </div>
-
-        <div className="grid gap-6 md:grid-cols-3">
+        
+        <div className="p-6">
+          <div className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-3">
           {/* Profile Overview */}
           <Card className="md:col-span-1 bg-gray-800 border-gray-700">
             <CardHeader className="text-center">
@@ -453,6 +460,7 @@ export default function ProfilePage() {
                 </div>
               </CardContent>
             </Card>
+            </div>
           </div>
         </div>
       </div>

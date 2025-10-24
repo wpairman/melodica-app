@@ -426,15 +426,15 @@ Remember: This is general information only. Always consult with your healthcare 
                     onChange={handleChange}
                     className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
                   />
-                  <Label htmlFor="hasMentalIllness" className="text-sm font-medium text-black">
+                  <Label htmlFor="hasMentalIllness" className="text-sm font-medium text-white">
                     I have been diagnosed with a mental health condition
                   </Label>
                 </div>
 
                 {formData.hasMentalIllness && (
                   <div className="space-y-2 ml-6">
-                    <Label className="text-sm text-black">Please select all that apply:</Label>
-                    <div className="max-h-32 overflow-y-auto border rounded-md p-2 bg-gray-50">
+                    <Label className="text-sm text-white">Please select all that apply:</Label>
+                    <div className="max-h-32 overflow-y-auto border rounded-md p-2 bg-gray-700 border-gray-600">
                       {MENTAL_HEALTH_CONDITIONS.map((condition) => (
                         <div key={condition} className="flex items-center space-x-2 py-1">
                           <input
@@ -444,7 +444,7 @@ Remember: This is general information only. Always consult with your healthcare 
                             onChange={(e) => handleConditionChange(condition, e.target.checked)}
                             className="h-3 w-3 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
                           />
-                          <Label htmlFor={condition} className="text-xs text-black">
+                          <Label htmlFor={condition} className="text-xs text-white">
                             {condition}
                           </Label>
                         </div>
@@ -465,7 +465,7 @@ Remember: This is general information only. Always consult with your healthcare 
                     onChange={handleChange}
                     className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
                   />
-                  <Label htmlFor="isOnMedication" className="text-sm font-medium text-black">
+                  <Label htmlFor="isOnMedication" className="text-sm font-medium text-white">
                     I am currently taking medication
                   </Label>
                 </div>
@@ -473,7 +473,7 @@ Remember: This is general information only. Always consult with your healthcare 
                 {formData.isOnMedication && (
                   <div className="space-y-3 ml-6">
                     <div className="space-y-2">
-                      <Label htmlFor="medications" className="text-sm text-black">
+                      <Label htmlFor="medications" className="text-sm text-white">
                         Please list your current medications:
                       </Label>
                       <Textarea
@@ -511,13 +511,13 @@ Remember: This is general information only. Always consult with your healthcare 
                   required
                   className="h-4 w-4 mt-1 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
                 />
-                <label htmlFor="terms" className="text-sm text-black leading-tight">
+                <label htmlFor="terms" className="text-sm text-white leading-tight">
                   I agree to the{" "}
-                  <Link href="/terms" className="text-teal-600 hover:underline">
+                  <Link href="/terms" className="text-teal-400 hover:underline">
                     Terms of Service
                   </Link>{" "}
                   and{" "}
-                  <Link href="/terms" className="text-teal-600 hover:underline">
+                  <Link href="/terms" className="text-teal-400 hover:underline">
                     Privacy Policy
                   </Link>
                 </label>

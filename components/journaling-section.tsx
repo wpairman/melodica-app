@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Clock, Trash2, Edit2, Save, X } from "lucide-react"
+import { Calendar, Clock, Trash2, Edit2, Save, X, Download } from "lucide-react"
 import { useSafeToast } from "@/components/toast-provider"
 
 interface JournalEntry {
@@ -153,6 +153,50 @@ export default function JournalingSection() {
     })
   }
 
+  const exportEntries = () => {
+    if (entries.length === 0) {
+      try {
+        toast({
+          title: "No entries to export",
+          description: "Create some journal entries first.",
+        })
+      } catch (error) {
+        console.error('Error showing toast:', error)
+      }
+      return
+    }
+
+    // Create CSV content
+    const csvContent = [
+      ["Date", "Time", "Content"],
+      ...entries.map(entry => [
+        formatDate(entry.timestamp),
+        formatTime(entry.timestamp),
+        entry.content.replace(/"/g, '""') // Escape quotes
+      ])
+    ].map(row => row.map(cell => `"${cell}"`).join(",")).join("\n")
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: "text/csv" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `journal-entries-${new Date().toISOString().split('T')[0]}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+
+    try {
+      toast({
+        title: "Export successful!",
+        description: "Your journal entries have been downloaded.",
+      })
+    } catch (error) {
+      console.error('Error showing toast:', error)
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* New Entry Card */}
@@ -187,12 +231,27 @@ export default function JournalingSection() {
       {/* Journal Entries Log */}
       <Card className="bg-gray-800 border-gray-700">
         <CardHeader>
-          <CardTitle className="text-white">Your Journal</CardTitle>
-          <CardDescription className="text-gray-300">
-            {entries.length === 0 
-              ? "No entries yet. Start writing!" 
-              : `${entries.length} ${entries.length === 1 ? 'entry' : 'entries'}`}
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-white">Your Journal</CardTitle>
+              <CardDescription className="text-gray-300">
+                {entries.length === 0 
+                  ? "No entries yet. Start writing!" 
+                  : `${entries.length} ${entries.length === 1 ? 'entry' : 'entries'}`}
+              </CardDescription>
+            </div>
+            {entries.length > 0 && (
+              <Button
+                onClick={exportEntries}
+                variant="outline"
+                size="sm"
+                className="border-gray-600 text-white hover:bg-gray-700"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export CSV
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {entries.length === 0 ? (

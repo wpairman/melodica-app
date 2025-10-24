@@ -18,6 +18,7 @@ import CalendarIntegration from "@/components/calendar-integration"
 import CalendarNotifications from "@/components/calendar-notifications"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
 import { useSafeToast } from "@/components/toast-provider"
+import { DarkModeToggle } from "@/components/dark-mode-toggle"
 
 export default function Dashboard() {
   const { toast } = useSafeToast()
@@ -140,11 +141,12 @@ export default function Dashboard() {
       <div className="flex min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
       <CalendarNotifications />
       <div className="hidden md:flex w-64 flex-col fixed inset-y-0 z-50 border-r bg-gray-900 border-gray-700">
-        <div className="flex h-14 items-center border-b border-gray-700 px-4">
+        <div className="flex h-14 items-center border-b border-gray-700 px-4 justify-between">
           <Link href="/" className="flex items-center gap-2 font-semibold text-white">
             <Heart className="h-6 w-6 text-rose-500" />
             <span>Melodica</span>
           </Link>
+          <DarkModeToggle />
         </div>
         <nav className="flex-1 overflow-auto py-4">
           <div className="px-4 py-2">

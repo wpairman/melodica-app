@@ -38,10 +38,10 @@ export default function VirtualGarden({ moodHistory }: VirtualGardenProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   const reflectiveAudios = [
-    { name: "Forest Sounds", description: "Gentle forest ambiance for reflection", url: "/audio/forest.mp3" },
-    { name: "Ocean Waves", description: "Calming ocean waves", url: "/audio/ocean.mp3" },
-    { name: "Rain Meditation", description: "Soft rain for mindfulness", url: "/audio/rain.mp3" },
-    { name: "Wind Chimes", description: "Peaceful wind chimes", url: "/audio/chimes.mp3" },
+    { name: "Forest Sounds", description: "Gentle forest ambiance for reflection", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
+    { name: "Ocean Waves", description: "Calming ocean waves", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" },
+    { name: "Rain Meditation", description: "Soft rain for mindfulness", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" },
+    { name: "Wind Chimes", description: "Peaceful wind chimes", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3" },
   ]
 
   useEffect(() => {
@@ -153,7 +153,19 @@ export default function VirtualGarden({ moodHistory }: VirtualGardenProps) {
       audioRef.current.pause()
     }
 
-    // For demo purposes, we'll simulate audio playback
+    // Actually play the audio
+    if (audioRef.current) {
+      audioRef.current.src = audioUrl
+      audioRef.current.play().catch((error) => {
+        console.error("Error playing audio:", error)
+        toast({
+          title: "Audio Error",
+          description: "Could not play audio. Please try again.",
+          variant: "destructive",
+        })
+      })
+    }
+
     setCurrentAudio(audioName)
     setIsPlayingAudio(true)
 
@@ -161,17 +173,12 @@ export default function VirtualGarden({ moodHistory }: VirtualGardenProps) {
       title: "🎵 Now Playing",
       description: `${audioName} - Perfect for reflection`,
     })
-
-    // Simulate audio duration
-    setTimeout(() => {
-      setIsPlayingAudio(false)
-      setCurrentAudio(null)
-    }, 30000) // 30 seconds for demo
   }
 
   const stopAudio = () => {
     if (audioRef.current) {
       audioRef.current.pause()
+      audioRef.current.currentTime = 0
     }
     setIsPlayingAudio(false)
     setCurrentAudio(null)

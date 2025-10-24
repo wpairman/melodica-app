@@ -262,9 +262,9 @@ export default function Dashboard() {
             )}
 
             <Tabs defaultValue="mood" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 bg-gray-800">
+              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 bg-gray-800 overflow-x-auto">
                 {tabsConfig.map((tab) => (
-                  <TabsTrigger key={tab.value} value={tab.value} className="text-xs lg:text-sm text-white data-[state=active]:bg-gray-700 data-[state=active]:text-white">
+                  <TabsTrigger key={tab.value} value={tab.value} className="text-xs sm:text-sm lg:text-sm text-white data-[state=active]:bg-gray-700 data-[state=active]:text-white whitespace-nowrap">
                     {tab.label}
                   </TabsTrigger>
                 ))}

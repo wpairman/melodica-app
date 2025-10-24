@@ -134,7 +134,7 @@ export default function Dashboard() {
 
   // Add period tracking tab for female users
   if (userData.gender === "female") {
-    tabsConfig.splice(4, 0, { value: "period", label: "Period Tracking" })
+    tabsConfig.splice(5, 0, { value: "period", label: "Period Tracking" })
   }
 
   return (
@@ -248,7 +248,7 @@ export default function Dashboard() {
             )}
 
             <Tabs defaultValue="mood" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 bg-gray-800">
+              <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7 bg-gray-800">
                 {tabsConfig.map((tab) => (
                   <TabsTrigger key={tab.value} value={tab.value} className="text-xs lg:text-sm text-white data-[state=active]:bg-gray-700 data-[state=active]:text-white">
                     {tab.label}

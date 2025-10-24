@@ -18,8 +18,6 @@ import CalendarIntegration from "@/components/calendar-integration"
 import CalendarNotifications from "@/components/calendar-notifications"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
 import { useSafeToast } from "@/components/toast-provider"
-import ActivityPreferences from "@/components/activity-preferences"
-import JournalingSection from "@/components/journaling-section"
 
 export default function Dashboard() {
   const { toast } = useSafeToast()
@@ -129,14 +127,12 @@ export default function Dashboard() {
     { value: "calendar", label: "Calendar" },
     { value: "analysis", label: "Mood Analysis" },
     { value: "recommendations", label: "Recommendations" },
-    { value: "activities", label: "Activities" },
-    { value: "journaling", label: "Journaling" },
     { value: "therapists", label: "Find Therapists" },
   ]
 
   // Add period tracking tab for female users
   if (userData.gender === "female") {
-    tabsConfig.splice(5, 0, { value: "period", label: "Period Tracking" })
+    tabsConfig.splice(4, 0, { value: "period", label: "Period Tracking" })
   }
 
   return (
@@ -182,6 +178,20 @@ export default function Dashboard() {
                 <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
                   <Music className="mr-2 h-4 w-4" />
                   Music Preferences
+                </Button>
+              </Link>
+              <Link href="/dashboard/activities">
+                <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
+                  <Activity className="mr-2 h-4 w-4" />
+                  Activities
+                </Button>
+              </Link>
+              <Link href="/dashboard/journaling">
+                <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  Journaling
                 </Button>
               </Link>
               <Link href="/pricing">
@@ -250,7 +260,7 @@ export default function Dashboard() {
             )}
 
             <Tabs defaultValue="mood" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 lg:grid-cols-8 bg-gray-800">
+              <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 bg-gray-800">
                 {tabsConfig.map((tab) => (
                   <TabsTrigger key={tab.value} value={tab.value} className="text-xs lg:text-sm text-white data-[state=active]:bg-gray-700 data-[state=active]:text-white">
                     {tab.label}
@@ -294,14 +304,6 @@ export default function Dashboard() {
 
               <TabsContent value="recommendations" className="mt-6">
                 <Recommendations userData={userData} />
-              </TabsContent>
-
-              <TabsContent value="activities" className="mt-6">
-                <ActivityPreferences userData={userData} />
-              </TabsContent>
-
-              <TabsContent value="journaling" className="mt-6">
-                <JournalingSection />
               </TabsContent>
 
               <TabsContent value="therapists" className="mt-6">

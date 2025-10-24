@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
 import ActivityPreferences from "@/components/activity-preferences"
+import { MenuButton } from "@/components/navigation-sidebar"
 
 export const dynamic = 'force-dynamic'
 
@@ -24,10 +25,17 @@ export default function ActivitiesPage() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 p-6">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl font-bold tracking-tight text-white mb-6">Activity Preferences</h1>
-          {userData && <ActivityPreferences userData={userData} />}
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
+        {/* Fixed header with menu button */}
+        <div className="sticky top-0 z-50 bg-gray-900 border-b border-gray-700 px-6 py-4 flex items-center gap-4">
+          <MenuButton />
+          <h1 className="text-2xl font-bold tracking-tight text-white">Activity Preferences</h1>
+        </div>
+        
+        <div className="p-6">
+          <div className="max-w-6xl mx-auto">
+            {userData && <ActivityPreferences userData={userData} />}
+          </div>
         </div>
       </div>
     </DashboardLayout>

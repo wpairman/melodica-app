@@ -124,7 +124,7 @@ export default function Dashboard() {
   }
 
   const tabsConfig = [
-    { value: "mood", label: "Mood Tracking" },
+    { value: "mood", label: "Home" },
     { value: "calendar", label: "Calendar" },
     { value: "analysis", label: "Mood Analysis" },
     { value: "recommendations", label: "Recommendations" },
@@ -155,7 +155,7 @@ export default function Dashboard() {
               <Link href="/dashboard">
                 <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
                   <Heart className="mr-2 h-4 w-4" />
-                  Mood Tracking
+                  Home
                 </Button>
               </Link>
               <Link href="/calendar">

@@ -17,6 +17,8 @@ interface PeriodData {
   periodLength: number
   onBirthControl: boolean
   birthControlType: string
+  hasPCOS: boolean
+  pcosSymptoms: string[]
   symptoms: Array<{
     date: string
     symptoms: string[]
@@ -46,6 +48,20 @@ const symptomOptions = [
   "Insomnia",
 ]
 
+const pcosSymptomOptions = [
+  "Irregular periods",
+  "Heavy bleeding",
+  "Excess hair growth",
+  "Hair loss",
+  "Weight gain",
+  "Dark skin patches",
+  "Multiple ovarian cysts",
+  "High androgen levels",
+  "Insulin resistance",
+  "Fatigue",
+  "Mood changes",
+]
+
 const flowOptions = ["Light", "Medium", "Heavy", "Spotting"]
 const moodOptions = ["Happy", "Sad", "Irritable", "Anxious", "Calm", "Energetic", "Tired"]
 
@@ -57,6 +73,8 @@ export default function PeriodTracker() {
     periodLength: 5,
     onBirthControl: false,
     birthControlType: "",
+    hasPCOS: false,
+    pcosSymptoms: [],
     symptoms: [],
     sexualActivity: [],
   })

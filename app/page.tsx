@@ -17,11 +17,11 @@ export default function Home() {
           <Heart className="h-6 w-6 text-rose-500 mr-2" />
           <span className="font-bold text-xl text-white">Melodica</span>
         </Link>
-        <nav className="ml-auto flex gap-4 sm:gap-6">
+        <nav className="ml-auto flex gap-4 sm:gap-6 items-center">
           <Link className="text-sm font-medium hover:underline underline-offset-4 text-white" href="/pricing">
             Pricing
           </Link>
-          <Link className="text-sm font-medium hover:underline underline-offset-4 text-white" href="/login">
+          <Link href="/login" className="text-sm font-medium hover:underline underline-offset-4 text-white">
             Login
           </Link>
           <Link href="/register">

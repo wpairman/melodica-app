@@ -95,13 +95,13 @@ export default function ArtistSongsList({ favoriteArtists }: ArtistSongsListProp
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold">Songs from Your Favorite Artists</h2>
+      <h2 className="text-xl font-semibold text-black">Songs from Your Favorite Artists</h2>
 
       {artistsList.map((artist) => (
         <Card key={artist}>
           <CardHeader>
-            <CardTitle>{artist}</CardTitle>
-            <CardDescription>Popular songs you might enjoy</CardDescription>
+            <CardTitle className="text-black">{artist}</CardTitle>
+            <CardDescription className="text-black">Popular songs you might enjoy</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -116,8 +116,8 @@ export default function ArtistSongsList({ favoriteArtists }: ArtistSongsListProp
                       />
                     </div>
                     <div>
-                      <h4 className="font-medium">{song.title}</h4>
-                      <p className="text-sm text-gray-500">
+                      <h4 className="font-medium text-black">{song.title}</h4>
+                      <p className="text-sm text-black">
                         {song.album} • {song.duration}
                       </p>
                     </div>

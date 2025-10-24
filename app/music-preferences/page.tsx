@@ -89,8 +89,8 @@ export default function MusicPreferences() {
 
         <Tabs defaultValue="quiz" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-8">
-            <TabsTrigger value="quiz">Music Quiz</TabsTrigger>
-            <TabsTrigger value="songs">Your Artists' Songs</TabsTrigger>
+            <TabsTrigger value="quiz" className="text-black">Music Quiz</TabsTrigger>
+            <TabsTrigger value="songs" className="text-black">Your Artists' Songs</TabsTrigger>
           </TabsList>
 
           <TabsContent value="quiz">
@@ -116,8 +116,8 @@ export default function MusicPreferences() {
           <TabsContent value="songs">
             <Card className="border-none shadow-lg">
               <CardHeader>
-                <CardTitle className="text-2xl">Songs from Your Artists</CardTitle>
-                <CardDescription>Discover music from the artists you mentioned during signup</CardDescription>
+                <CardTitle className="text-2xl text-black">Songs from Your Artists</CardTitle>
+                <CardDescription className="text-black">Discover music from the artists you mentioned during signup</CardDescription>
               </CardHeader>
               <CardContent>{userData && <ArtistSongsList favoriteArtists={userData.favoriteArtists} />}</CardContent>
             </Card>

@@ -224,7 +224,7 @@ export default function ProfilePage() {
         <div className="p-6">
           <div className="space-y-6">
             <div className="grid gap-6 md:grid-cols-3">
-          {/* Profile Overview */}
+              {/* Profile Overview */}
           <Card className="md:col-span-1 bg-gray-800 border-gray-700">
             <CardHeader className="text-center">
               <div className="relative mx-auto">
@@ -460,6 +460,7 @@ export default function ProfilePage() {
                 </div>
               </CardContent>
             </Card>
+            </div>
             </div>
           </div>
         </div>

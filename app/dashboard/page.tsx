@@ -8,7 +8,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Heart, Activity, User, Settings, LogOut, Music, CreditCard, Calendar } from "lucide-react"
+import { Heart, Activity, User, Settings, LogOut, Music, CreditCard, Calendar, Menu } from "lucide-react"
 import MoodTracker from "@/components/mood-tracker"
 import Recommendations from "@/components/recommendations"
 import MoodAnalysis from "@/components/mood-analysis"
@@ -228,11 +228,25 @@ export default function Dashboard() {
       </div>
       <div className="flex-1 md:ml-64">
         <header className="sticky top-0 z-40 border-b bg-gray-900 border-gray-700 md:hidden">
-          <div className="flex h-14 items-center px-4">
+          <div className="flex h-14 items-center px-4 justify-between">
             <Link href="/" className="flex items-center gap-2 font-semibold text-white">
               <Heart className="h-6 w-6 text-rose-500" />
               <span>Melodica</span>
             </Link>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="text-white hover:bg-gray-800"
+              onClick={() => {
+                // Toggle mobile menu
+                const sidebar = document.querySelector('[class*="fixed"]')
+                if (sidebar) {
+                  sidebar.classList.toggle('hidden')
+                }
+              }}
+            >
+              <Menu className="h-6 w-6" />
+            </Button>
           </div>
         </header>
         <main className="container mx-auto p-4 md:p-6">

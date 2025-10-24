@@ -624,3 +624,43 @@ body {
   border: 1px solid hsl(var(--border));
 }
 
+/* iOS-specific fixes */
+@supports (-webkit-touch-callout: none) {
+  /* Fix for iOS Safari viewport */
+  html {
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Fix for iOS input zoom on focus */
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+  
+  /* Better touch targets for iOS */
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Fix for iOS sidebar visibility */
+  @media (max-width: 768px) {
+    .md\\:hidden {
+      display: none !important;
+    }
+  }
+}
+
+/* Safari-specific fixes */
+@supports (-webkit-appearance: none) {
+  /* Prevent iOS pull-to-refresh on the page */
+  body {
+    overscroll-behavior-y: contain;
+  }
+  
+  /* Fix dialog positioning on iOS */
+  [role="dialog"] {
+    position: fixed !important;
+  }
+}
+

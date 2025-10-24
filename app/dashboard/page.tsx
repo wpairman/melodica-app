@@ -18,6 +18,7 @@ import CalendarIntegration from "@/components/calendar-integration"
 import CalendarNotifications from "@/components/calendar-notifications"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
 import { useSafeToast } from "@/components/toast-provider"
+import ActivityPreferences from "@/components/activity-preferences"
 
 export default function Dashboard() {
   const { toast } = useSafeToast()
@@ -127,6 +128,7 @@ export default function Dashboard() {
     { value: "calendar", label: "Calendar" },
     { value: "analysis", label: "Mood Analysis" },
     { value: "recommendations", label: "Recommendations" },
+    { value: "activities", label: "Activities" },
     { value: "therapists", label: "Find Therapists" },
   ]
 
@@ -246,7 +248,7 @@ export default function Dashboard() {
             )}
 
             <Tabs defaultValue="mood" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 lg:grid-cols-5 bg-gray-800">
+              <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 bg-gray-800">
                 {tabsConfig.map((tab) => (
                   <TabsTrigger key={tab.value} value={tab.value} className="text-xs lg:text-sm text-white data-[state=active]:bg-gray-700 data-[state=active]:text-white">
                     {tab.label}
@@ -290,6 +292,10 @@ export default function Dashboard() {
 
               <TabsContent value="recommendations" className="mt-6">
                 <Recommendations userData={userData} />
+              </TabsContent>
+
+              <TabsContent value="activities" className="mt-6">
+                <ActivityPreferences userData={userData} />
               </TabsContent>
 
               <TabsContent value="therapists" className="mt-6">

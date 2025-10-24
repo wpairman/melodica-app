@@ -133,19 +133,20 @@ export default function MoodHistoryPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Mood History</h1>
-            <p className="text-gray-500">Calendar view of your mood journey</p>
-          </div>
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 p-6">
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight text-white">Mood History</h1>
+              <p className="text-gray-300">Calendar view of your mood journey</p>
+            </div>
           {trend && (
-            <Card className="p-4">
+            <Card className="p-4 bg-gray-800 border-gray-700">
               <div className="flex items-center gap-2">
                 {trend.trend === "up" && <TrendingUp className="h-5 w-5 text-green-500" />}
                 {trend.trend === "down" && <TrendingDown className="h-5 w-5 text-red-500" />}
                 {trend.trend === "stable" && <Minus className="h-5 w-5 text-gray-500" />}
-                <span className="text-sm font-medium">
+                <span className="text-sm font-medium text-white">
                   {trend.trend === "up" && `Improving by ${trend.value}`}
                   {trend.trend === "down" && `Declining by ${trend.value}`}
                   {trend.trend === "stable" && "Stable mood"}
@@ -158,20 +159,20 @@ export default function MoodHistoryPage() {
         <div className="grid gap-6 lg:grid-cols-4">
           {/* Calendar */}
           <div className="lg:col-span-3">
-            <Card>
+            <Card className="bg-gray-800 border-gray-700">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <Button variant="ghost" onClick={() => {
+                  <Button variant="ghost" className="text-white hover:bg-gray-700" onClick={() => {
                     if (typeof window !== 'undefined') {
                       navigateMonth(-1)
                     }
                   }}>
                     <ChevronLeft className="h-5 w-5" />
                   </Button>
-                  <CardTitle className="text-2xl">
+                  <CardTitle className="text-2xl text-white">
                     {monthNames[month]} {year}
                   </CardTitle>
-                  <Button variant="ghost" onClick={() => {
+                  <Button variant="ghost" className="text-white hover:bg-gray-700" onClick={() => {
                     if (typeof window !== 'undefined') {
                       navigateMonth(1)
                     }
@@ -184,7 +185,7 @@ export default function MoodHistoryPage() {
                 {/* Days of week header */}
                 <div className="grid grid-cols-7 gap-1 mb-4">
                   {daysOfWeek.map((day) => (
-                    <div key={day} className="text-center text-sm font-semibold text-gray-600 p-3">
+                    <div key={day} className="text-center text-sm font-semibold text-gray-300 p-3">
                       {day}
                     </div>
                   ))}
@@ -207,12 +208,12 @@ export default function MoodHistoryPage() {
                         }}
                         className={cn(
                           "min-h-[80px] p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md relative",
-                          isCurrentMonth ? "bg-white hover:bg-gray-50" : "bg-gray-50 text-gray-400",
+                          isCurrentMonth ? "bg-gray-700 hover:bg-gray-600 border-gray-600" : "bg-gray-800 text-gray-500 border-gray-700",
                           isTodayDate && "ring-2 ring-blue-500",
-                          isSelected && "ring-2 ring-purple-500 bg-purple-50",
+                          isSelected && "ring-2 ring-purple-500 bg-purple-900",
                         )}
                       >
-                        <div className={cn("text-sm font-medium mb-1", isTodayDate && "text-blue-600 font-bold")}>
+                        <div className={cn("text-sm font-medium mb-1 text-white", isTodayDate && "text-blue-400 font-bold")}>
                           {date.getDate()}
                         </div>
 
@@ -242,9 +243,9 @@ export default function MoodHistoryPage() {
           <div className="space-y-6">
             {/* Selected Date Details */}
             {selectedDate && (
-              <Card>
+              <Card className="bg-gray-800 border-gray-700">
                 <CardHeader>
-                  <CardTitle className="text-lg">
+                  <CardTitle className="text-lg text-white">
                     {selectedDate.toLocaleDateString([], {
                       weekday: "long",
                       month: "long",
@@ -269,7 +270,7 @@ export default function MoodHistoryPage() {
                             </div>
                             <div>
                               <div className="text-2xl">{getMoodEmoji(moodEntry.mood)}</div>
-                              <div className="text-sm text-gray-500">
+                              <div className="text-sm text-gray-300">
                                 {moodEntry.timestamp.toLocaleTimeString([], {
                                   hour: "2-digit",
                                   minute: "2-digit",
@@ -278,14 +279,14 @@ export default function MoodHistoryPage() {
                             </div>
                           </div>
                           {moodEntry.notes && (
-                            <div className="bg-gray-50 p-3 rounded-lg">
-                              <p className="text-sm text-gray-700">{moodEntry.notes}</p>
+                            <div className="bg-gray-700 p-3 rounded-lg">
+                              <p className="text-sm text-gray-200">{moodEntry.notes}</p>
                             </div>
                           )}
                         </div>
                       )
                     } else {
-                      return <p className="text-gray-500 text-sm">No mood entry for this date</p>
+                      return <p className="text-gray-300 text-sm">No mood entry for this date</p>
                     }
                   })()}
                 </CardContent>
@@ -293,32 +294,32 @@ export default function MoodHistoryPage() {
             )}
 
             {/* Mood Legend */}
-            <Card>
+            <Card className="bg-gray-800 border-gray-700">
               <CardHeader>
-                <CardTitle className="text-lg">Mood Scale</CardTitle>
+                <CardTitle className="text-lg text-white">Mood Scale</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
                     <div className="w-6 h-6 rounded-full bg-red-400"></div>
-                    <span className="text-sm">Low (1-3) 😢</span>
+                    <span className="text-sm text-white">Low (1-3) 😢</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="w-6 h-6 rounded-full bg-yellow-400"></div>
-                    <span className="text-sm">Neutral (4-6) 😐</span>
+                    <span className="text-sm text-white">Neutral (4-6) 😐</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="w-6 h-6 rounded-full bg-green-400"></div>
-                    <span className="text-sm">High (7-10) 😊</span>
+                    <span className="text-sm text-white">High (7-10) 😊</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Statistics */}
-            <Card>
+            <Card className="bg-gray-800 border-gray-700">
               <CardHeader>
-                <CardTitle className="text-lg">This Month</CardTitle>
+                <CardTitle className="text-lg text-white">This Month</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -328,7 +329,7 @@ export default function MoodHistoryPage() {
                     )
 
                     if (thisMonthEntries.length === 0) {
-                      return <p className="text-gray-500 text-sm">No entries this month</p>
+                      return <p className="text-gray-300 text-sm">No entries this month</p>
                     }
 
                     const avgMood =
@@ -339,11 +340,11 @@ export default function MoodHistoryPage() {
                     return (
                       <>
                         <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Entries:</span>
-                          <Badge variant="outline">{thisMonthEntries.length}</Badge>
+                          <span className="text-sm text-gray-300">Entries:</span>
+                          <Badge variant="outline" className="border-gray-600 text-white">{thisMonthEntries.length}</Badge>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Average:</span>
+                          <span className="text-sm text-gray-300">Average:</span>
                           <Badge
                             className={getMoodColor(avgMood).replace("bg-", "bg-opacity-20 text-") + " border-current"}
                           >
@@ -351,12 +352,12 @@ export default function MoodHistoryPage() {
                           </Badge>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Highest:</span>
-                          <Badge className="bg-green-100 text-green-800">{highestMood}</Badge>
+                          <span className="text-sm text-gray-300">Highest:</span>
+                          <Badge className="bg-green-500 text-white">{highestMood}</Badge>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Lowest:</span>
-                          <Badge className="bg-red-100 text-red-800">{lowestMood}</Badge>
+                          <span className="text-sm text-gray-300">Lowest:</span>
+                          <Badge className="bg-red-500 text-white">{lowestMood}</Badge>
                         </div>
                       </>
                     )
@@ -366,6 +367,7 @@ export default function MoodHistoryPage() {
             </Card>
           </div>
         </div>
+      </div>
       </div>
     </DashboardLayout>
   )

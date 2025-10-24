@@ -271,8 +271,9 @@ export default function MoodTracker({ userData }: MoodTrackerProps) {
             </div>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="list">
-              <TabsList className="grid w-full grid-cols-2 mb-4">
+            <Tabs defaultValue="chart">
+              <TabsList className="grid w-full grid-cols-3 mb-4">
+                <TabsTrigger value="chart">Chart</TabsTrigger>
                 <TabsTrigger value="list">List View</TabsTrigger>
                 <TabsTrigger value="calendar">Calendar View</TabsTrigger>
               </TabsList>
@@ -307,6 +308,53 @@ export default function MoodTracker({ userData }: MoodTrackerProps) {
                     )}
                   </div>
                 ))}
+              </TabsContent>
+
+              <TabsContent value="chart">
+                <div className="space-y-4">
+                  <div className="bg-gradient-to-b from-gray-50 to-white p-6 rounded-lg border">
+                    <h3 className="text-lg font-semibold mb-4">Mood Trend Chart</h3>
+                    <div className="relative h-64 flex items-end justify-between gap-1">
+                      {moodHistory.slice(-30).map((entry, index) => {
+                        const height = (entry.mood / 10) * 100
+                        const getBarColor = () => {
+                          if (entry.mood <= 3) return "bg-red-400"
+                          if (entry.mood <= 6) return "bg-yellow-400"
+                          return "bg-green-400"
+                        }
+                        return (
+                          <div key={index} className="flex-1 flex flex-col items-center gap-1">
+                            <div
+                              className={`w-full ${getBarColor()} rounded-t transition-all hover:opacity-80`}
+                              style={{ height: `${height}%` }}
+                              title={`Mood: ${entry.mood}, ${formatDate(entry.timestamp)}`}
+                            />
+                            <span className="text-xs text-gray-500 rotate-45 origin-top-left">
+                              {entry.mood}
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                    <div className="mt-4 flex justify-between text-sm text-gray-500">
+                      <span>Last 30 entries</span>
+                      <div className="flex gap-4">
+                        <div className="flex items-center gap-1">
+                          <div className="w-3 h-3 bg-red-400 rounded" />
+                          <span>Low (1-3)</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <div className="w-3 h-3 bg-yellow-400 rounded" />
+                          <span>Neutral (4-6)</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <div className="w-3 h-3 bg-green-400 rounded" />
+                          <span>High (7-10)</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </TabsContent>
 
               <TabsContent value="calendar">

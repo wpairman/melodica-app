@@ -131,13 +131,43 @@ export default function Recommendations({ userData }: RecommendationsProps) {
   // Get personalized recommendations based on user preferences and current mood
   const getPersonalizedMusic = () => {
     const baseRecommendations = musicRecommendations[currentMood]
-    // In a real app, you would use the user's favorite artists to personalize this
+    
+    // Use user's favorite artists to personalize recommendations
+    if (userData.favoriteArtists) {
+      const favoriteArtists = userData.favoriteArtists.split(',').map(a => a.trim())
+      const personalizedRecs = baseRecommendations.map(rec => {
+        // Match artist names to user's favorites
+        const matchesArtist = favoriteArtists.some(artist => 
+          rec.artist.toLowerCase().includes(artist.toLowerCase()) ||
+          artist.toLowerCase().includes(rec.artist.toLowerCase())
+        )
+        return matchesArtist ? { ...rec, personalized: true } : rec
+      })
+      // Put personalized recommendations first
+      return personalizedRecs.sort((a, b) => (b as any).personalized ? 1 : -1)
+    }
+    
     return baseRecommendations
   }
 
   const getPersonalizedActivities = () => {
     const baseRecommendations = activityRecommendations[currentMood]
-    // In a real app, you would use the user's favorite activities to personalize this
+    
+    // Use user's favorite activities to personalize recommendations
+    if (userData.favoriteActivities) {
+      const favoriteActivities = userData.favoriteActivities.split(',').map(a => a.trim())
+      const personalizedRecs = baseRecommendations.map(rec => {
+        // Match activity names to user's favorites
+        const matchesActivity = favoriteActivities.some(activity => 
+          rec.name.toLowerCase().includes(activity.toLowerCase()) ||
+          activity.toLowerCase().includes(rec.name.toLowerCase())
+        )
+        return matchesActivity ? { ...rec, personalized: true } : rec
+      })
+      // Put personalized recommendations first
+      return personalizedRecs.sort((a, b) => (b as any).personalized ? 1 : -1)
+    }
+    
     return baseRecommendations
   }
 
@@ -150,7 +180,7 @@ export default function Recommendations({ userData }: RecommendationsProps) {
               <Music className="h-5 w-5 mr-2 text-teal-600" />
               Enhance Your Music Recommendations
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-black">
               Take our detailed music preference quiz to get more personalized song recommendations based on your taste
             </CardDescription>
           </CardHeader>

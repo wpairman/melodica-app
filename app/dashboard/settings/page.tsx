@@ -12,6 +12,7 @@ import DashboardLayout from "@/components/layouts/dashboard-layout"
 import { ColorCustomizationPanel } from "@/components/settings/color-customization-panel"
 import { useToast } from "@/hooks/use-toast"
 import { useTheme } from "next-themes"
+import { MenuButton } from "@/components/navigation-sidebar"
 
 export default function SettingsPage() {
   const { toast } = useToast()
@@ -401,11 +402,18 @@ export default function SettingsPage() {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col gap-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">Settings</h1>
-          <p className="text-gray-300">Manage your app preferences and notifications</p>
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
+        {/* Fixed header with menu button */}
+        <div className="sticky top-0 z-50 bg-gray-900 border-b border-gray-700 px-6 py-4 flex items-center gap-4">
+          <MenuButton />
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-white">Settings</h1>
+            <p className="text-gray-300 text-sm">Manage your app preferences and notifications</p>
+          </div>
         </div>
+
+        <div className="p-6">
+          <div className="flex flex-col gap-6">
 
         <div className="grid gap-6">
           {/* Calendar Settings */}
@@ -892,6 +900,7 @@ export default function SettingsPage() {
               </Button>
             </CardContent>
           </Card>
+          </div>
         </div>
       </div>
     </DashboardLayout>

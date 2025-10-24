@@ -115,7 +115,7 @@ export function MenuButton() {
       <Button
         variant="ghost"
         size="icon"
-        className="text-white hover:bg-gray-800"
+        className="text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-800"
         onClick={() => setIsOpen(true)}
       >
         <Menu className="h-6 w-6" />

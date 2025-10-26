@@ -20,7 +20,12 @@ export const metadata: Metadata = {
   title: "Melodica - Mental Wellness Companion",
   description: "Track your mood, discover personalized recommendations, and take care of your mental wellbeing.",
   manifest: "/manifest.json",
-    generator: 'v0.dev'
+  generator: 'v0.dev',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+  }
 }
 
 export default function RootLayout({

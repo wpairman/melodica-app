@@ -71,6 +71,18 @@
 body {
   color: hsl(var(--foreground));
   background: hsl(var(--background));
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Ensure proper background colors for light and dark modes */
+body:not(.dark) {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+body.dark {
+  background-color: #0f172a;
+  color: #f1f5f9;
 }
 
 /* Custom scrollbar styles */
@@ -631,23 +643,40 @@ body {
     -webkit-touch-callout: none;
     -webkit-tap-highlight-color: transparent;
   }
-  
+
   /* Fix for iOS input zoom on focus */
   input, textarea, select {
     font-size: 16px !important;
   }
-  
+
   /* Better touch targets for iOS */
   button, a {
     min-height: 44px;
     min-width: 44px;
   }
-  
+
   /* Fix for iOS sidebar visibility */
   @media (max-width: 768px) {
     .md\\:hidden {
       display: none !important;
     }
+  }
+
+  /* Fix for iOS Safari color scheme issues */
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Ensure proper theme colors on iOS */
+  body:not(.dark) {
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
+
+  body.dark {
+    background: #0f172a !important;
+    color: #f1f5f9 !important;
   }
 }
 

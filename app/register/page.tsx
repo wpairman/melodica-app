@@ -237,6 +237,12 @@ Remember: This is general information only. Always consult with your healthcare 
     }
     if (typeof window !== 'undefined') {
       localStorage.setItem("userData", JSON.stringify(userData))
+      
+      // Save credentials for easy login (with "Remember me" enabled by default)
+      localStorage.setItem("savedCredentials", JSON.stringify({
+        email: formData.email,
+        password: formData.password,
+      }))
     }
 
     // Use the auth context to log in the user

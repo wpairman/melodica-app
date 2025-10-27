@@ -72,17 +72,26 @@ body {
   color: hsl(var(--foreground));
   background: hsl(var(--background));
   transition: background-color 0.3s ease, color 0.3s ease;
+  -webkit-text-fill-color: hsl(var(--foreground));
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
 }
 
 /* Ensure proper background colors for light and dark modes */
 body:not(.dark) {
   background-color: #ffffff;
   color: #0f172a;
+  -webkit-text-fill-color: #0f172a;
 }
 
 body.dark {
   background-color: #0f172a;
   color: #f1f5f9;
+  -webkit-text-fill-color: #f1f5f9;
+}
+
+/* Prevent iOS Safari from auto-coloring text yellow */
+* {
+  -webkit-text-fill-color: inherit;
 }
 
 /* Custom scrollbar styles */
@@ -677,6 +686,18 @@ body.dark {
   body.dark {
     background: #0f172a !important;
     color: #f1f5f9 !important;
+  }
+
+  /* Fix yellow text on iOS - prevent auto-coloring */
+  * {
+    -webkit-text-fill-color: inherit !important;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Fix for specific elements that might appear yellow on iOS */
+  input, textarea, select, button, label, p, h1, h2, h3, h4, h5, h6, span, div {
+    color: inherit !important;
+    -webkit-text-fill-color: inherit !important;
   }
 }
 

@@ -167,8 +167,8 @@ export default function MoodTracker({ userData }: MoodTrackerProps) {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>How are you feeling right now?</CardTitle>
-          <CardDescription>Rate your current mood on a scale from 1 to 10</CardDescription>
+          <CardTitle className="text-gray-900 dark:text-white">How are you feeling right now?</CardTitle>
+          <CardDescription className="text-gray-700 dark:text-gray-300">Rate your current mood on a scale from 1 to 10</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-5 gap-2 sm:grid-cols-10">

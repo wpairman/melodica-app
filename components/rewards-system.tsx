@@ -404,19 +404,19 @@ export default function RewardsSystem({ moodHistory, onAchievementEarned }: Rewa
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
             <Trophy className="h-5 w-5 text-yellow-500" />
             Your Achievements
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-gray-700 dark:text-gray-300">
             Keep logging your mood to unlock rewards! Current streak: {currentStreak} days
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="mb-4">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium">Progress</span>
-              <span className="text-sm text-gray-500">
+              <span className="text-sm font-medium text-gray-900 dark:text-white">Progress</span>
+              <span className="text-sm text-gray-700 dark:text-gray-400">
                 {earnedCount}/{achievements.length} achievements
               </span>
             </div>

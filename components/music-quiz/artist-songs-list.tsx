@@ -128,8 +128,10 @@ export default function ArtistSongsList({ favoriteArtists }: ArtistSongsListProp
                       size="sm" 
                       className="h-8 w-8 p-0"
                       onClick={() => {
-                        const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(song.artist + " " + song.title)}`
-                        window.open(youtubeSearchUrl, '_blank')
+                        if (typeof window !== 'undefined') {
+                          const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(song.artist + " " + song.title)}`
+                          window.open(youtubeSearchUrl, '_blank')
+                        }
                       }}
                     >
                       <Play className="h-4 w-4" />
@@ -140,8 +142,10 @@ export default function ArtistSongsList({ favoriteArtists }: ArtistSongsListProp
                       size="sm" 
                       className="h-8 w-8 p-0"
                       onClick={() => {
-                        const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(song.artist + " " + song.title)}`
-                        window.open(youtubeSearchUrl, '_blank')
+                        if (typeof window !== 'undefined') {
+                          const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(song.artist + " " + song.title)}`
+                          window.open(youtubeSearchUrl, '_blank')
+                        }
                       }}
                     >
                       <ExternalLink className="h-4 w-4" />

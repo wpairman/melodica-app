@@ -238,7 +238,11 @@ export default function Recommendations({ userData }: RecommendationsProps) {
                           variant="outline" 
                           size="sm" 
                           className="h-8"
-                          onClick={() => window.open(youtubeSearchUrl, '_blank')}
+                          onClick={() => {
+                            if (typeof window !== 'undefined') {
+                              window.open(youtubeSearchUrl, '_blank')
+                            }
+                          }}
                         >
                           <ExternalLink className="mr-2 h-3 w-3" />
                           Listen

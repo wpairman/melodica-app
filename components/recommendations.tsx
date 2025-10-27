@@ -224,21 +224,29 @@ export default function Recommendations({ userData }: RecommendationsProps) {
             </TabsList>
             <TabsContent value="music" className="mt-4">
               <div className="space-y-4">
-                {getPersonalizedMusic().map((item, index) => (
-                  <Card key={index}>
-                    <CardHeader className="p-4">
-                      <CardTitle className="text-base">{item.title}</CardTitle>
-                      <CardDescription>{item.artist}</CardDescription>
-                    </CardHeader>
-                    <CardFooter className="p-4 pt-0 flex justify-between">
-                      <span className="text-xs px-2 py-1 bg-teal-100 text-teal-800 rounded-full">{item.mood}</span>
-                      <Button variant="outline" size="sm" className="h-8">
-                        <ExternalLink className="mr-2 h-3 w-3" />
-                        Listen
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                ))}
+                {getPersonalizedMusic().map((item, index) => {
+                  const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(item.artist + " " + item.title)}`
+                  return (
+                    <Card key={index}>
+                      <CardHeader className="p-4">
+                        <CardTitle className="text-base">{item.title}</CardTitle>
+                        <CardDescription>{item.artist}</CardDescription>
+                      </CardHeader>
+                      <CardFooter className="p-4 pt-0 flex justify-between">
+                        <span className="text-xs px-2 py-1 bg-teal-100 text-teal-800 rounded-full">{item.mood}</span>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-8"
+                          onClick={() => window.open(youtubeSearchUrl, '_blank')}
+                        >
+                          <ExternalLink className="mr-2 h-3 w-3" />
+                          Listen
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  )
+                })}
               </div>
             </TabsContent>
             <TabsContent value="activities" className="mt-4">

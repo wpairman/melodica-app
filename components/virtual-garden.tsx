@@ -235,7 +235,7 @@ export default function VirtualGarden({ moodHistory }: VirtualGardenProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
+              <CardTitle className="flex items-center gap-2 text-white">
                 {gardenStage === "reflective" ? (
                   <Sparkles className="h-5 w-5 text-purple-500" />
                 ) : gardenStage === "blossoming" ? (
@@ -245,7 +245,7 @@ export default function VirtualGarden({ moodHistory }: VirtualGardenProps) {
                 )}
                 {getGardenTitle()}
               </CardTitle>
-              <CardDescription className={gardenStage === "reflective" ? "text-blue-400" : "text-gray-700 dark:text-gray-300"}>{getGardenDescription()}</CardDescription>
+              <CardDescription className={gardenStage === "reflective" ? "text-blue-400" : "text-white"}>{getGardenDescription()}</CardDescription>
             </div>
             {gardenStage === "reflective" && (
               <Button onClick={() => setShowReflectiveSpace(true)} className="bg-purple-600 hover:bg-purple-700">
@@ -259,8 +259,8 @@ export default function VirtualGarden({ moodHistory }: VirtualGardenProps) {
           {gardenStage === "empty" ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <div className="text-6xl mb-4">🌱</div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Plant Your First Seed</h3>
-              <p className="text-gray-700 dark:text-gray-300">Log your first mood to start growing your emotional garden</p>
+              <h3 className="text-lg font-medium text-white mb-2">Plant Your First Seed</h3>
+              <p className="text-white">Log your first mood to start growing your emotional garden</p>
             </div>
           ) : (
             <div className="relative min-h-[300px] rounded-lg overflow-hidden">

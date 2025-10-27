@@ -123,11 +123,27 @@ export default function ArtistSongsList({ favoriteArtists }: ArtistSongsListProp
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-8 w-8 p-0"
+                      onClick={() => {
+                        const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(song.artist + " " + song.title)}`
+                        window.open(youtubeSearchUrl, '_blank')
+                      }}
+                    >
                       <Play className="h-4 w-4" />
                       <span className="sr-only">Play</span>
                     </Button>
-                    <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-8 w-8 p-0"
+                      onClick={() => {
+                        const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(song.artist + " " + song.title)}`
+                        window.open(youtubeSearchUrl, '_blank')
+                      }}
+                    >
                       <ExternalLink className="h-4 w-4" />
                       <span className="sr-only">Open</span>
                     </Button>

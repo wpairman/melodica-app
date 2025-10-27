@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
-import { Bell, Clock, Moon, Volume2, Palette, Eye, MapPin, Shield, Calendar } from "lucide-react"
+import { Bell, Clock, Moon, Volume2, Palette, Eye, MapPin, Shield, Calendar, Music } from "lucide-react"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
 import { ColorCustomizationPanel } from "@/components/settings/color-customization-panel"
 import { useToast } from "@/hooks/use-toast"
@@ -42,6 +42,10 @@ export default function SettingsPage() {
         appointments: true,
         social: true,
       },
+    },
+    music: {
+      spotifyConnected: false,
+      appleMusicConnected: false,
     },
     privacy: {
       dataSharing: false,
@@ -871,11 +875,123 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          {/* Test Notification */}
-          <Card>
+          {/* Music Integration */}
+          <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
-              <CardTitle>Test Notifications</CardTitle>
-              <CardDescription>Send a test notification to make sure everything is working</CardDescription>
+              <CardTitle className="flex items-center gap-2 text-white">
+                <Music className="h-5 w-5" />
+                Music Integration
+              </CardTitle>
+              <CardDescription className="text-gray-300">
+                Connect your music streaming accounts for personalized recommendations
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center">
+                    <Music className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <Label className="text-base text-white">Spotify</Label>
+                    <div className="text-sm text-gray-400">
+                      Connect to sync your playlists and preferences
+                    </div>
+                  </div>
+                </div>
+                {settings.music.spotifyConnected ? (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      const newSettings = {
+                        ...settings,
+                        music: { ...settings.music, spotifyConnected: false },
+                      }
+                      updateSettings(newSettings)
+                      toast({
+                        title: "Disconnected",
+                        description: "Spotify has been disconnected.",
+                      })
+                    }}
+                  >
+                    Disconnect
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => {
+                      const newSettings = {
+                        ...settings,
+                        music: { ...settings.music, spotifyConnected: true },
+                      }
+                      updateSettings(newSettings)
+                      toast({
+                        title: "Connected!",
+                        description: "Spotify has been connected successfully.",
+                      })
+                    }}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    Connect
+                  </Button>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <Music className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <Label className="text-base text-white">Apple Music</Label>
+                    <div className="text-sm text-gray-400">
+                      Connect to sync your library and listening history
+                    </div>
+                  </div>
+                </div>
+                {settings.music.appleMusicConnected ? (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      const newSettings = {
+                        ...settings,
+                        music: { ...settings.music, appleMusicConnected: false },
+                      }
+                      updateSettings(newSettings)
+                      toast({
+                        title: "Disconnected",
+                        description: "Apple Music has been disconnected.",
+                      })
+                    }}
+                  >
+                    Disconnect
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => {
+                      const newSettings = {
+                        ...settings,
+                        music: { ...settings.music, appleMusicConnected: true },
+                      }
+                      updateSettings(newSettings)
+                      toast({
+                        title: "Connected!",
+                        description: "Apple Music has been connected successfully.",
+                      })
+                    }}
+                    className="bg-gradient-to-br from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
+                  >
+                    Connect
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Test Notification */}
+          <Card className="bg-gray-800 border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-white">Test Notifications</CardTitle>
+              <CardDescription className="text-gray-300">Send a test notification to make sure everything is working</CardDescription>
             </CardHeader>
             <CardContent>
               <Button

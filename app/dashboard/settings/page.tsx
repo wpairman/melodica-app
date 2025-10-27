@@ -71,7 +71,15 @@ export default function SettingsPage() {
       const storedSettings = localStorage.getItem("appSettings")
       if (storedSettings) {
         const parsed = JSON.parse(storedSettings)
-        setSettings(parsed)
+        // Ensure music settings exist for backwards compatibility
+        const mergedSettings = {
+          ...parsed,
+          music: parsed.music || {
+            spotifyConnected: false,
+            appleMusicConnected: false,
+          },
+        }
+        setSettings(mergedSettings)
 
         // Apply custom theme if enabled
         if (parsed.appearance?.customTheme) {
@@ -899,7 +907,7 @@ export default function SettingsPage() {
                     </div>
                   </div>
                 </div>
-                {settings.music.spotifyConnected ? (
+                {settings.music?.spotifyConnected ? (
                   <Button
                     variant="outline"
                     onClick={() => {
@@ -948,7 +956,7 @@ export default function SettingsPage() {
                     </div>
                   </div>
                 </div>
-                {settings.music.appleMusicConnected ? (
+                {settings.music?.appleMusicConnected ? (
                   <Button
                     variant="outline"
                     onClick={() => {

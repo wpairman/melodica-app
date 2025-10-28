@@ -14,6 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import JamaicaCommunityCheckIn from "./jamaica-community-checkin"
 
 export default function GroundMe() {
   const [isOpen, setIsOpen] = useState(false)
@@ -168,10 +169,12 @@ export default function GroundMe() {
     description: "Short guided sessions (2-5 minutes) for grounding during disasters",
     affirmations: [
       { text: "I am safe for now", icon: "🛡️" },
-      { text: "My feelings are valid", icon: "💙" },
-      { text: "Let's pause and breathe", icon: "🌬️" },
-      { text: "This feeling will pass", icon: "⏰" },
-      { text: "I have survived before", icon: "💪" },
+      { text: "Mi vous gonna be alright, mi strong", icon: "💪" },
+      { text: "My feelings are valid and real", icon: "💙" },
+      { text: "Let's pause and breathe deeply", icon: "🌬️" },
+      { text: "This feeling will pass, mi wah be okay", icon: "⏰" },
+      { text: "I have survived before, mi can do it again", icon: "🌴" },
+      { text: "One love, yuh not alone in this", icon: "💚" },
     ],
     quickActivities: [
       {
@@ -227,7 +230,7 @@ export default function GroundMe() {
             Ground Me - You're Not Alone
           </DialogTitle>
           <DialogDescription>
-            If you're experiencing a panic attack, anxiety, or emotional crisis, these resources can help you right now.
+            If you're experiencing a panic attack, anxiety, or emotional crisis, these resources can help you right now. Mi-vous gonna be alright, yuh strong.
           </DialogDescription>
         </DialogHeader>
 
@@ -258,13 +261,18 @@ export default function GroundMe() {
           </Card>
 
           <Tabs defaultValue="storm" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="storm" className="text-orange-600 font-semibold">🌪️ Storm Response</TabsTrigger>
+              <TabsTrigger value="community">🇯🇲 Community</TabsTrigger>
               <TabsTrigger value="breathing">Breathing</TabsTrigger>
               <TabsTrigger value="music">Music</TabsTrigger>
               <TabsTrigger value="activities">Activities</TabsTrigger>
               <TabsTrigger value="resources">Resources</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="community" className="space-y-4">
+              <JamaicaCommunityCheckIn />
+            </TabsContent>
 
             <TabsContent value="storm" className="space-y-4">
               <Card className="border-orange-200 bg-orange-50">
@@ -311,7 +319,7 @@ export default function GroundMe() {
 
                   <div className="p-4 bg-orange-100 rounded-lg border border-orange-300">
                     <p className="text-sm text-orange-900">
-                      <strong>🌴 For Jamaica Users:</strong> All content is available offline. Stay safe. You are not alone.
+                      <strong>🌴 For Jamaica Users:</strong> Everything here works offline. Mi vous gonna be alright. Big up yuhself! One love. 💚
                     </p>
                   </div>
                 </CardContent>

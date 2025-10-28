@@ -136,6 +136,78 @@ export default function GroundMe() {
     },
   ]
 
+  const jamaicaResources = [
+    {
+      name: "Jamaica Mental Health Hotline",
+      contact: "888-NEW-LIFE (639-5433)",
+      description: "Jamaica mental health and crisis support",
+      urgent: true,
+    },
+    {
+      name: "Office of Disaster Preparedness & Emergency Management (ODPEM)",
+      contact: "888-SAFETY (723-3898)",
+      description: "Emergency disaster response in Jamaica",
+      urgent: true,
+    },
+    {
+      name: "Jamaica Red Cross",
+      contact: "876-984-7860",
+      description: "Disaster relief and support services",
+      urgent: false,
+    },
+    {
+      name: "Ministry of Health and Wellness",
+      contact: "888-ONE-LOVE (663-5683)",
+      description: "Health and wellness information",
+      urgent: false,
+    },
+  ]
+
+  const stormResponseMode = {
+    title: "Storm Response Mode",
+    description: "Short guided sessions (2-5 minutes) for grounding during disasters",
+    affirmations: [
+      { text: "I am safe for now", icon: "🛡️" },
+      { text: "My feelings are valid", icon: "💙" },
+      { text: "Let's pause and breathe", icon: "🌬️" },
+      { text: "This feeling will pass", icon: "⏰" },
+      { text: "I have survived before", icon: "💪" },
+    ],
+    quickActivities: [
+      {
+        name: "2-Minute Breathing Reset",
+        steps: [
+          "Close your eyes or soften your gaze",
+          "Inhale slowly for 4 counts",
+          "Hold for 4 counts",
+          "Exhale slowly for 4 counts",
+          "Repeat 4 times",
+          "Notice how you feel",
+        ],
+      },
+      {
+        name: "Safety Check-In",
+        steps: [
+          "Right now, in this moment, am I physically safe?",
+          "Am I in immediate danger?",
+          "Can I take one more breath?",
+          "Can I name one thing I'm grateful for?",
+          "Breathe again",
+        ],
+      },
+      {
+        name: "5-4-3-2-1 Grounding",
+        steps: [
+          "Look around and name 5 things you can see",
+          "Touch 4 different objects near you",
+          "Listen and name 3 sounds you hear",
+          "Notice 2 smells in the air",
+          "Take 1 deep breath",
+        ],
+      },
+    ],
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -185,13 +257,66 @@ export default function GroundMe() {
             </CardContent>
           </Card>
 
-          <Tabs defaultValue="breathing" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+          <Tabs defaultValue="storm" className="w-full">
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="storm" className="text-orange-600 font-semibold">🌪️ Storm Response</TabsTrigger>
               <TabsTrigger value="breathing">Breathing</TabsTrigger>
               <TabsTrigger value="music">Music</TabsTrigger>
               <TabsTrigger value="activities">Activities</TabsTrigger>
               <TabsTrigger value="resources">Resources</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="storm" className="space-y-4">
+              <Card className="border-orange-200 bg-orange-50">
+                <CardHeader>
+                  <CardTitle className="text-orange-800">{stormResponseMode.title}</CardTitle>
+                  <CardDescription className="text-orange-700">{stormResponseMode.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Affirmations */}
+                  <div>
+                    <h3 className="font-semibold text-lg mb-3">💬 Trauma-Informed Affirmations</h3>
+                    <div className="grid gap-3">
+                      {stormResponseMode.affirmations.map((affirmation, index) => (
+                        <div key={index} className="p-4 bg-white rounded-lg border border-orange-200">
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">{affirmation.icon}</span>
+                            <p className="text-lg font-medium text-orange-900">{affirmation.text}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Quick Activities */}
+                  <div>
+                    <h3 className="font-semibold text-lg mb-3">⚡ Quick Grounding Activities (2-5 mins)</h3>
+                    <div className="space-y-4">
+                      {stormResponseMode.quickActivities.map((activity, index) => (
+                        <Card key={index} className="border-orange-200">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-lg">{activity.name}</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <ol className="list-decimal list-inside space-y-2 text-sm">
+                              {activity.steps.map((step, stepIndex) => (
+                                <li key={stepIndex} className="text-orange-800">{step}</li>
+                              ))}
+                            </ol>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-orange-100 rounded-lg border border-orange-300">
+                    <p className="text-sm text-orange-900">
+                      <strong>🌴 For Jamaica Users:</strong> All content is available offline. Stay safe. You are not alone.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
             <TabsContent value="breathing" className="space-y-4">
               <Card>

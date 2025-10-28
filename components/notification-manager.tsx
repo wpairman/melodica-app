@@ -9,6 +9,17 @@ export default function NotificationManager() {
   useEffect(() => {
     // Check if we're in a browser environment
     if (typeof window === 'undefined') return
+
+    // Register service worker for PWA notifications
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then((registration) => {
+          console.log('Service Worker registered:', registration)
+        })
+        .catch((error) => {
+          console.error('Service Worker registration failed:', error)
+        })
+    }
     
     // Check if notifications are supported
     if (!("Notification" in window)) {

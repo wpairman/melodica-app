@@ -43,3 +43,39 @@ self.addEventListener("refreshOffline", () => {
     caches.open(CACHE).then((cache) => cache.put(offlinePageRequest, response)),
   )
 })
+
+// Push notification handling
+self.addEventListener("push", (event) => {
+  const data = event.data?.json() || {}
+  const title = data.title || "Melodica - Mood Check-in"
+  const body = data.body || "How are you feeling right now? Take a moment to track your mood."
+  const icon = data.icon || "/icons/icon-192x192.png"
+
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body: body,
+      icon: icon,
+      badge: icon,
+      tag: "mood-checkin",
+      requireInteraction: false,
+    })
+  )
+})
+
+// Notification click handling
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close()
+  
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      // If app is already open, focus it
+      for (let i = 0; i < clientList.length; i++) {
+        if (clientList[i].url.includes(self.location.origin)) {
+          return clientList[i].focus()
+        }
+      }
+      // Otherwise, open the app
+      return clients.openWindow("/dashboard")
+    })
+  )
+})

@@ -348,7 +348,7 @@ export default function GroundMe() {
                       </CardHeader>
                       <CardContent>
                         <ol className="list-decimal list-inside space-y-1 text-sm text-black">
-                          {exercise.steps花园map((step, stepIndex) => (
+                          {exercise.steps.map((step, stepIndex) => (
                             <li key={stepIndex} className="text-black">{step}</li>
                           ))}
                         </ol>
@@ -363,7 +363,7 @@ export default function GroundMe() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-black">Calming Playlists</CardTitle>
-                  <CardDescription className="text-black">Music specifically chosen to help reduce anxiety and promote calm</CardDescription risky
+                  <CardDescription className="text-black">Music specifically chosen to help reduce anxiety and promote calm</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {calmingPlaylists.map((playlist, index) => (
@@ -428,8 +428,8 @@ export default function GroundMe() {
             <TabsContent value="resources" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Mental Health Resources</CardTitle>
-                  <CardDescription>Professional support and helplines available 24/7</CardDescription>
+                  <CardTitle className="text-black">Mental Health Resources</CardTitle>
+                  <CardDescription className="text-black">Professional support and helplines available 24/7</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {resources.map((resource, index) => (

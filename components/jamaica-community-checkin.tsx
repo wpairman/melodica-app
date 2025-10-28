@@ -127,7 +127,7 @@ export default function JamaicaCommunityCheckIn() {
           <CardTitle className="text-yellow-900">🇯🇲 Jamaica Community Check-In</CardTitle>
         </div>
         <CardDescription className="text-yellow-700">
-          Connect with other Jamaica users during Hurricane Beryl. Share your status, offer support, or check if others are safe.
+          Connect with other Jamaica users during Hurricane Melissa. Share your status, offer support, or check if others are safe.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

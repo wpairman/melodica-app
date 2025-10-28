@@ -229,7 +229,7 @@ export default function GroundMe() {
             <AlertTriangle className="h-6 w-6" />
             Ground Me - You're Not Alone
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-black">
             If you're experiencing a panic attack, anxiety, or emotional crisis, these resources can help you right now. Mi-vous gonna be alright, yuh strong.
           </DialogDescription>
         </DialogHeader>
@@ -283,7 +283,7 @@ export default function GroundMe() {
                 <CardContent className="space-y-6">
                   {/* Affirmations */}
                   <div>
-                    <h3 className="font-semibold text-lg mb-3">💬 Trauma-Informed Affirmations</h3>
+                    <h3 className="font-semibold text-lg mb-3 text-black">💬 Trauma-Informed Affirmations</h3>
                     <div className="grid gap-3">
                       {stormResponseMode.affirmations.map((affirmation, index) => (
                         <div key={index} className="p-4 bg-white rounded-lg border border-orange-200">
@@ -298,12 +298,12 @@ export default function GroundMe() {
 
                   {/* Quick Activities */}
                   <div>
-                    <h3 className="font-semibold text-lg mb-3">⚡ Quick Grounding Activities (2-5 mins)</h3>
+                    <h3 className="font-semibold text-lg mb-3 text-black">⚡ Quick Grounding Activities (2-5 mins)</h3>
                     <div className="space-y-4">
                       {stormResponseMode.quickActivities.map((activity, index) => (
                         <Card key={index} className="border-orange-200">
                           <CardHeader className="pb-2">
-                            <CardTitle className="text-lg">{activity.name}</CardTitle>
+                            <CardTitle className="text-lg text-black">{activity.name}</CardTitle>
                           </CardHeader>
                           <CardContent>
                             <ol className="list-decimal list-inside space-y-2 text-sm">
@@ -329,8 +329,8 @@ export default function GroundMe() {
             <TabsContent value="breathing" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Breathing Exercises</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-black">Breathing Exercises</CardTitle>
+                  <CardDescription className="text-black">
                     These techniques can help regulate your breathing and calm your nervous system
                   </CardDescription>
                 </CardHeader>
@@ -340,16 +340,16 @@ export default function GroundMe() {
                       <CardHeader className="pb-2">
                         <div className="flex justify-between items-start">
                           <div>
-                            <CardTitle className="text-lg">{exercise.name}</CardTitle>
-                            <CardDescription>{exercise.description}</CardDescription>
+                            <CardTitle className="text-lg text-black">{exercise.name}</CardTitle>
+                            <CardDescription className="text-black">{exercise.description}</CardDescription>
                           </div>
                           <Badge variant="outline">{exercise.duration}</Badge>
                         </div>
                       </CardHeader>
                       <CardContent>
-                        <ol className="list-decimal list-inside space-y-1 text-sm">
-                          {exercise.steps.map((step, stepIndex) => (
-                            <li key={stepIndex}>{step}</li>
+                        <ol className="list-decimal list-inside space-y-1 text-sm text-black">
+                          {exercise.steps花园map((step, stepIndex) => (
+                            <li key={stepIndex} className="text-black">{step}</li>
                           ))}
                         </ol>
                       </CardContent>
@@ -362,8 +362,8 @@ export default function GroundMe() {
             <TabsContent value="music" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Calming Playlists</CardTitle>
-                  <CardDescription>Music specifically chosen to help reduce anxiety and promote calm</CardDescription>
+                  <CardTitle className="text-black">Calming Playlists</CardTitle>
+                  <CardDescription className="text-black">Music specifically chosen to help reduce anxiety and promote calm</CardDescription risky
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {calmingPlaylists.map((playlist, index) => (
@@ -371,16 +371,16 @@ export default function GroundMe() {
                       <CardHeader className="pb-2">
                         <div className="flex justify-between items-start">
                           <div>
-                            <CardTitle className="text-lg">{playlist.title}</CardTitle>
-                            <CardDescription>{playlist.description}</CardDescription>
+                            <CardTitle className="text-lg text-black">{playlist.title}</CardTitle>
+                            <CardDescription className="text-black">{playlist.description}</CardDescription>
                           </div>
                           <Badge variant="outline">{playlist.duration}</Badge>
                         </div>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-2">
-                          <h4 className="font-medium text-sm">Featured tracks:</h4>
-                          <ul className="text-sm space-y-1">
+                          <h4 className="font-medium text-sm text-black">Featured tracks:</h4>
+                          <ul className="text-sm space-y-1 text-black">
                             {playlist.tracks.map((track, trackIndex) => (
                               <li key={trackIndex} className="flex items-center gap-2">
                                 <Music className="h-3 w-3 text-black" />
@@ -403,8 +403,8 @@ export default function GroundMe() {
             <TabsContent value="activities" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Grounding Activities</CardTitle>
-                  <CardDescription>Physical activities to help you feel more present and calm</CardDescription>
+                  <CardTitle className="text-black">Grounding Activities</CardTitle>
+                  <CardDescription className="text-black">Physical activities to help you feel more present and calm</CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-4 md:grid-cols-2">
                   {activities.map((activity, index) => (
@@ -412,9 +412,9 @@ export default function GroundMe() {
                       <CardHeader className="pb-2">
                         <div className="flex items-center gap-2">
                           <activity.icon className="h-5 w-5 text-black" />
-                          <CardTitle className="text-lg">{activity.name}</CardTitle>
+                          <CardTitle className="text-lg text-black">{activity.name}</CardTitle>
                         </div>
-                        <CardDescription>{activity.description}</CardDescription>
+                        <CardDescription className="text-black">{activity.description}</CardDescription>
                       </CardHeader>
                       <CardContent>
                         <Badge variant="outline">{activity.duration}</Badge>
@@ -435,7 +435,7 @@ export default function GroundMe() {
                   {resources.map((resource, index) => (
                     <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
                       <div>
-                        <h4 className="font-medium">{resource.name}</h4>
+                        <h4 className="font-medium text-black">{resource.name}</h4>
                         <p className="text-sm text-black">{resource.description}</p>
                       </div>
                       <div className="flex items-center gap-2">

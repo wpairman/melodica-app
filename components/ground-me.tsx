@@ -238,7 +238,7 @@ export default function GroundMe() {
           {/* Immediate Crisis Resources */}
           <Card className="border-red-200 bg-red-50">
             <CardHeader className="pb-3">
-              <CardTitle className="text-red-800 flex items-center gap-2">
+              <CardTitle className="text-black flex items-center gap-2">
                 <Phone className="h-5 w-5" />
                 Immediate Help Available
               </CardTitle>
@@ -249,8 +249,8 @@ export default function GroundMe() {
                 .map((resource, index) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border">
                     <div>
-                      <h4 className="font-medium text-red-800">{resource.name}</h4>
-                      <p className="text-sm text-red-600">{resource.description}</p>
+                      <h4 className="font-medium text-black">{resource.name}</h4>
+                      <p className="text-sm text-black">{resource.description}</p>
                     </div>
                     <Badge variant="destructive" className="font-mono">
                       {resource.contact}
@@ -262,7 +262,7 @@ export default function GroundMe() {
 
           <Tabs defaultValue="storm" className="w-full">
             <TabsList className="grid w-full grid-cols-6">
-              <TabsTrigger value="storm" className="text-orange-600 font-semibold">🌪️ Storm Response</TabsTrigger>
+              <TabsTrigger value="storm" className="text-black font-semibold">🌪️ Storm Response</TabsTrigger>
               <TabsTrigger value="community">🇯🇲 Community</TabsTrigger>
               <TabsTrigger value="breathing">Breathing</TabsTrigger>
               <TabsTrigger value="music">Music</TabsTrigger>
@@ -277,8 +277,8 @@ export default function GroundMe() {
             <TabsContent value="storm" className="space-y-4">
               <Card className="border-orange-200 bg-orange-50">
                 <CardHeader>
-                  <CardTitle className="text-orange-800">{stormResponseMode.title}</CardTitle>
-                  <CardDescription className="text-orange-700">{stormResponseMode.description}</CardDescription>
+                  <CardTitle className="text-black">{stormResponseMode.title}</CardTitle>
+                  <CardDescription className="text-black">{stormResponseMode.description}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {/* Affirmations */}
@@ -289,7 +289,7 @@ export default function GroundMe() {
                         <div key={index} className="p-4 bg-white rounded-lg border border-orange-200">
                           <div className="flex items-center gap-3">
                             <span className="text-2xl">{affirmation.icon}</span>
-                            <p className="text-lg font-medium text-orange-900">{affirmation.text}</p>
+                            <p className="text-lg font-medium text-black">{affirmation.text}</p>
                           </div>
                         </div>
                       ))}
@@ -308,7 +308,7 @@ export default function GroundMe() {
                           <CardContent>
                             <ol className="list-decimal list-inside space-y-2 text-sm">
                               {activity.steps.map((step, stepIndex) => (
-                                <li key={stepIndex} className="text-orange-800">{step}</li>
+                                <li key={stepIndex} className="text-black">{step}</li>
                               ))}
                             </ol>
                           </CardContent>
@@ -318,7 +318,7 @@ export default function GroundMe() {
                   </div>
 
                   <div className="p-4 bg-orange-100 rounded-lg border border-orange-300">
-                    <p className="text-sm text-orange-900">
+                    <p className="text-sm text-black">
                       <strong>🌴 For Jamaica Users:</strong> Everything here works offline. Mi vous gonna be alright. Big up yuhself! One love. 💚
                     </p>
                   </div>
@@ -383,7 +383,7 @@ export default function GroundMe() {
                           <ul className="text-sm space-y-1">
                             {playlist.tracks.map((track, trackIndex) => (
                               <li key={trackIndex} className="flex items-center gap-2">
-                                <Music className="h-3 w-3 text-green-600" />
+                                <Music className="h-3 w-3 text-black" />
                                 {track}
                               </li>
                             ))}
@@ -411,7 +411,7 @@ export default function GroundMe() {
                     <Card key={index} className="border-purple-200">
                       <CardHeader className="pb-2">
                         <div className="flex items-center gap-2">
-                          <activity.icon className="h-5 w-5 text-purple-600" />
+                          <activity.icon className="h-5 w-5 text-black" />
                           <CardTitle className="text-lg">{activity.name}</CardTitle>
                         </div>
                         <CardDescription>{activity.description}</CardDescription>
@@ -436,7 +436,7 @@ export default function GroundMe() {
                     <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
                       <div>
                         <h4 className="font-medium">{resource.name}</h4>
-                        <p className="text-sm text-gray-600">{resource.description}</p>
+                        <p className="text-sm text-black">{resource.description}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge variant={resource.urgent ? "destructive" : "outline"} className="font-mono">
@@ -454,7 +454,7 @@ export default function GroundMe() {
           </Tabs>
 
           <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-sm text-blue-800">
+            <p className="text-sm text-black">
               <strong>Remember:</strong> These feelings are temporary. You are stronger than you think, and help is
               always available. If you're in immediate danger, please call emergency services (911) right away.
             </p>

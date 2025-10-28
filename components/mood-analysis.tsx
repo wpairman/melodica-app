@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TrendingUp, TrendingDown, Clock, Activity, Music, Calendar, CheckCircle, ThumbsUp, Zap } from "lucide-react"
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 
 interface MoodAnalysisProps {
   userData: {
@@ -364,6 +365,38 @@ export default function MoodAnalysis({ userData }: MoodAnalysisProps) {
                     </CardContent>
                   </Card>
                 </div>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Mood Trend Chart</CardTitle>
+                    <CardDescription>Visual representation of your mood over the last 30 days</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-[300px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={moodHistory.slice(-30).map(entry => ({
+                          date: new Date(entry.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                          mood: entry.mood
+                        }))}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <XAxis dataKey="date" stroke="#6b7280" />
+                          <YAxis domain={[0, 10]} stroke="#6b7280" />
+                          <Tooltip />
+                          <Legend />
+                          <Line 
+                            type="monotone" 
+                            dataKey="mood" 
+                            stroke="#10b981" 
+                            strokeWidth={2}
+                            dot={{ r: 4 }}
+                            activeDot={{ r: 6 }}
+                            name="Mood Score"
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
 
                 <Card>
                   <CardHeader className="pb-2">

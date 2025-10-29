@@ -61,6 +61,7 @@ export default function NotificationManager() {
           // Check if service worker is available (better for mobile with actions)
           if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
             navigator.serviceWorker.ready.then((registration) => {
+              // Type assertion: Service Worker ShowNotificationOptions supports actions
               registration.showNotification("Melodica - Mood Check-in", {
                 body: "How are you feeling right now? Pull down to log your mood quickly!",
                 icon: "/icons/icon-192x192.png",
@@ -77,7 +78,7 @@ export default function NotificationManager() {
                 data: {
                   url: "/dashboard"
                 }
-              })
+              } as any)
             })
           } else {
             // Fallback to regular notifications if service worker not available

@@ -97,16 +97,19 @@ self.addEventListener("notificationclick", (event) => {
           notes: "Logged from notification"
         }
         
-        // Send mood to any open app windows
-        clientList.forEach((client) => {
-          client.postMessage({
-            type: "QUICK_MOOD_LOG",
-            mood: moodEntry
-          })
-        })
-        
-        // Also store in IndexedDB for offline access
+        // Store mood in cache for offline access first
         return saveMoodEntryDB(moodEntry).then(() => {
+          // Then send mood to any open app windows
+          clientList.forEach((client) => {
+            client.postMessage({
+              type: "QUICK_MOOD_LOG",
+              mood: moodEntry
+            })
+          })
+          
+          // Show confirmation notification
+          return Promise.resolve()
+        }).then(() => {
           // Show confirmation notification
           return self.registration.showNotification("Mood Logged! 💚", {
             body: `Your mood (${mood}/10) has been saved. Thank you for checking in!`,
@@ -143,15 +146,6 @@ async function saveMoodEntryDB(moodEntry) {
     const cache = await caches.open('melodica-moods')
     const response = new Response(JSON.stringify(moodEntry))
     await cache.put(`mood-${Date.now()}`, response)
-    
-    // Also try to save via postMessage to any open clients
-    const clients = await self.clients.matchAll()
-    clients.forEach((client) => {
-      client.postMessage({
-        type: "QUICK_MOOD_LOG",
-        mood: moodEntry
-      })
-    })
     
     return Promise.resolve()
   } catch (error) {

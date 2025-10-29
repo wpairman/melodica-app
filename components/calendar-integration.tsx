@@ -229,7 +229,7 @@ export default function CalendarIntegration() {
                     {ev.location && <p className="mt-1 text-xs text-muted-foreground">{ev.location}</p>}
                     <Button 
                       variant="outline" 
-                      size="xs" 
+                      size="sm" 
                       className="mt-2" 
                       onClick={() => {
                         setSelectedEvent(ev)

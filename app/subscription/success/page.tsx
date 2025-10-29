@@ -13,11 +13,13 @@ import DashboardLayout from "@/components/layouts/dashboard-layout"
 
 export default function SubscriptionSuccessPage() {
   const searchParams = useSearchParams()
-  const sessionId = searchParams.get("session_id")
+  const sessionId = searchParams?.get("session_id") || null
   const [loading, setLoading] = useState(true)
   const [subscription, setSubscription] = useState<any>(null)
 
   useEffect(() => {
+    if (!searchParams) return
+    
     // Check if this is a mock session (for prototype)
     const isMock = searchParams.get("mock") === "true"
     const mockPlan = searchParams.get("plan")
@@ -89,7 +91,7 @@ export default function SubscriptionSuccessPage() {
         }
       }, 1500)
     }
-  }, [sessionId])
+  }, [sessionId, searchParams])
 
   if (loading) {
     return (

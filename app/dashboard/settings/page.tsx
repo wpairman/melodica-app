@@ -317,6 +317,8 @@ export default function SettingsPage() {
       // Use service worker for better mobile support with actions
       if ('serviceWorker' in navigator) {
         const registration = await navigator.serviceWorker.ready
+        // Type assertion needed because TypeScript doesn't recognize actions in NotificationOptions
+        // but Service Worker ShowNotificationOptions does support it
         await registration.showNotification("Melodica - Mood Check-in", {
           body: "How are you feeling right now? Pull down to log your mood quickly!",
           icon: "/icons/icon-192x192.png",
@@ -333,7 +335,7 @@ export default function SettingsPage() {
           data: {
             url: "/dashboard"
           }
-        })
+        } as any) // Type assertion: Service Worker ShowNotificationOptions supports actions
       } else {
         // Fallback to regular notification
         const notification = new Notification("Melodica - Mood Check-in", {

@@ -11,17 +11,45 @@ Stripe payments work on `localhost:3001` but not on `https://melodica1.netlify.a
 3. Click on your site: **melodica1**
 
 ### Step 2: Navigate to Environment Variables
-1. Go to **Site settings** (left sidebar)
-2. Click **Environment variables** (under "Build & deploy")
+The exact location depends on your Netlify dashboard version. Try these paths:
+
+**Method 1: Via Site Settings (Most Common)**
+1. On your site dashboard, look for **"Site configuration"** or **"Site settings"** in the top navigation bar
+2. Click on it
+3. In the left sidebar, look for:
+   - **"Environment variables"** OR
+   - **"Build & deploy"** → Then click **"Environment"** or **"Environment variables"**
+   - Sometimes it's under **"Build settings"** → **"Environment"**
+
+**Method 2: Via Site Overview**
+1. From your site dashboard (melodica1)
+2. Click on **"Configuration"** or **"Settings"** in the top menu
+3. Look for **"Environment variables"** in the left sidebar
+
+**Method 3: Direct URL (if logged in)**
+Try navigating directly to: `https://app.netlify.com/sites/melodica1/configuration/env`
 
 ### Step 3: Add STRIPE_SECRET_KEY
-1. Click **Add a variable** button
-2. **Key**: `STRIPE_SECRET_KEY`
-3. **Value**: Your Stripe secret key from your Stripe dashboard (starts with `sk_live_` or `sk_test_`)
-   - Get it from: https://dashboard.stripe.com/apikeys
-   - ⚠️ **Never commit your actual secret key to Git** - only add it in Netlify's dashboard
-4. **Scopes**: Select **All scopes** (or "Production" if you only want it for production)
-5. Click **Save**
+Once you're on the Environment Variables page:
+
+1. Look for a button that says one of these:
+   - **"Add a variable"**
+   - **"New variable"**
+   - **"Add environment variable"**
+   - **"+ Add variable"**
+   - It might be a blue button, or a green "+" icon button
+   - Sometimes it's at the top right, sometimes at the bottom of the list
+
+2. Click that button
+
+3. Fill in the form:
+   - **Key**: `STRIPE_SECRET_KEY`
+   - **Value**: Your Stripe secret key from your Stripe dashboard (starts with `sk_live_` or `sk_test_`)
+     - Get it from: https://dashboard.stripe.com/apikeys
+     - ⚠️ **Never commit your actual secret key to Git** - only add it in Netlify's dashboard
+   - **Scopes**: Select **All scopes** (or "Production" if you only want it for production)
+
+4. Click **Save** or **Add variable**
 
 ### Step 4: Redeploy Your Site
 After adding the environment variable, you need to trigger a new deployment:

@@ -16,10 +16,23 @@ const priceMap: Record<string, Record<string, string>> = {
 
 export async function POST(req: Request) {
   try {
+    // Debug: Log environment variable status (without exposing the key)
     const stripeKey = process.env.STRIPE_SECRET_KEY;
+    console.log("Stripe key check:", {
+      exists: !!stripeKey,
+      length: stripeKey?.length || 0,
+      prefix: stripeKey?.substring(0, 7) || "none"
+    });
+    
     if (!stripeKey) {
       console.error("Stripe secret key is missing from environment variables");
-      return NextResponse.json({ error: "Payment system configuration error. Please contact support." }, { status: 500 });
+      console.error("Available env vars:", Object.keys(process.env).filter(k => k.includes("STRIPE")));
+      const isProduction = process.env.VERCEL || process.env.NETLIFY || !req.headers.get("host")?.includes("localhost");
+      return NextResponse.json({ 
+        error: isProduction 
+          ? "Payment system configuration error. STRIPE_SECRET_KEY environment variable is not set in your deployment platform (Netlify/Vercel). Please add it in your site settings." 
+          : "Payment system configuration error. Stripe key not found. Please restart your development server after setting STRIPE_SECRET_KEY in .env.local" 
+      }, { status: 500 });
     }
     
     const stripe = new Stripe(stripeKey, {

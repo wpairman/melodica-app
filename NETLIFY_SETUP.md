@@ -1,0 +1,76 @@
+# Netlify Environment Variables Setup
+
+## Problem
+Stripe payments work on `localhost:3001` but not on `https://melodica1.netlify.app` because environment variables need to be set in Netlify's dashboard.
+
+## Solution: Add Environment Variables in Netlify
+
+### Step 1: Go to Netlify Dashboard
+1. Visit [https://app.netlify.com](https://app.netlify.com)
+2. Log in to your account
+3. Click on your site: **melodica1**
+
+### Step 2: Navigate to Environment Variables
+1. Go to **Site settings** (left sidebar)
+2. Click **Environment variables** (under "Build & deploy")
+
+### Step 3: Add STRIPE_SECRET_KEY
+1. Click **Add a variable** button
+2. **Key**: `STRIPE_SECRET_KEY`
+3. **Value**: Your Stripe secret key from your Stripe dashboard (starts with `sk_live_` or `sk_test_`)
+   - Get it from: https://dashboard.stripe.com/apikeys
+   - ⚠️ **Never commit your actual secret key to Git** - only add it in Netlify's dashboard
+4. **Scopes**: Select **All scopes** (or "Production" if you only want it for production)
+5. Click **Save**
+
+### Step 4: Redeploy Your Site
+After adding the environment variable, you need to trigger a new deployment:
+
+**Option A: Redeploy via Dashboard**
+1. Go to **Deploys** tab (top navigation)
+2. Click the **...** (three dots) on the latest deployment
+3. Select **Redeploy site**
+4. Click **Redeploy**
+
+**Option B: Trigger via Git Push**
+```bash
+# Make a small change (like adding a comment) and push
+git commit --allow-empty -m "Trigger Netlify rebuild with env vars"
+git push
+```
+
+### Step 5: Verify It Works
+1. Wait for the deployment to finish (check the Deploys tab)
+2. Visit: https://melodica1.netlify.app/pricing
+3. Click any "Subscribe" button
+4. It should redirect to Stripe checkout
+
+## Important Notes
+
+- ✅ Environment variables are available only **after** redeployment
+- ✅ The variable name must be **exactly** `STRIPE_SECRET_KEY` (case-sensitive)
+- ✅ Never commit `.env.local` to Git (it's already in `.gitignore`)
+- ✅ The secret key should only be set in Netlify's dashboard, not in code
+
+## Troubleshooting
+
+### Still not working after redeploy?
+1. **Check deployment logs**:
+   - Go to **Deploys** → Click on the latest deployment
+   - Look for any errors in the build logs
+   - Search for "Stripe key check" to see if the variable is loaded
+
+2. **Verify variable is set**:
+   - Go to **Site settings** → **Environment variables**
+   - Make sure `STRIPE_SECRET_KEY` appears in the list
+   - Check that it's set for the correct scope (Production/All)
+
+3. **Check API route logs**:
+   - In Netlify, go to **Functions** tab
+   - Look for API route logs when you click the payment button
+   - Should show "Stripe key check: { exists: true, ... }"
+
+4. **Test API directly**:
+   - Open browser console on the pricing page
+   - Try clicking a button and check the Network tab
+   - Look at the `/api/stripe/checkout` request response

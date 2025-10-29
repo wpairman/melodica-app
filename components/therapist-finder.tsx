@@ -89,51 +89,89 @@ const generateTherapistsForZip = async (zipCode: string, city?: string, state?: 
   return therapists
 }
 
-// Lookup zip code to get city/state/country info
-const lookupZipCode = async (zipCode: string): Promise<{ city?: string; state?: string; country?: string }> => {
+// Lookup location by zip code, city, or country name
+const lookupLocation = async (searchTerm: string): Promise<{ city?: string; state?: string; country?: string; zipCode?: string }> => {
   try {
-    // Try US zip code API first
-    if (/^\d{5}(-\d{4})?$/.test(zipCode)) {
-      // US zip code format
-      const response = await fetch(`https://api.zippopotam.us/us/${zipCode.split('-')[0]}`)
-      if (response.ok) {
-        const data = await response.json()
-        if (data.places && data.places.length > 0) {
+    // Check if it's a zip code pattern
+    const isZipCode = /^[0-9A-Za-z\s-]{3,10}$/.test(searchTerm) && /[0-9]/.test(searchTerm)
+    
+    if (isZipCode) {
+      // Try US zip code API first for US zip codes
+      if (/^\d{5}(-\d{4})?$/.test(searchTerm)) {
+        try {
+          const response = await fetch(`https://api.zippopotam.us/us/${searchTerm.split('-')[0]}`)
+          if (response.ok) {
+            const data = await response.json()
+            if (data.places && data.places.length > 0) {
+              return {
+                city: data.places[0]['place name'],
+                state: data.places[0]['state abbreviation'],
+                country: data.country,
+                zipCode: searchTerm,
+              }
+            }
+          }
+        } catch (e) {
+          // Fall through to Nominatim
+        }
+      }
+      
+      // For international zip codes, use Nominatim
+      const zipResponse = await fetch(
+        `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(searchTerm)}&format=json&limit=1`,
+        {
+          headers: {
+            'User-Agent': 'Melodica Mental Health App',
+          },
+        }
+      )
+      
+      if (zipResponse.ok) {
+        const zipData = await zipResponse.json()
+        if (zipData.length > 0) {
+          const result = zipData[0]
           return {
-            city: data.places[0]['place name'],
-            state: data.places[0]['state abbreviation'],
-            country: data.country,
+            city: result.address?.city || result.address?.town || result.address?.village,
+            state: result.address?.state,
+            country: result.address?.country,
+            zipCode: searchTerm,
+          }
+        }
+      }
+    } else {
+      // It's a city or country name - use Nominatim to find it
+      const geoResponse = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchTerm)}&format=json&limit=1&addressdetails=1`,
+        {
+          headers: {
+            'User-Agent': 'Melodica Mental Health App',
+          },
+        }
+      )
+      
+      if (geoResponse.ok) {
+        const geoData = await geoResponse.json()
+        if (geoData.length > 0) {
+          const result = geoData[0]
+          const address = result.address || {}
+          return {
+            city: address.city || address.town || address.village || address.county || searchTerm,
+            state: address.state,
+            country: address.country || searchTerm,
+            zipCode: address.postcode,
           }
         }
       }
     }
-    
-    // For international or if US lookup fails, use Nominatim
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(zipCode)}&format=json&limit=1`,
-      {
-        headers: {
-          'User-Agent': 'Melodica Mental Health App',
-        },
-      }
-    )
-    
-    if (response.ok) {
-      const data = await response.json()
-      if (data.length > 0) {
-        const result = data[0]
-        return {
-          city: result.address?.city || result.address?.town || result.address?.village,
-          state: result.address?.state,
-          country: result.address?.country,
-        }
-      }
-    }
   } catch (error) {
-    console.error("Error looking up zip code:", error)
+    console.error("Error looking up location:", error)
   }
   
-  return {}
+  // Return search term as city/country if lookup fails
+  return {
+    city: searchTerm,
+    country: searchTerm,
+  }
 }
 
 export default function TherapistFinder() {
@@ -199,7 +237,7 @@ export default function TherapistFinder() {
     )
   }
 
-  // Search by zip code, city, or country
+  // Search by zip code, city, or country - works for ANY location worldwide
   const handleSearch = async () => {
     if (!query.trim()) {
       setResults([])
@@ -208,39 +246,31 @@ export default function TherapistFinder() {
     }
 
     const searchTerm = query.trim()
-    const isZipCode = /^[0-9A-Za-z\s-]{3,10}$/.test(searchTerm) && /[0-9]/.test(searchTerm)
-
     setHasSearched(true)
     
     try {
-      let locationInfo: { city?: string; state?: string; country?: string } = {}
-      let zipCode = searchTerm
+      // Lookup the location (works for zip codes, cities, or countries)
+      const locationInfo = await lookupLocation(searchTerm)
       
-      // If it looks like a zip code, try to look it up
-      if (isZipCode) {
-        locationInfo = await lookupZipCode(searchTerm)
-        zipCode = searchTerm
-      } else {
-        // It's a city or country name - use as-is
-        locationInfo = {
-          city: searchTerm,
-          country: searchTerm,
-        }
-      }
+      // Use the found location or fallback to search term
+      const city = locationInfo.city || searchTerm
+      const state = locationInfo.state
+      const country = locationInfo.country || searchTerm
+      const zipCode = locationInfo.zipCode || (locationInfo.city ? "" : searchTerm) || searchTerm
 
       // Generate therapists for this location
       const therapists = await generateTherapistsForZip(
         zipCode,
-        locationInfo.city,
-        locationInfo.state,
-        locationInfo.country || "USA"
+        city,
+        state,
+        country
       )
 
       setResults(therapists)
     } catch (error) {
       console.error("Error searching therapists:", error)
       // Fallback: generate therapists with the search term as location
-      const therapists = await generateTherapistsForZip(searchTerm, searchTerm, undefined, "USA")
+      const therapists = await generateTherapistsForZip(searchTerm, searchTerm, undefined, searchTerm)
       setResults(therapists)
     }
   }

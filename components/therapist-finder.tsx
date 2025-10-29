@@ -18,45 +18,123 @@ type Therapist = {
   state?: string
 }
 
-// Comprehensive therapist database with various locations
-const THERAPIST_DATABASE: Therapist[] = [
-  // Los Angeles, CA
-  { id: 1, name: "Dr. Maya Johnson, PsyD", specialty: "Anxiety - CBT / Mindfulness", distance: "1.2 mi", city: "Los Angeles", zipCode: "90001", state: "CA", country: "USA", phone: "555-432-1122" },
-  { id: 2, name: "Carlos Ramirez, LCSW", specialty: "Depression • Trauma-Informed", distance: "2.5 mi", city: "Los Angeles", zipCode: "90012", state: "CA", country: "USA", phone: "555-987-2233" },
-  { id: 3, name: "Priya Patel, LMFT", specialty: "Couples • Family Systems", distance: "4.1 mi", city: "Los Angeles", zipCode: "90015", state: "CA", country: "USA", phone: "555-318-4455" },
-  
-  // New York, NY
-  { id: 4, name: "Dr. Sarah Chen, PhD", specialty: "Anxiety • OCD", distance: "0.8 mi", city: "New York", zipCode: "10001", state: "NY", country: "USA", phone: "555-201-3344" },
-  { id: 5, name: "Michael Thompson, LCSW-R", specialty: "Depression • Substance Use", distance: "1.5 mi", city: "New York", zipCode: "10002", state: "NY", country: "USA", phone: "555-201-5566" },
-  { id: 6, name: "Dr. Jennifer Martinez, PsyD", specialty: "Trauma • PTSD", distance: "2.3 mi", city: "New York", zipCode: "10003", state: "NY", country: "USA", phone: "555-201-7788" },
-  
-  // Chicago, IL
-  { id: 7, name: "Dr. Robert Williams, PhD", specialty: "Bipolar • Mood Disorders", distance: "1.0 mi", city: "Chicago", zipCode: "60601", state: "IL", country: "USA", phone: "555-312-9900" },
-  { id: 8, name: "Amanda Davis, LMHC", specialty: "Anxiety • Stress Management", distance: "1.8 mi", city: "Chicago", zipCode: "60602", state: "IL", country: "USA", phone: "555-312-1122" },
-  
-  // Miami, FL
-  { id: 9, name: "Dr. Sofia Rodriguez, PsyD", specialty: "Hispanic/Latino Mental Health", distance: "0.9 mi", city: "Miami", zipCode: "33101", state: "FL", country: "USA", phone: "555-305-2233" },
-  { id: 10, name: "James Wilson, LMFT", specialty: "LGBTQ+ • Relationship Issues", distance: "2.1 mi", city: "Miami", zipCode: "33102", state: "FL", country: "USA", phone: "555-305-4455" },
-  
-  // Seattle, WA
-  { id: 11, name: "Dr. Lisa Kim, PhD", specialty: "Anxiety • Depression", distance: "1.3 mi", city: "Seattle", zipCode: "98101", state: "WA", country: "USA", phone: "555-206-6677" },
-  
-  // Austin, TX
-  { id: 12, name: "Dr. David Brown, PsyD", specialty: "ADHD • Executive Functioning", distance: "1.5 mi", city: "Austin", zipCode: "78701", state: "TX", country: "USA", phone: "555-512-8899" },
-  
-  // Kingston, Jamaica
-  { id: 13, name: "Dr. Marcia Thompson, PsyD", specialty: "Anxiety • Depression", distance: "2.0 km", city: "Kingston", zipCode: "JMAAW01", country: "Jamaica", phone: "876-555-0101" },
-  { id: 14, name: "Dr. Patrick Clarke, LCSW", specialty: "Trauma • Grief Counseling", distance: "3.5 km", city: "Kingston", zipCode: "JMAAW02", country: "Jamaica", phone: "876-555-0202" },
-  
-  // Montego Bay, Jamaica
-  { id: 15, name: "Dr. Lisa Campbell, PhD", specialty: "Family Therapy • PTSD", distance: "1.8 km", city: "Montego Bay", zipCode: "JMAAW15", country: "Jamaica", phone: "876-555-0303" },
-  
-  // Toronto, Canada
-  { id: 16, name: "Dr. Emily Wong, PhD", specialty: "Anxiety • Cultural Issues", distance: "2.2 km", city: "Toronto", zipCode: "M5H 1J1", country: "Canada", phone: "416-555-1010" },
-  
-  // London, UK
-  { id: 17, name: "Dr. James Anderson, DClinPsy", specialty: "Depression • CBT", distance: "1.5 km", city: "London", zipCode: "SW1A 1AA", country: "United Kingdom", phone: "+44-20-5555-2020" },
+// Therapist name and specialty pools for dynamic generation
+const FIRST_NAMES = ["Sarah", "Michael", "Jennifer", "David", "Lisa", "Robert", "Emily", "James", "Maria", "Christopher", "Jessica", "Daniel", "Ashley", "Matthew", "Amanda", "Mark", "Michelle", "Paul", "Stephanie", "Kevin"]
+const LAST_NAMES = ["Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin", "Lee", "Thompson"]
+const TITLES = ["Dr.", "Dr.", "Dr.", "", "", ""] // Mix of titles
+const DEGREES = ["PsyD", "PhD", "LCSW", "LMFT", "LMHC", "LPC", "EdD", ""]
+const SPECIALTIES = [
+  "Anxiety • CBT",
+  "Depression • Mood Disorders",
+  "Trauma • PTSD",
+  "Couples Therapy",
+  "Family Systems",
+  "LGBTQ+ Support",
+  "Substance Use",
+  "ADHD • Executive Functioning",
+  "Eating Disorders",
+  "OCD",
+  "Bipolar Disorder",
+  "Grief Counseling",
+  "Stress Management",
+  "Mindfulness-Based Therapy",
+  "Dialectical Behavior Therapy",
+  "Cognitive Behavioral Therapy",
 ]
+
+// Generate therapists dynamically for any zip code
+const generateTherapistsForZip = async (zipCode: string, city?: string, state?: string, country?: string): Promise<Therapist[]> => {
+  const therapists: Therapist[] = []
+  const count = 5 + Math.floor(Math.random() * 5) // 5-10 therapists per location
+  
+  for (let i = 0; i < count; i++) {
+    const firstName = FIRST_NAMES[Math.floor(Math.random() * FIRST_NAMES.length)]
+    const lastName = LAST_NAMES[Math.floor(Math.random() * LAST_NAMES.length)]
+    const title = TITLES[Math.floor(Math.random() * TITLES.length)]
+    const degree = DEGREES[Math.floor(Math.random() * DEGREES.length)]
+    const specialty = SPECIALTIES[Math.floor(Math.random() * SPECIALTIES.length)]
+    
+    const name = title ? `${title} ${firstName} ${lastName}${degree ? `, ${degree}` : ""}` : `${firstName} ${lastName}${degree ? `, ${degree}` : ""}`
+    
+    const distance = (i + 1) * 0.5 + Math.random() * 2
+    const distanceStr = country === "USA" || !country ? `${distance.toFixed(1)} mi` : `${(distance * 1.6).toFixed(1)} km`
+    
+    // Generate phone based on location
+    let phone = ""
+    if (country === "Jamaica") {
+      phone = `876-555-${Math.floor(1000 + Math.random() * 9000)}`
+    } else if (country === "Canada") {
+      phone = `${Math.floor(200 + Math.random() * 800)}-555-${Math.floor(1000 + Math.random() * 9000)}`
+    } else if (country === "United Kingdom") {
+      phone = `+44-20-5555-${Math.floor(1000 + Math.random() * 9000)}`
+    } else {
+      // USA format
+      const areaCode = Math.floor(200 + Math.random() * 800)
+      phone = `${areaCode}-555-${Math.floor(1000 + Math.random() * 9000)}`
+    }
+    
+    therapists.push({
+      id: Date.now() + i,
+      name,
+      specialty,
+      distance: distanceStr,
+      city: city || "Unknown",
+      zipCode,
+      state: state || undefined,
+      country: country || "USA",
+      phone,
+    })
+  }
+  
+  return therapists
+}
+
+// Lookup zip code to get city/state/country info
+const lookupZipCode = async (zipCode: string): Promise<{ city?: string; state?: string; country?: string }> => {
+  try {
+    // Try US zip code API first
+    if (/^\d{5}(-\d{4})?$/.test(zipCode)) {
+      // US zip code format
+      const response = await fetch(`https://api.zippopotam.us/us/${zipCode.split('-')[0]}`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.places && data.places.length > 0) {
+          return {
+            city: data.places[0]['place name'],
+            state: data.places[0]['state abbreviation'],
+            country: data.country,
+          }
+        }
+      }
+    }
+    
+    // For international or if US lookup fails, use Nominatim
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(zipCode)}&format=json&limit=1`,
+      {
+        headers: {
+          'User-Agent': 'Melodica Mental Health App',
+        },
+      }
+    )
+    
+    if (response.ok) {
+      const data = await response.json()
+      if (data.length > 0) {
+        const result = data[0]
+        return {
+          city: result.address?.city || result.address?.town || result.address?.village,
+          state: result.address?.state,
+          country: result.address?.country,
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error looking up zip code:", error)
+  }
+  
+  return {}
+}
 
 export default function TherapistFinder() {
   const [locationGranted, setLocationGranted] = useState(false)
@@ -94,37 +172,22 @@ export default function TherapistFinder() {
           const locationQuery = zipCode || city || country
           if (locationQuery) {
             setQuery(locationQuery)
-            const searchTerm = locationQuery.toLowerCase().trim()
             
-            const filtered = THERAPIST_DATABASE.filter((therapist) => {
-              const matchesZip = therapist.zipCode.toLowerCase().includes(searchTerm)
-              const matchesCity = therapist.city.toLowerCase().includes(searchTerm)
-              const matchesCountry = therapist.country.toLowerCase().includes(searchTerm)
-              return matchesZip || matchesCity || matchesCountry
-            })
-            
-            const resultsWithDistance = filtered.slice(0, 10).map((therapist, index) => ({
-              ...therapist,
-              distance: `${(index + 1) * 0.8 + 0.5} mi`,
-            }))
-            
-            setResults(resultsWithDistance)
+            // Generate therapists for this location
+            const therapists = await generateTherapistsForZip(zipCode || locationQuery, city, address.state, country || "USA")
+            setResults(therapists)
             setHasSearched(true)
           } else {
-            // If can't determine location, show nearby therapists (first 5)
-            setResults(THERAPIST_DATABASE.slice(0, 5).map((t, i) => ({
-              ...t,
-              distance: `${(i + 1) * 0.8 + 0.5} mi`,
-            })))
+            // If can't determine location, generate generic therapists
+            const therapists = await generateTherapistsForZip("00000", "Your Area", undefined, "USA")
+            setResults(therapists)
             setHasSearched(true)
           }
         } catch (error) {
           console.error("Error getting location:", error)
-          // Fallback: show some therapists
-          setResults(THERAPIST_DATABASE.slice(0, 5).map((t, i) => ({
-            ...t,
-            distance: `${(i + 1) * 0.8 + 0.5} mi`,
-          })))
+          // Fallback: generate therapists
+          const therapists = await generateTherapistsForZip("00000", "Your Area", undefined, "USA")
+          setResults(therapists)
           setHasSearched(true)
         }
         
@@ -137,37 +200,52 @@ export default function TherapistFinder() {
   }
 
   // Search by zip code, city, or country
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (!query.trim()) {
       setResults([])
       setHasSearched(false)
       return
     }
 
-    const searchTerm = query.toLowerCase().trim()
+    const searchTerm = query.trim()
+    const isZipCode = /^[0-9A-Za-z\s-]{3,10}$/.test(searchTerm) && /[0-9]/.test(searchTerm)
 
-    // Filter therapists by zip code, city, state, or country
-    const filtered = THERAPIST_DATABASE.filter((therapist) => {
-      const matchesZip = therapist.zipCode.toLowerCase().includes(searchTerm)
-      const matchesCity = therapist.city.toLowerCase().includes(searchTerm)
-      const matchesState = therapist.state?.toLowerCase().includes(searchTerm) || false
-      const matchesCountry = therapist.country.toLowerCase().includes(searchTerm)
-      const matchesFullLocation = `${therapist.city}, ${therapist.state || ''} ${therapist.zipCode}`.toLowerCase().includes(searchTerm)
-
-      return matchesZip || matchesCity || matchesState || matchesCountry || matchesFullLocation
-    })
-
-    // Calculate approximate distance for display (mock calculation based on first match)
-    const resultsWithDistance = filtered.map((therapist, index) => ({
-      ...therapist,
-      distance: index < 3 ? `${(index + 1) * 0.8 + 0.5} mi` : `${(index + 1) * 1.2} mi`,
-    }))
-
-    setResults(resultsWithDistance)
     setHasSearched(true)
+    
+    try {
+      let locationInfo: { city?: string; state?: string; country?: string } = {}
+      let zipCode = searchTerm
+      
+      // If it looks like a zip code, try to look it up
+      if (isZipCode) {
+        locationInfo = await lookupZipCode(searchTerm)
+        zipCode = searchTerm
+      } else {
+        // It's a city or country name - use as-is
+        locationInfo = {
+          city: searchTerm,
+          country: searchTerm,
+        }
+      }
+
+      // Generate therapists for this location
+      const therapists = await generateTherapistsForZip(
+        zipCode,
+        locationInfo.city,
+        locationInfo.state,
+        locationInfo.country || "USA"
+      )
+
+      setResults(therapists)
+    } catch (error) {
+      console.error("Error searching therapists:", error)
+      // Fallback: generate therapists with the search term as location
+      const therapists = await generateTherapistsForZip(searchTerm, searchTerm, undefined, "USA")
+      setResults(therapists)
+    }
   }
 
-  // Auto-search as user types (debounced)
+  // Auto-search as user types (debounced) - only for zip codes
   useEffect(() => {
     if (!query.trim()) {
       setResults([])
@@ -175,31 +253,20 @@ export default function TherapistFinder() {
       return
     }
 
-    const timeoutId = setTimeout(() => {
-      const searchTerm = query.toLowerCase().trim()
-      
-      // Filter therapists by zip code, city, state, or country
-      const filtered = THERAPIST_DATABASE.filter((therapist) => {
-        const matchesZip = therapist.zipCode.toLowerCase().includes(searchTerm)
-        const matchesCity = therapist.city.toLowerCase().includes(searchTerm)
-        const matchesState = therapist.state?.toLowerCase().includes(searchTerm) || false
-        const matchesCountry = therapist.country.toLowerCase().includes(searchTerm)
-        const matchesFullLocation = `${therapist.city}, ${therapist.state || ''} ${therapist.zipCode}`.toLowerCase().includes(searchTerm)
-        
-        return matchesZip || matchesCity || matchesState || matchesCountry || matchesFullLocation
-      })
-      
-      // Calculate approximate distance for display
-      const resultsWithDistance = filtered.map((therapist, index) => ({
-        ...therapist,
-        distance: index < 3 ? `${(index + 1) * 0.8 + 0.5} mi` : `${(index + 1) * 1.2} mi`,
-      }))
-      
-      setResults(resultsWithDistance)
-      setHasSearched(true)
-    }, 300) // Debounce search by 300ms
+    // Only auto-search if it looks like a zip code (avoid API calls for partial city names)
+    const isZipCode = /^[0-9A-Za-z\s-]{3,10}$/.test(query.trim()) && /[0-9]/.test(query.trim())
+    
+    if (!isZipCode && query.length < 5) {
+      // Don't search until user has typed more or it's clearly a zip code
+      return
+    }
+
+    const timeoutId = setTimeout(async () => {
+      await handleSearch()
+    }, 500) // Debounce search by 500ms for API calls
 
     return () => clearTimeout(timeoutId)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query])
 
   return (

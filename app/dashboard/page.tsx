@@ -41,10 +41,58 @@ export default function Dashboard() {
       // Check if user has completed music preferences quiz
       const storedPreferences = localStorage.getItem("musicPreferences")
       setHasMusicPreferences(!!storedPreferences)
+
+      // Listen for quick mood logs from notification actions (service worker)
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.addEventListener('message', (event) => {
+          if (event.data && event.data.type === 'QUICK_MOOD_LOG') {
+            const moodEntry = event.data.mood
+            
+            // Load existing mood history
+            const storedHistory = localStorage.getItem("moodHistory")
+            let moodHistory = []
+            if (storedHistory) {
+              try {
+                moodHistory = JSON.parse(storedHistory)
+              } catch (e) {
+                console.error("Error parsing mood history:", e)
+              }
+            }
+            
+            // Add the new entry (avoid duplicates)
+            const newEntry = {
+              mood: moodEntry.mood,
+              timestamp: new Date(moodEntry.timestamp),
+              notes: moodEntry.notes
+            }
+            
+            // Check if this entry already exists
+            const exists = moodHistory.some((entry: any) => 
+              entry.timestamp.toISOString() === newEntry.timestamp.toISOString() && 
+              entry.mood === newEntry.mood
+            )
+            
+            if (!exists) {
+              moodHistory.push(newEntry)
+              localStorage.setItem("moodHistory", JSON.stringify(moodHistory))
+              
+              // Show confirmation toast
+              try {
+                toast({
+                  title: "Mood Logged! 💚",
+                  description: `Your mood (${moodEntry.mood}/10) has been saved.`,
+                })
+              } catch (error) {
+                console.error('Error showing mood logged toast:', error)
+              }
+            }
+          }
+        })
+      }
     }
 
     setLoading(false)
-  }, [])
+  }, [toast])
 
   // Separate useEffect for mood check reminders
   useEffect(() => {

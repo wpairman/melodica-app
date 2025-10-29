@@ -306,7 +306,7 @@ export default function TherapistFinder() {
           <div>
             <CardTitle className="text-xl">Find a Therapist Near You</CardTitle>
             <CardDescription>
-              Search by zip code, city, or country. Use the location button to find therapists near you.
+              Search by zip code, city, or country anywhere in the world. Use the location button to find therapists near you.
             </CardDescription>
           </div>
           <div className="flex gap-2 mt-2 sm:mt-0">

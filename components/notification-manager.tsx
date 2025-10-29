@@ -56,26 +56,50 @@ export default function NotificationManager() {
           }
         }
 
-        // Show notification
+        // Show notification (prefer service worker for actions on mobile)
         if (Notification.permission === "granted") {
-          const notification = new Notification("Melodica - Mood Check-in", {
-            body: "How are you feeling right now? Take a moment to track your mood.",
-            icon: "/icons/icon-192x192.png",
-            badge: "/icons/icon-192x192.png",
-            tag: "mood-checkin",
-            requireInteraction: true,
-          })
+          // Check if service worker is available (better for mobile with actions)
+          if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.ready.then((registration) => {
+              registration.showNotification("Melodica - Mood Check-in", {
+                body: "How are you feeling right now? Pull down to log your mood quickly!",
+                icon: "/icons/icon-192x192.png",
+                badge: "/icons/icon-192x192.png",
+                tag: "mood-checkin",
+                requireInteraction: false,
+                actions: [
+                  { action: "mood-1", title: "1 😢" },
+                  { action: "mood-2", title: "2" },
+                  { action: "mood-3", title: "3" },
+                  { action: "mood-4", title: "4" },
+                  { action: "mood-5", title: "5 😐" },
+                ],
+                data: {
+                  url: "/dashboard"
+                }
+              })
+            })
+          } else {
+            // Fallback to regular notifications if service worker not available
+            const notification = new Notification("Melodica - Mood Check-in", {
+              body: "How are you feeling right now? Take a moment to track your mood.",
+              icon: "/icons/icon-192x192.png",
+              badge: "/icons/icon-192x192.png",
+              tag: "mood-checkin",
+              requireInteraction: true,
+            })
 
-          notification.onclick = () => {
-            window.focus()
-            window.location.href = "/dashboard"
-            notification.close()
+            notification.onclick = () => {
+              window.focus()
+              window.location.href = "/dashboard"
+              notification.close()
+            }
+
+            // Auto-close after 10 seconds
+            setTimeout(() => {
+              notification.close()
+            }, 10000)
           }
-
-          // Auto-close after 10 seconds
-          setTimeout(() => {
-            notification.close()
-          }, 10000)
         }
       }
 

@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
 import { Palette, RotateCcw } from 'lucide-react'
 import { useColorCustomization, SimpleTheme } from '@/contexts/color-customization-context'
 
@@ -18,25 +17,16 @@ function ColorPicker({ label, value, onChange }: ColorPickerProps) {
   return (
     <div className="space-y-2">
       <Label className="text-sm font-medium text-white">{label}</Label>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-center">
         <div className="relative">
           <input
             type="color"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="w-16 h-16 rounded-lg border-2 border-gray-600 cursor-pointer bg-transparent"
+            className="w-20 h-20 rounded-lg border-2 border-gray-600 cursor-pointer bg-transparent hover:border-gray-500 transition-colors"
             style={{ backgroundColor: value }}
           />
           <div className="absolute inset-0 rounded-lg border border-white/20 pointer-events-none" />
-        </div>
-        <div className="flex-1">
-          <Input
-            type="text"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder="#ffffff"
-            className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-          />
         </div>
       </div>
     </div>

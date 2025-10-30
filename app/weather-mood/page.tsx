@@ -258,10 +258,10 @@ export default function WeatherMoodPage() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen" style={{ backgroundColor: 'hsl(var(--background))' }}>
-        <div className="sticky top-0 z-50 px-6 py-4 flex items-center gap-4 border-b" style={{ backgroundColor: 'hsl(var(--background))', borderColor: 'hsl(var(--border))' }}>
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
+        <div className="sticky top-0 z-50 bg-gray-900 border-b border-gray-700 px-6 py-4 flex items-center gap-4">
           <MenuButton />
-          <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'hsl(var(--foreground))' }}>Weather & Mood</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-white">Weather & Mood</h1>
         </div>
 
         <div className="p-6">
@@ -270,29 +270,29 @@ export default function WeatherMoodPage() {
               <Loader2 className="animate-spin h-8 w-8" />
             </div>
           ) : state.error ? (
-            <Card className="p-6 text-center">
+            <Card className="p-6 text-center bg-gray-800 border-gray-700">
               <AlertCircle className="h-12 w-12 mx-auto mb-4 text-red-500" />
-              <h3 className="text-lg font-semibold mb-2">Unable to Load Weather</h3>
-              <p className="text-gray-600">{state.error}</p>
+              <h3 className="text-lg font-semibold mb-2 text-white">Unable to Load Weather</h3>
+              <p className="text-gray-300">{state.error}</p>
             </Card>
           ) : (
             <div className="max-w-6xl mx-auto space-y-6">
               {/* Current Weather Card */}
-              <Card>
+              <Card className="bg-gray-800 border-gray-700">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       {icon}
                       <div>
-                        <CardTitle className="text-2xl">Today's Weather</CardTitle>
-                        <CardDescription className="flex items-center gap-1 mt-1">
+                        <CardTitle className="text-2xl text-white">Today's Weather</CardTitle>
+                        <CardDescription className="flex items-center gap-1 mt-1 text-gray-300">
                           <MapPin className="h-4 w-4" /> {state.city}
                         </CardDescription>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-5xl font-bold">{state.temperature?.toFixed(0)}°C</p>
-                      <p className="text-lg text-muted-foreground">{state.condition}</p>
+                      <p className="text-5xl font-bold text-white">{state.temperature?.toFixed(0)}°C</p>
+                      <p className="text-lg text-gray-300">{state.condition}</p>
                     </div>
                   </div>
                 </CardHeader>
@@ -301,15 +301,15 @@ export default function WeatherMoodPage() {
                     <div className="flex items-center gap-2">
                       <Droplets className="h-5 w-5 text-blue-500" />
                       <div>
-                        <p className="text-sm text-muted-foreground">Humidity</p>
-                        <p className="font-semibold">{state.humidity}%</p>
+                        <p className="text-sm text-gray-400">Humidity</p>
+                        <p className="font-semibold text-white">{state.humidity}%</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Wind className="h-5 w-5 text-gray-500" />
+                      <Wind className="h-5 w-5 text-gray-400" />
                       <div>
-                        <p className="text-sm text-muted-foreground">Wind</p>
-                        <p className="font-semibold">{state.windSpeed?.toFixed(1)} km/h</p>
+                        <p className="text-sm text-gray-400">Wind</p>
+                        <p className="font-semibold text-white">{state.windSpeed?.toFixed(1)} km/h</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -322,21 +322,21 @@ export default function WeatherMoodPage() {
               </Card>
 
               {/* Weather Forecast for Today */}
-              <Card>
+              <Card className="bg-gray-800 border-gray-700">
                 <CardHeader>
-                  <CardTitle>Hourly Forecast</CardTitle>
-                  <CardDescription>Weather outlook for the next 12 hours</CardDescription>
+                  <CardTitle className="text-white">Hourly Forecast</CardTitle>
+                  <CardDescription className="text-gray-300">Weather outlook for the next 12 hours</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
                     {forecast.map((hour, index) => {
                       const { icon: hourIcon } = codeToCondition(hour.code)
                       return (
-                        <div key={index} className="text-center p-3 rounded-lg border">
-                          <p className="text-sm font-medium">{hour.time}</p>
+                        <div key={index} className="text-center p-3 rounded-lg border border-gray-700 bg-gray-700/50">
+                          <p className="text-sm font-medium text-white">{hour.time}</p>
                           <div className="my-2 flex justify-center">{hourIcon}</div>
-                          <p className="text-lg font-bold">{hour.temp.toFixed(0)}°C</p>
-                          <p className="text-xs text-muted-foreground">{hour.condition}</p>
+                          <p className="text-lg font-bold text-white">{hour.temp.toFixed(0)}°C</p>
+                          <p className="text-xs text-gray-400">{hour.condition}</p>
                         </div>
                       )
                     })}
@@ -345,22 +345,22 @@ export default function WeatherMoodPage() {
               </Card>
 
               {/* Mood Impact Analysis */}
-              <Card>
+              <Card className="bg-gray-800 border-gray-700">
                 <CardHeader>
-                  <CardTitle>How Today's Weather Affects Your Mood</CardTitle>
+                  <CardTitle className="text-white">How Today's Weather Affects Your Mood</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="p-4 rounded-lg border" style={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}>
-                    <p className="font-semibold mb-2" style={{ color: 'hsl(var(--foreground))' }}>Impact Assessment:</p>
-                    <p style={{ color: 'hsl(var(--foreground))' }}>{impact}</p>
+                  <div className="p-4 rounded-lg border border-gray-700 bg-gray-700/50">
+                    <p className="font-semibold mb-2 text-white">Impact Assessment:</p>
+                    <p className="text-gray-300">{impact}</p>
                   </div>
                   <div>
-                    <p className="font-semibold mb-2" style={{ color: 'hsl(var(--foreground))' }}>Tips to Improve or Stabilize Your Mood:</p>
+                    <p className="font-semibold mb-2 text-white">Tips to Improve or Stabilize Your Mood:</p>
                     <ul className="space-y-2">
                       {tips.map((tip, index) => (
                         <li key={index} className="flex items-start gap-2">
-                          <span className="mt-1" style={{ color: 'hsl(var(--primary))' }}>•</span>
-                          <span style={{ color: 'hsl(var(--foreground))' }}>{tip}</span>
+                          <span className="mt-1 text-blue-400">•</span>
+                          <span className="text-gray-300">{tip}</span>
                         </li>
                       ))}
                     </ul>
@@ -371,10 +371,10 @@ export default function WeatherMoodPage() {
               {/* Recommendations */}
               {recommendations.length > 0 && (
                 <div className="space-y-4">
-                  <h2 className="text-xl font-bold">Personalized Recommendations</h2>
+                  <h2 className="text-xl font-bold text-white">Personalized Recommendations</h2>
                   <div className="grid gap-4 md:grid-cols-2">
                     {recommendations.map((rec, index) => (
-                      <Card key={index}>
+                      <Card key={index} className="bg-gray-800 border-gray-700">
                         <CardHeader>
                           <div className="flex items-center gap-2">
                             {rec.type === "song" ? (
@@ -382,17 +382,17 @@ export default function WeatherMoodPage() {
                             ) : (
                               <Activity className="h-5 w-5 text-green-500" />
                             )}
-                            <CardTitle>{rec.title}</CardTitle>
-                            {rec.artist && <CardDescription>by {rec.artist}</CardDescription>}
+                            <CardTitle className="text-white">{rec.title}</CardTitle>
+                            {rec.artist && <CardDescription className="text-gray-300">by {rec.artist}</CardDescription>}
                           </div>
                         </CardHeader>
                         <CardContent className="space-y-3">
-                          <p>{rec.description}</p>
+                          <p className="text-gray-300">{rec.description}</p>
                           <Badge variant={rec.moodEffect === "improve" ? "default" : "secondary"}>
                             Will {rec.moodEffect} your mood
                           </Badge>
-                          <div className="p-3 rounded-lg border" style={{ backgroundColor: 'hsl(var(--muted))', borderColor: 'hsl(var(--border))' }}>
-                            <p className="text-sm" style={{ color: 'hsl(var(--foreground))' }}><strong style={{ color: 'hsl(var(--foreground))' }}>Why this works:</strong> <span style={{ color: 'hsl(var(--foreground))' }}>{rec.reasoning}</span></p>
+                          <div className="p-3 rounded-lg border border-gray-700 bg-gray-700/50">
+                            <p className="text-sm text-gray-300"><strong className="text-white">Why this works:</strong> <span>{rec.reasoning}</span></p>
                           </div>
                           <Button className="w-full">
                             {rec.type === "song" ? "Listen Now" : "Try This Activity"}

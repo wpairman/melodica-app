@@ -19,6 +19,7 @@ import CalendarNotifications from "@/components/calendar-notifications"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
 import { useSafeToast } from "@/components/toast-provider"
 import { DarkModeToggle } from "@/components/dark-mode-toggle"
+import WeatherMoodDashboard from "@/components/weather-mood-dashboard"
 
 export default function Dashboard() {
   const { toast } = useSafeToast()
@@ -339,8 +340,11 @@ export default function Dashboard() {
               </TabsList>
 
               <TabsContent value="mood" className="mt-6">
-                <div id="mood-tracker">
-                  <MoodTracker userData={userData} />
+                <div className="space-y-6">
+                  <WeatherMoodDashboard />
+                  <div id="mood-tracker">
+                    <MoodTracker userData={userData} />
+                  </div>
                 </div>
               </TabsContent>
 

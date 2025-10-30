@@ -4,6 +4,9 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Play, ExternalLink } from "lucide-react"
+import RatingDialog, { RatingTarget } from "@/components/rating-dialog"
+import { saveInteraction } from "@/lib/interactions"
+import { useToast } from "@/hooks/use-toast"
 
 interface ArtistSongsListProps {
   favoriteArtists: string
@@ -13,6 +16,9 @@ export default function ArtistSongsList({ favoriteArtists }: ArtistSongsListProp
   const [artistsList, setArtistsList] = useState<string[]>([])
   const [songsByArtist, setSongsByArtist] = useState<Record<string, any[]>>({})
   const [loading, setLoading] = useState(true)
+  const { toast } = useToast()
+  const [ratingOpen, setRatingOpen] = useState(false)
+  const [ratingTarget, setRatingTarget] = useState<RatingTarget | null>(null)
 
   useEffect(() => {
     if (favoriteArtists) {
@@ -132,6 +138,8 @@ export default function ArtistSongsList({ favoriteArtists }: ArtistSongsListProp
                           const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(song.artist + " " + song.title)}`
                           window.open(youtubeSearchUrl, '_blank')
                         }
+                        setRatingTarget({ kind: "song", title: `${song.title} – ${song.artist}`, meta: { album: song.album, duration: song.duration, source: "artist-songs" } })
+                        setRatingOpen(true)
                       }}
                     >
                       <Play className="h-4 w-4" />
@@ -146,6 +154,8 @@ export default function ArtistSongsList({ favoriteArtists }: ArtistSongsListProp
                           const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(song.artist + " " + song.title)}`
                           window.open(youtubeSearchUrl, '_blank')
                         }
+                        setRatingTarget({ kind: "song", title: `${song.title} – ${song.artist}`, meta: { album: song.album, duration: song.duration, source: "artist-songs" } })
+                        setRatingOpen(true)
                       }}
                     >
                       <ExternalLink className="h-4 w-4" />
@@ -158,6 +168,22 @@ export default function ArtistSongsList({ favoriteArtists }: ArtistSongsListProp
           </CardContent>
         </Card>
       ))}
+      <RatingDialog
+        open={ratingOpen}
+        onOpenChange={setRatingOpen}
+        target={ratingTarget}
+        onSubmit={(rating) => {
+          if (!ratingTarget) return
+          saveInteraction({
+            kind: ratingTarget.kind,
+            title: ratingTarget.title,
+            rating,
+            meta: ratingTarget.meta,
+            source: "artist-songs",
+          } as any)
+          toast({ title: "Thanks!", description: `Saved your song rating (${rating}/10).` })
+        }}
+      />
     </div>
   )
 }

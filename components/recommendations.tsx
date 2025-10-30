@@ -6,6 +6,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Music, Activity, ExternalLink } from "lucide-react"
 import Link from "next/link"
+import RatingDialog, { RatingTarget } from "@/components/rating-dialog"
+import { saveInteraction } from "@/lib/interactions"
+import { useToast } from "@/hooks/use-toast"
 
 interface RecommendationsProps {
   userData: {
@@ -90,6 +93,9 @@ export default function Recommendations({ userData }: RecommendationsProps) {
   const [currentMood, setCurrentMood] = useState<"low" | "neutral" | "high">("neutral")
   const [moodHistory, setMoodHistory] = useState<Array<{ mood: number; timestamp: Date }>>([])
   const [hasMusicPreferences, setHasMusicPreferences] = useState(false)
+  const { toast } = useToast()
+  const [ratingOpen, setRatingOpen] = useState(false)
+  const [ratingTarget, setRatingTarget] = useState<RatingTarget | null>(null)
 
   useEffect(() => {
     // In a real app, you would fetch this from an API (client-side only)
@@ -242,6 +248,8 @@ export default function Recommendations({ userData }: RecommendationsProps) {
                             if (typeof window !== 'undefined') {
                               window.open(youtubeSearchUrl, '_blank')
                             }
+                            setRatingTarget({ kind: "song", title: `${item.title} – ${item.artist}`, meta: { mood: item.mood, source: "recommendations" } })
+                            setRatingOpen(true)
                           }}
                         >
                           <ExternalLink className="mr-2 h-3 w-3" />
@@ -263,7 +271,15 @@ export default function Recommendations({ userData }: RecommendationsProps) {
                     </CardHeader>
                     <CardFooter className="p-4 pt-0 flex justify-between">
                       <span className="text-xs px-2 py-1 bg-teal-100 text-teal-800 rounded-full">{item.duration}</span>
-                      <Button variant="outline" size="sm" className="h-8">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-8"
+                        onClick={() => {
+                          setRatingTarget({ kind: "activity", title: item.name, meta: { duration: item.duration, source: "recommendations" } })
+                          setRatingOpen(true)
+                        }}
+                      >
                         Try Now
                       </Button>
                     </CardFooter>
@@ -302,6 +318,22 @@ export default function Recommendations({ userData }: RecommendationsProps) {
           </CardContent>
         </Card>
       )}
+      <RatingDialog
+        open={ratingOpen}
+        onOpenChange={setRatingOpen}
+        target={ratingTarget}
+        onSubmit={(rating) => {
+          if (!ratingTarget) return
+          saveInteraction({
+            kind: ratingTarget.kind,
+            title: ratingTarget.title,
+            rating,
+            meta: ratingTarget.meta,
+            source: "recommendations",
+          } as any)
+          toast({ title: "Thanks!", description: `Saved your ${ratingTarget.kind} rating (${rating}/10).` })
+        }}
+      />
     </div>
   )
 }

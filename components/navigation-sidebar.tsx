@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Heart, Activity, User, Settings, LogOut, Music, CreditCard, Calendar, Menu, TrendingUp } from "lucide-react"
+import { Heart, Activity, User, Settings, LogOut, Music, CreditCard, Calendar, Menu, TrendingUp, Cloud } from "lucide-react"
 import { DarkModeToggle } from "@/components/dark-mode-toggle"
 
 interface NavigationSidebarProps {
@@ -56,6 +56,12 @@ export function NavigationSidebar({ isOpen, onOpenChange }: NavigationSidebarPro
                   <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
                     <TrendingUp className="mr-2 h-4 w-4" />
                     Mood Analytics
+                  </Button>
+                </Link>
+                <Link href="/weather-mood">
+                  <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
+                    <Cloud className="mr-2 h-4 w-4" />
+                    Weather & Mood
                   </Button>
                 </Link>
                 <Link href="/dashboard/profile">

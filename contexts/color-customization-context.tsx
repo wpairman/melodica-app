@@ -126,6 +126,18 @@ export const presetThemes: CustomTheme[] = [
     borderColor: "#44403c",
     mutedTextColor: "#a8a29e"
   }
+  ,
+  {
+    name: "JAMAICA",
+    // Inspired by the Jamaican flag: black, green, gold
+    backgroundColor: "#0b0f0b",      // near-black with green hint
+    secondaryColor: "#facc15",        // gold (buttons/primary)
+    textColor: "#fefce8",             // warm off-white for readability
+    accentColor: "#16a34a",           // rich green accents
+    cardBackground: "#101810",        // deep green-black for cards
+    borderColor: "#14532d",           // green border tone
+    mutedTextColor: "#fde68a"         // soft gold for muted text
+  }
 ]
 
 export function ColorCustomizationProvider({ children }: { children: React.ReactNode }) {

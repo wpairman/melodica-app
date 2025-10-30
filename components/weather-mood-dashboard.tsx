@@ -209,12 +209,12 @@ export default function WeatherMoodDashboard() {
           </div>
         </div>
 
-        <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
+        <div className="p-3 rounded-lg border" style={{ backgroundColor: 'hsl(var(--muted))', borderColor: 'hsl(var(--border))' }}>
           <div className="flex items-start gap-2">
-            <TrendingUp className="h-4 w-4 text-blue-600 mt-0.5" />
+            <TrendingUp className="h-4 w-4 mt-0.5" style={{ color: 'hsl(var(--primary))' }} />
             <div>
-              <p className="text-xs font-semibold text-blue-900 mb-1">Quick Tip:</p>
-              <p className="text-xs text-blue-800">{quickTip}</p>
+              <p className="text-xs font-semibold mb-1" style={{ color: 'hsl(var(--foreground))' }}>Quick Tip:</p>
+              <p className="text-xs" style={{ color: 'hsl(var(--foreground))' }}>{quickTip}</p>
             </div>
           </div>
         </div>

@@ -350,17 +350,17 @@ export default function WeatherMoodPage() {
                   <CardTitle>How Today's Weather Affects Your Mood</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
-                    <p className="font-semibold mb-2 text-black">Impact Assessment:</p>
-                    <p className="text-black">{impact}</p>
+                  <div className="p-4 rounded-lg border" style={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}>
+                    <p className="font-semibold mb-2" style={{ color: 'hsl(var(--foreground))' }}>Impact Assessment:</p>
+                    <p style={{ color: 'hsl(var(--foreground))' }}>{impact}</p>
                   </div>
                   <div>
-                    <p className="font-semibold mb-2 text-black">Tips to Improve or Stabilize Your Mood:</p>
+                    <p className="font-semibold mb-2" style={{ color: 'hsl(var(--foreground))' }}>Tips to Improve or Stabilize Your Mood:</p>
                     <ul className="space-y-2">
                       {tips.map((tip, index) => (
                         <li key={index} className="flex items-start gap-2">
-                          <span className="text-blue-500 mt-1">•</span>
-                          <span className="text-black">{tip}</span>
+                          <span className="mt-1" style={{ color: 'hsl(var(--primary))' }}>•</span>
+                          <span style={{ color: 'hsl(var(--foreground))' }}>{tip}</span>
                         </li>
                       ))}
                     </ul>
@@ -391,8 +391,8 @@ export default function WeatherMoodPage() {
                           <Badge variant={rec.moodEffect === "improve" ? "default" : "secondary"}>
                             Will {rec.moodEffect} your mood
                           </Badge>
-                          <div className="p-3 rounded-lg bg-gray-50">
-                            <p className="text-sm text-black"><strong className="text-black">Why this works:</strong> <span className="text-black">{rec.reasoning}</span></p>
+                          <div className="p-3 rounded-lg border" style={{ backgroundColor: 'hsl(var(--muted))', borderColor: 'hsl(var(--border))' }}>
+                            <p className="text-sm" style={{ color: 'hsl(var(--foreground))' }}><strong style={{ color: 'hsl(var(--foreground))' }}>Why this works:</strong> <span style={{ color: 'hsl(var(--foreground))' }}>{rec.reasoning}</span></p>
                           </div>
                           <Button className="w-full">
                             {rec.type === "song" ? "Listen Now" : "Try This Activity"}

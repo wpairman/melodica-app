@@ -129,14 +129,14 @@ export const presetThemes: CustomTheme[] = [
   ,
   {
     name: "JAMAICA",
-    // Inspired by the Jamaican flag: black, green, gold
-    backgroundColor: "#0b0f0b",      // near-black with green hint
-    secondaryColor: "#facc15",        // gold (buttons/primary)
-    textColor: "#fefce8",             // warm off-white for readability
-    accentColor: "#16a34a",           // rich green accents
-    cardBackground: "#101810",        // deep green-black for cards
-    borderColor: "#14532d",           // green border tone
-    mutedTextColor: "#fde68a"         // soft gold for muted text
+    // Jamaican flag inspired (high contrast, bright accents)
+    backgroundColor: "#ffffff",       // white background
+    secondaryColor: "#FFD700",        // bright flag yellow (primary/buttons)
+    textColor: "#000000",             // black text
+    accentColor: "#009B3A",           // bright flag green (accents/highlights)
+    cardBackground: "#f9fafb",        // subtle light card to keep contrast
+    borderColor: "#e5e7eb",           // light gray borders
+    mutedTextColor: "#111827"         // near-black for muted text
   }
 ]
 

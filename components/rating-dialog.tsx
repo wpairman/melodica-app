@@ -27,7 +27,7 @@ export function RatingDialog({ open, onOpenChange, target, onSubmit }: RatingDia
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-white text-gray-900 border-gray-200 dark:bg-gray-800 dark:text-white dark:border-gray-700">
         <DialogHeader>
           <DialogTitle className="text-gray-900 dark:text-white">
             Rate this {target?.kind === "song" ? "song" : "activity"}

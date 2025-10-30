@@ -2,161 +2,49 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
 
-export interface CustomTheme {
-  name: string
-  backgroundColor: string
-  secondaryColor: string
-  textColor: string
-  accentColor: string
-  cardBackground: string
-  borderColor: string
-  mutedTextColor: string
+export interface SimpleTheme {
+  mainBackground: string      // Main background color
+  secondaryBackground: string // Secondary background color (cards, panels)
+  mainText: string           // Main text color
+  secondaryText: string      // Secondary text color
+  togglesColor: string       // Toggles/buttons/primary elements color
 }
 
 export interface ColorCustomizationContextType {
-  customTheme: CustomTheme | null
-  isCustomThemeEnabled: boolean
-  setCustomTheme: (theme: CustomTheme | null) => void
-  enableCustomTheme: (enabled: boolean) => void
-  applyCustomTheme: (theme: CustomTheme) => void
+  theme: SimpleTheme | null
+  isEnabled: boolean
+  setTheme: (theme: SimpleTheme | null) => void
+  enableTheme: (enabled: boolean) => void
   resetToDefault: () => void
-  presetThemes: CustomTheme[]
 }
 
 const ColorCustomizationContext = createContext<ColorCustomizationContextType | undefined>(undefined)
 
-export const presetThemes: CustomTheme[] = [
-  {
-    name: "Ocean",
-    backgroundColor: "#0f172a",
-    secondaryColor: "#0ea5e9",
-    textColor: "#f1f5f9",
-    accentColor: "#38bdf8",
-    cardBackground: "#1e293b",
-    borderColor: "#334155",
-    mutedTextColor: "#94a3b8"
-  },
-  {
-    name: "Forest",
-    backgroundColor: "#0f172a",
-    secondaryColor: "#10b981",
-    textColor: "#f1f5f9",
-    accentColor: "#34d399",
-    cardBackground: "#1e293b",
-    borderColor: "#334155",
-    mutedTextColor: "#94a3b8"
-  },
-  {
-    name: "Sunset",
-    backgroundColor: "#0f172a",
-    secondaryColor: "#f97316",
-    textColor: "#f1f5f9",
-    accentColor: "#fb923c",
-    cardBackground: "#1e293b",
-    borderColor: "#334155",
-    mutedTextColor: "#94a3b8"
-  },
-  {
-    name: "Lavender",
-    backgroundColor: "#0f172a",
-    secondaryColor: "#8b5cf6",
-    textColor: "#f1f5f9",
-    accentColor: "#a78bfa",
-    cardBackground: "#1e293b",
-    borderColor: "#334155",
-    mutedTextColor: "#94a3b8"
-  },
-  {
-    name: "Rose",
-    backgroundColor: "#0f172a",
-    secondaryColor: "#f43f5e",
-    textColor: "#f1f5f9",
-    accentColor: "#fb7185",
-    cardBackground: "#1e293b",
-    borderColor: "#334155",
-    mutedTextColor: "#94a3b8"
-  },
-  {
-    name: "Mint",
-    backgroundColor: "#0f172a",
-    secondaryColor: "#06d6a0",
-    textColor: "#f1f5f9",
-    accentColor: "#5eead4",
-    cardBackground: "#1e293b",
-    borderColor: "#334155",
-    mutedTextColor: "#94a3b8"
-  },
-  {
-    name: "Classic Dark",
-    backgroundColor: "#0f172a",
-    secondaryColor: "#3b82f6",
-    textColor: "#f1f5f9",
-    accentColor: "#60a5fa",
-    cardBackground: "#1e293b",
-    borderColor: "#334155",
-    mutedTextColor: "#94a3b8"
-  },
-  {
-    name: "High Contrast",
-    backgroundColor: "#000000",
-    secondaryColor: "#ffffff",
-    textColor: "#ffffff",
-    accentColor: "#ffffff",
-    cardBackground: "#1a1a1a",
-    borderColor: "#ffffff",
-    mutedTextColor: "#cccccc"
-  },
-  {
-    name: "Warm Dark",
-    backgroundColor: "#1c1917",
-    secondaryColor: "#f59e0b",
-    textColor: "#fef3c7",
-    accentColor: "#fbbf24",
-    cardBackground: "#292524",
-    borderColor: "#44403c",
-    mutedTextColor: "#d6d3d1"
-  },
-  {
-    name: "Cool Dark",
-    backgroundColor: "#0c0a09",
-    secondaryColor: "#06b6d4",
-    textColor: "#ecfeff",
-    accentColor: "#22d3ee",
-    cardBackground: "#1c1917",
-    borderColor: "#44403c",
-    mutedTextColor: "#a8a29e"
-  }
-  ,
-  {
-    name: "JAMAICA",
-    // Jamaican flag inspired (high contrast, bright accents)
-    backgroundColor: "#ffffff",       // white background
-    secondaryColor: "#FFD700",        // bright flag yellow (primary/buttons)
-    textColor: "#000000",             // black text
-    accentColor: "#009B3A",           // bright flag green (accents/highlights)
-    cardBackground: "#f9fafb",        // subtle light card to keep contrast
-    borderColor: "#e5e7eb",           // light gray borders
-    mutedTextColor: "#111827"         // near-black for muted text
-  }
-]
+const DEFAULT_THEME: SimpleTheme = {
+  mainBackground: "#0f172a",
+  secondaryBackground: "#1e293b",
+  mainText: "#f1f5f9",
+  secondaryText: "#94a3b8",
+  togglesColor: "#3b82f6"
+}
 
 export function ColorCustomizationProvider({ children }: { children: React.ReactNode }) {
-  const [customTheme, setCustomTheme] = useState<CustomTheme | null>(null)
-  const [isCustomThemeEnabled, setIsCustomThemeEnabled] = useState(false)
+  const [theme, setThemeState] = useState<SimpleTheme | null>(null)
+  const [isEnabled, setIsEnabled] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
 
   useEffect(() => {
     // Load saved theme from localStorage (client-side only)
     if (typeof window !== 'undefined') {
-      const savedTheme = localStorage.getItem('customTheme')
-      const isEnabled = localStorage.getItem('customThemeEnabled') === 'true'
+      const savedTheme = localStorage.getItem('simpleTheme')
+      const isEnabledSaved = localStorage.getItem('simpleThemeEnabled') === 'true'
       
-      if (savedTheme && isEnabled) {
+      if (savedTheme && isEnabledSaved) {
         try {
-          const theme = JSON.parse(savedTheme)
-          setCustomTheme(theme)
-          setIsCustomThemeEnabled(true)
-          applyCustomTheme(theme)
+          const parsed = JSON.parse(savedTheme)
+          setThemeState(parsed)
+          setIsEnabled(true)
+          applyTheme(parsed)
         } catch (error) {
           console.error("Error parsing saved theme:", error)
         }
@@ -165,93 +53,49 @@ export function ColorCustomizationProvider({ children }: { children: React.React
     setIsInitialized(true)
   }, [])
 
-  const hexToHslTriplet = (hex: string): { triplet: string; lightness: number } => {
+  const hexToRgbTriplet = (hex: string): string => {
     const cleaned = hex.replace('#', '')
     const full = cleaned.length === 3 ? cleaned.split('').map((c) => c + c).join('') : cleaned
     const bigint = parseInt(full, 16)
-    const r = ((bigint >> 16) & 255) / 255
-    const g = ((bigint >> 8) & 255) / 255
-    const b = (bigint & 255) / 255
-
-    const max = Math.max(r, g, b)
-    const min = Math.min(r, g, b)
-    let h = 0
-    let s = 0
-    const l = (max + min) / 2
-
-    if (max !== min) {
-      const d = max - min
-      s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
-      switch (max) {
-        case r:
-          h = (g - b) / d + (g < b ? 6 : 0)
-          break
-        case g:
-          h = (b - r) / d + 2
-          break
-        case b:
-          h = (r - g) / d + 4
-          break
-      }
-      h /= 6
-    }
-
-    const H = Math.round(h * 360)
-    const S = Math.round(s * 100)
-    const L = Math.round(l * 100)
-    return { triplet: `${H} ${S}% ${L}%`, lightness: L }
+    const r = (bigint >> 16) & 255
+    const g = (bigint >> 8) & 255
+    const b = bigint & 255
+    return `${r} ${g} ${b}`
   }
 
-  const applyCustomTheme = (theme: CustomTheme) => {
+  const applyTheme = (customTheme: SimpleTheme) => {
     const root = document.documentElement
     
-    // Convert hex colors to space-separated RGB triplets to match current CSS usage
-    const { triplet: bg, lightness: bgL } = hexToHslTriplet(theme.backgroundColor)
-    const { triplet: text } = hexToHslTriplet(theme.textColor)
-    const { triplet: card } = hexToHslTriplet(theme.cardBackground)
-    const { triplet: border } = hexToHslTriplet(theme.borderColor)
-    const { triplet: primary } = hexToHslTriplet(theme.secondaryColor)
-    const { triplet: accent } = hexToHslTriplet(theme.accentColor)
-    const { triplet: mutedText } = hexToHslTriplet(theme.mutedTextColor)
+    // Convert hex to RGB triplets
+    const mainBg = hexToRgbTriplet(customTheme.mainBackground)
+    const secondaryBg = hexToRgbTriplet(customTheme.secondaryBackground)
+    const mainTxt = hexToRgbTriplet(customTheme.mainText)
+    const secondaryTxt = hexToRgbTriplet(customTheme.secondaryText)
+    const toggles = hexToRgbTriplet(customTheme.togglesColor)
 
-    // Apply CSS custom properties
-    root.style.setProperty('--background', bg)
-    root.style.setProperty('--foreground', text)
-    root.style.setProperty('--card', card)
-    root.style.setProperty('--card-foreground', text)
-    root.style.setProperty('--popover', card)
-    root.style.setProperty('--popover-foreground', text)
-    root.style.setProperty('--primary', primary)
-    root.style.setProperty('--primary-foreground', text)
-    root.style.setProperty('--secondary', accent)
-    root.style.setProperty('--secondary-foreground', text)
-    root.style.setProperty('--muted', card)
-    root.style.setProperty('--muted-foreground', mutedText)
-    root.style.setProperty('--accent', accent)
-    root.style.setProperty('--accent-foreground', text)
-    root.style.setProperty('--destructive', '239 68 68')
-    root.style.setProperty('--destructive-foreground', '255 255 255')
-    root.style.setProperty('--border', border)
-    root.style.setProperty('--input', border)
-    root.style.setProperty('--ring', primary)
+    // Apply directly to CSS variables - these will override everything
+    root.style.setProperty('--background', mainBg)
+    root.style.setProperty('--foreground', mainTxt)
+    root.style.setProperty('--card', secondaryBg)
+    root.style.setProperty('--card-foreground', mainTxt)
+    root.style.setProperty('--popover', secondaryBg)
+    root.style.setProperty('--popover-foreground', mainTxt)
+    root.style.setProperty('--primary', toggles)
+    root.style.setProperty('--primary-foreground', mainTxt)
+    root.style.setProperty('--secondary', secondaryBg)
+    root.style.setProperty('--secondary-foreground', mainTxt)
+    root.style.setProperty('--muted', secondaryBg)
+    root.style.setProperty('--muted-foreground', secondaryTxt)
+    root.style.setProperty('--accent', toggles)
+    root.style.setProperty('--accent-foreground', mainTxt)
+    root.style.setProperty('--border', secondaryBg)
+    root.style.setProperty('--input', secondaryBg)
+    root.style.setProperty('--ring', toggles)
     
-    // Apply additional custom properties for better control
-    root.style.setProperty('--custom-bg', bg)
-    root.style.setProperty('--custom-text', text)
-    root.style.setProperty('--custom-card', card)
-    root.style.setProperty('--custom-border', border)
-    root.style.setProperty('--custom-accent', accent)
-    root.style.setProperty('--custom-secondary', primary)
-    root.style.setProperty('--custom-muted', mutedText)
-
-    // Toggle dark class based on background lightness for cohesive visuals
+    // Apply body background directly
     if (typeof document !== 'undefined') {
-      if (bgL >= 65) {
-        document.body.classList.remove('dark')
-      } else {
-        document.body.classList.add('dark')
-      }
-      document.documentElement.classList.add('custom-theme')
+      document.body.style.backgroundColor = customTheme.mainBackground
+      document.body.style.color = customTheme.mainText
     }
   }
 
@@ -263,57 +107,61 @@ export function ColorCustomizationProvider({ children }: { children: React.React
       '--background', '--foreground', '--card', '--card-foreground',
       '--popover', '--popover-foreground', '--primary', '--primary-foreground',
       '--secondary', '--secondary-foreground', '--muted', '--muted-foreground',
-      '--accent', '--accent-foreground', '--border', '--input', '--ring',
-      '--custom-bg', '--custom-text', '--custom-card', '--custom-border',
-      '--custom-accent', '--custom-secondary', '--custom-muted'
+      '--accent', '--accent-foreground', '--border', '--input', '--ring'
     ]
     
     customProperties.forEach(prop => {
       root.style.removeProperty(prop)
     })
     
-    setCustomTheme(null)
-    setIsCustomThemeEnabled(false)
-    // Clear localStorage (client-side only)
+    if (typeof document !== 'undefined') {
+      document.body.style.removeProperty('background-color')
+      document.body.style.removeProperty('color')
+    }
+    
+    setThemeState(null)
+    setIsEnabled(false)
+    
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('customTheme')
-      localStorage.removeItem('customThemeEnabled')
+      localStorage.removeItem('simpleTheme')
+      localStorage.removeItem('simpleThemeEnabled')
     }
   }
 
-  const enableCustomTheme = (enabled: boolean) => {
-    setIsCustomThemeEnabled(enabled)
-    // Save to localStorage (client-side only)
+  const enableTheme = (enabled: boolean) => {
+    setIsEnabled(enabled)
+    
     if (typeof window !== 'undefined') {
-      localStorage.setItem('customThemeEnabled', enabled.toString())
+      localStorage.setItem('simpleThemeEnabled', enabled.toString())
     }
     
-    if (!enabled) {
+    if (enabled && theme) {
+      applyTheme(theme)
+    } else if (!enabled) {
       resetToDefault()
     }
   }
 
-  const handleSetCustomTheme = (theme: CustomTheme | null) => {
-    setCustomTheme(theme)
-    if (theme) {
-      // Save to localStorage (client-side only)
+  const handleSetTheme = (newTheme: SimpleTheme | null) => {
+    setThemeState(newTheme)
+    if (newTheme) {
       if (typeof window !== 'undefined') {
-        localStorage.setItem('customTheme', JSON.stringify(theme))
+        localStorage.setItem('simpleTheme', JSON.stringify(newTheme))
       }
-      applyCustomTheme(theme)
+      if (isEnabled) {
+        applyTheme(newTheme)
+      }
     }
   }
 
   return (
     <ColorCustomizationContext.Provider
       value={{
-        customTheme,
-        isCustomThemeEnabled,
-        setCustomTheme: handleSetCustomTheme,
-        enableCustomTheme,
-        applyCustomTheme,
-        resetToDefault,
-        presetThemes
+        theme,
+        isEnabled,
+        setTheme: handleSetTheme,
+        enableTheme,
+        resetToDefault
       }}
     >
       {children}
@@ -328,4 +176,3 @@ export function useColorCustomization() {
   }
   return context
 }
-

@@ -1,12 +1,12 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Slider } from '@/components/ui/slider'
-import { Palette, Eye, RotateCcw, Sparkles } from 'lucide-react'
+import { Palette, Eye, RotateCcw, Sparkles, Save, Trash2, Upload } from 'lucide-react'
 import { CustomTheme, useColorCustomization } from '@/contexts/color-customization-context'
 
 interface ColorPickerProps {
@@ -192,9 +192,35 @@ export function ColorCustomizationPanel() {
     }
   )
 
+  // Saved palettes (local-only)
+  const [savedPalettes, setSavedPalettes] = useState<CustomTheme[]>([])
+  const [newPaletteName, setNewPaletteName] = useState("")
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('savedPalettes')
+        if (raw) setSavedPalettes(JSON.parse(raw))
+      } catch {}
+    }
+  }, [])
+
+  const persistPalettes = (palettes: CustomTheme[]) => {
+    setSavedPalettes(palettes)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('savedPalettes', JSON.stringify(palettes))
+    }
+  }
+
   const handlePresetSelect = (preset: CustomTheme) => {
     setEditingTheme(preset)
     setCustomTheme(preset)
+  }
+
+  const handleResetToSelectedPreset = () => {
+    if (!customTheme) return
+    setEditingTheme(customTheme)
+    setCustomTheme(customTheme)
   }
 
   const handleCustomThemeUpdate = (field: keyof CustomTheme, value: string) => {
@@ -229,6 +255,23 @@ export function ColorCustomizationPanel() {
     
     setEditingTheme(newTheme)
     setCustomTheme(newTheme)
+  }
+
+  const saveCurrentAsPalette = () => {
+    const name = newPaletteName.trim() || editingTheme.name || 'Custom'
+    const palette: CustomTheme = { ...editingTheme, name }
+    const updated = [palette, ...savedPalettes.filter(p => p.name !== name)]
+    persistPalettes(updated)
+    setNewPaletteName("")
+  }
+
+  const applySavedPalette = (palette: CustomTheme) => {
+    setEditingTheme(palette)
+    setCustomTheme(palette)
+  }
+
+  const deleteSavedPalette = (name: string) => {
+    persistPalettes(savedPalettes.filter(p => p.name !== name))
   }
 
   return (
@@ -271,6 +314,13 @@ export function ColorCustomizationPanel() {
               />
             ))}
           </div>
+          {customTheme && (
+            <div className="flex justify-end">
+              <Button variant="outline" size="sm" onClick={handleResetToSelectedPreset} className="text-xs">
+                <RotateCcw className="h-3 w-3 mr-1" /> Reset to selected preset
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Custom Color Controls */}
@@ -397,6 +447,48 @@ export function ColorCustomizationPanel() {
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Save/Apply Palettes */}
+            <div className="space-y-3">
+              <Label className="text-white">Your Saved Palettes</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  value={newPaletteName}
+                  onChange={(e) => setNewPaletteName(e.target.value)}
+                  placeholder="Palette name (e.g., My Calm Theme)"
+                  className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                />
+                <Button onClick={saveCurrentAsPalette} className="bg-blue-600 hover:bg-blue-700">
+                  <Save className="w-4 h-4 mr-1" /> Save palette
+                </Button>
+              </div>
+              {savedPalettes.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {savedPalettes.map((p) => (
+                    <div key={p.name} className="p-3 rounded-lg border bg-gray-900 border-gray-700">
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm text-white font-medium">{p.name}</div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={() => applySavedPalette(p)} className="text-xs">
+                            <Upload className="w-3 h-3 mr-1" /> Apply
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => deleteSavedPalette(p.name)} className="text-xs">
+                            <Trash2 className="w-3 h-3 mr-1" /> Delete
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="mt-2 grid grid-cols-6 gap-1">
+                        {[p.backgroundColor, p.cardBackground, p.textColor, p.mutedTextColor, p.secondaryColor, p.accentColor].map((c, i) => (
+                          <div key={i} className="h-4 rounded" style={{ backgroundColor: c }} />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-400">No saved palettes yet. Give this theme a name and click Save palette.</p>
+              )}
             </div>
           </div>
         )}

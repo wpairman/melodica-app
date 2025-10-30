@@ -153,38 +153,58 @@ export function ColorCustomizationProvider({ children }: { children: React.React
     setIsInitialized(true)
   }, [])
 
+  const hexToRgbTriplet = (hex: string): string => {
+    const cleaned = hex.replace('#', '')
+    const bigint = parseInt(cleaned.length === 3
+      ? cleaned.split('').map((c) => c + c).join('')
+      : cleaned, 16)
+    const r = (bigint >> 16) & 255
+    const g = (bigint >> 8) & 255
+    const b = bigint & 255
+    return `${r} ${g} ${b}`
+  }
+
   const applyCustomTheme = (theme: CustomTheme) => {
     const root = document.documentElement
     
+    // Convert hex colors to space-separated RGB triplets to match current CSS usage
+    const bg = hexToRgbTriplet(theme.backgroundColor)
+    const text = hexToRgbTriplet(theme.textColor)
+    const card = hexToRgbTriplet(theme.cardBackground)
+    const border = hexToRgbTriplet(theme.borderColor)
+    const primary = hexToRgbTriplet(theme.secondaryColor)
+    const accent = hexToRgbTriplet(theme.accentColor)
+    const mutedText = hexToRgbTriplet(theme.mutedTextColor)
+
     // Apply CSS custom properties
-    root.style.setProperty('--background', theme.backgroundColor)
-    root.style.setProperty('--foreground', theme.textColor)
-    root.style.setProperty('--card', theme.cardBackground)
-    root.style.setProperty('--card-foreground', theme.textColor)
-    root.style.setProperty('--popover', theme.cardBackground)
-    root.style.setProperty('--popover-foreground', theme.textColor)
-    root.style.setProperty('--primary', theme.secondaryColor)
-    root.style.setProperty('--primary-foreground', theme.textColor)
-    root.style.setProperty('--secondary', theme.accentColor)
-    root.style.setProperty('--secondary-foreground', theme.textColor)
-    root.style.setProperty('--muted', theme.cardBackground)
-    root.style.setProperty('--muted-foreground', theme.mutedTextColor)
-    root.style.setProperty('--accent', theme.accentColor)
-    root.style.setProperty('--accent-foreground', theme.textColor)
-    root.style.setProperty('--destructive', '#ef4444')
-    root.style.setProperty('--destructive-foreground', '#ffffff')
-    root.style.setProperty('--border', theme.borderColor)
-    root.style.setProperty('--input', theme.borderColor)
-    root.style.setProperty('--ring', theme.secondaryColor)
+    root.style.setProperty('--background', bg)
+    root.style.setProperty('--foreground', text)
+    root.style.setProperty('--card', card)
+    root.style.setProperty('--card-foreground', text)
+    root.style.setProperty('--popover', card)
+    root.style.setProperty('--popover-foreground', text)
+    root.style.setProperty('--primary', primary)
+    root.style.setProperty('--primary-foreground', text)
+    root.style.setProperty('--secondary', accent)
+    root.style.setProperty('--secondary-foreground', text)
+    root.style.setProperty('--muted', card)
+    root.style.setProperty('--muted-foreground', mutedText)
+    root.style.setProperty('--accent', accent)
+    root.style.setProperty('--accent-foreground', text)
+    root.style.setProperty('--destructive', '239 68 68')
+    root.style.setProperty('--destructive-foreground', '255 255 255')
+    root.style.setProperty('--border', border)
+    root.style.setProperty('--input', border)
+    root.style.setProperty('--ring', primary)
     
     // Apply additional custom properties for better control
-    root.style.setProperty('--custom-bg', theme.backgroundColor)
-    root.style.setProperty('--custom-text', theme.textColor)
-    root.style.setProperty('--custom-card', theme.cardBackground)
-    root.style.setProperty('--custom-border', theme.borderColor)
-    root.style.setProperty('--custom-accent', theme.accentColor)
-    root.style.setProperty('--custom-secondary', theme.secondaryColor)
-    root.style.setProperty('--custom-muted', theme.mutedTextColor)
+    root.style.setProperty('--custom-bg', bg)
+    root.style.setProperty('--custom-text', text)
+    root.style.setProperty('--custom-card', card)
+    root.style.setProperty('--custom-border', border)
+    root.style.setProperty('--custom-accent', accent)
+    root.style.setProperty('--custom-secondary', primary)
+    root.style.setProperty('--custom-muted', mutedText)
   }
 
   const resetToDefault = () => {

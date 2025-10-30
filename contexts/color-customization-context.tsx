@@ -92,10 +92,31 @@ export function ColorCustomizationProvider({ children }: { children: React.React
     root.style.setProperty('--input', secondaryBg)
     root.style.setProperty('--ring', toggles)
     
-    // Apply body background directly
+    // Apply body and html background directly with !important to override hardcoded classes
     if (typeof document !== 'undefined') {
-      document.body.style.backgroundColor = customTheme.mainBackground
-      document.body.style.color = customTheme.mainText
+      document.body.style.setProperty('background-color', customTheme.mainBackground, 'important')
+      document.body.style.setProperty('color', customTheme.mainText, 'important')
+      document.documentElement.style.setProperty('background-color', customTheme.mainBackground, 'important')
+      
+      // Also apply to common hardcoded class overrides
+      const style = document.createElement('style')
+      style.id = 'custom-theme-override'
+      style.textContent = `
+        body, html, #__next {
+          background-color: ${customTheme.mainBackground} !important;
+          color: ${customTheme.mainText} !important;
+        }
+        .bg-gray-900, .bg-gray-800, .bg-gray-950 {
+          background-color: ${customTheme.mainBackground} !important;
+        }
+        .min-h-screen.bg-gray-900, .min-h-screen.bg-gray-800, [class*="bg-gray-900"], [class*="bg-gray-800"] {
+          background-color: ${customTheme.mainBackground} !important;
+        }
+      `
+      // Remove old override if it exists
+      const oldStyle = document.getElementById('custom-theme-override')
+      if (oldStyle) oldStyle.remove()
+      document.head.appendChild(style)
     }
   }
 
@@ -117,6 +138,11 @@ export function ColorCustomizationProvider({ children }: { children: React.React
     if (typeof document !== 'undefined') {
       document.body.style.removeProperty('background-color')
       document.body.style.removeProperty('color')
+      document.documentElement.style.removeProperty('background-color')
+      
+      // Remove custom override styles
+      const overrideStyle = document.getElementById('custom-theme-override')
+      if (overrideStyle) overrideStyle.remove()
     }
     
     setThemeState(null)

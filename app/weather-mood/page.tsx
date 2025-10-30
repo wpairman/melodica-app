@@ -351,16 +351,16 @@ export default function WeatherMoodPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
-                    <p className="font-semibold mb-2">Impact Assessment:</p>
-                    <p>{impact}</p>
+                    <p className="font-semibold mb-2 text-black">Impact Assessment:</p>
+                    <p className="text-black">{impact}</p>
                   </div>
                   <div>
-                    <p className="font-semibold mb-2">Tips to Improve or Stabilize Your Mood:</p>
+                    <p className="font-semibold mb-2 text-black">Tips to Improve or Stabilize Your Mood:</p>
                     <ul className="space-y-2">
                       {tips.map((tip, index) => (
                         <li key={index} className="flex items-start gap-2">
                           <span className="text-blue-500 mt-1">•</span>
-                          <span>{tip}</span>
+                          <span className="text-black">{tip}</span>
                         </li>
                       ))}
                     </ul>
@@ -392,7 +392,7 @@ export default function WeatherMoodPage() {
                             Will {rec.moodEffect} your mood
                           </Badge>
                           <div className="p-3 rounded-lg bg-gray-50">
-                            <p className="text-sm"><strong>Why this works:</strong> {rec.reasoning}</p>
+                            <p className="text-sm text-black"><strong className="text-black">Why this works:</strong> <span className="text-black">{rec.reasoning}</span></p>
                           </div>
                           <Button className="w-full">
                             {rec.type === "song" ? "Listen Now" : "Try This Activity"}

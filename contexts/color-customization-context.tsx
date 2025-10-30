@@ -165,28 +165,54 @@ export function ColorCustomizationProvider({ children }: { children: React.React
     setIsInitialized(true)
   }, [])
 
-  const hexToRgbTriplet = (hex: string): string => {
+  const hexToHslTriplet = (hex: string): { triplet: string; lightness: number } => {
     const cleaned = hex.replace('#', '')
-    const bigint = parseInt(cleaned.length === 3
-      ? cleaned.split('').map((c) => c + c).join('')
-      : cleaned, 16)
-    const r = (bigint >> 16) & 255
-    const g = (bigint >> 8) & 255
-    const b = bigint & 255
-    return `${r} ${g} ${b}`
+    const full = cleaned.length === 3 ? cleaned.split('').map((c) => c + c).join('') : cleaned
+    const bigint = parseInt(full, 16)
+    const r = ((bigint >> 16) & 255) / 255
+    const g = ((bigint >> 8) & 255) / 255
+    const b = (bigint & 255) / 255
+
+    const max = Math.max(r, g, b)
+    const min = Math.min(r, g, b)
+    let h = 0
+    let s = 0
+    const l = (max + min) / 2
+
+    if (max !== min) {
+      const d = max - min
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+      switch (max) {
+        case r:
+          h = (g - b) / d + (g < b ? 6 : 0)
+          break
+        case g:
+          h = (b - r) / d + 2
+          break
+        case b:
+          h = (r - g) / d + 4
+          break
+      }
+      h /= 6
+    }
+
+    const H = Math.round(h * 360)
+    const S = Math.round(s * 100)
+    const L = Math.round(l * 100)
+    return { triplet: `${H} ${S}% ${L}%`, lightness: L }
   }
 
   const applyCustomTheme = (theme: CustomTheme) => {
     const root = document.documentElement
     
     // Convert hex colors to space-separated RGB triplets to match current CSS usage
-    const bg = hexToRgbTriplet(theme.backgroundColor)
-    const text = hexToRgbTriplet(theme.textColor)
-    const card = hexToRgbTriplet(theme.cardBackground)
-    const border = hexToRgbTriplet(theme.borderColor)
-    const primary = hexToRgbTriplet(theme.secondaryColor)
-    const accent = hexToRgbTriplet(theme.accentColor)
-    const mutedText = hexToRgbTriplet(theme.mutedTextColor)
+    const { triplet: bg, lightness: bgL } = hexToHslTriplet(theme.backgroundColor)
+    const { triplet: text } = hexToHslTriplet(theme.textColor)
+    const { triplet: card } = hexToHslTriplet(theme.cardBackground)
+    const { triplet: border } = hexToHslTriplet(theme.borderColor)
+    const { triplet: primary } = hexToHslTriplet(theme.secondaryColor)
+    const { triplet: accent } = hexToHslTriplet(theme.accentColor)
+    const { triplet: mutedText } = hexToHslTriplet(theme.mutedTextColor)
 
     // Apply CSS custom properties
     root.style.setProperty('--background', bg)
@@ -217,6 +243,16 @@ export function ColorCustomizationProvider({ children }: { children: React.React
     root.style.setProperty('--custom-accent', accent)
     root.style.setProperty('--custom-secondary', primary)
     root.style.setProperty('--custom-muted', mutedText)
+
+    // Toggle dark class based on background lightness for cohesive visuals
+    if (typeof document !== 'undefined') {
+      if (bgL >= 65) {
+        document.body.classList.remove('dark')
+      } else {
+        document.body.classList.add('dark')
+      }
+      document.documentElement.classList.add('custom-theme')
+    }
   }
 
   const resetToDefault = () => {

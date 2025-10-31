@@ -25,6 +25,8 @@ import {
   ChevronRight,
 } from "lucide-react"
 import { useSafeToast } from "@/components/toast-provider"
+import { MenuButton } from "@/components/navigation-sidebar"
+import { AuthGuard } from "@/components/auth-guard"
 
 interface PeriodData {
   lastPeriodStart: string
@@ -441,12 +443,20 @@ export default function PeriodTrackerPage() {
   }
 
   return (
+    <AuthGuard>
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 p-4">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-purple-600 mb-2">
+      {/* Fixed header with menu button */}
+      <div className="sticky top-0 z-50 bg-gradient-to-r from-pink-50 to-purple-50 border-b border-pink-200 px-6 py-4 flex items-center gap-4 mb-6 -mx-4">
+        <MenuButton />
+        <div className="flex-1">
+          <h1 className="text-2xl font-bold text-purple-600">
             Your Cycle Journey
           </h1>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto space-y-6">
+        <div className="text-center mb-8">
           <p className="text-lg text-purple-600">Track your menstrual cycle to understand your body's natural rhythm</p>
         </div>
 
@@ -1062,5 +1072,6 @@ export default function PeriodTrackerPage() {
         </Tabs>
       </div>
     </div>
+    </AuthGuard>
   )
 }

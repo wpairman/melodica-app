@@ -35,10 +35,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (storedUser && isLoggedIn === "true") {
         try {
-          setUser(JSON.parse(storedUser))
+          const userData = JSON.parse(storedUser)
+          setUser(userData)
           setIsAuthenticated(true)
         } catch (error) {
           console.error("Error parsing stored user data:", error)
+          // Clear invalid data
+          localStorage.removeItem("currentUser")
+          localStorage.removeItem("isLoggedIn")
+        }
+      } else {
+        // If not explicitly logged in, check for saved credentials and auto-login
+        const savedCredentials = localStorage.getItem("savedCredentials")
+        if (savedCredentials) {
+          try {
+            const credentials = JSON.parse(savedCredentials)
+            const storedData = localStorage.getItem("userData")
+            if (storedData) {
+              const userData = JSON.parse(storedData)
+              if (userData.email === credentials.email && userData.password === credentials.password) {
+                // Auto-login the user
+                setUser(userData)
+                setIsAuthenticated(true)
+                localStorage.setItem("currentUser", JSON.stringify(userData))
+                localStorage.setItem("isLoggedIn", "true")
+              }
+            }
+          } catch (error) {
+            console.error("Error auto-logging in from saved credentials:", error)
+          }
         }
       }
     }
@@ -59,10 +84,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     setUser(null)
     setIsAuthenticated(false)
-    // Clear localStorage (client-side only)
+    // Clear login session but keep saved credentials if user wants to remember
     if (typeof window !== 'undefined') {
       localStorage.removeItem("currentUser")
       localStorage.removeItem("isLoggedIn")
+      // Note: savedCredentials is kept so user can easily log back in
+      // If they want to clear everything, they can use "Clear Saved Credentials" in profile
     }
   }
 

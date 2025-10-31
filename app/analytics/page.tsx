@@ -14,6 +14,7 @@ import MoodByTimeChart from "@/components/analytics/mood-by-time-chart"
 import MoodCorrelationChart from "@/components/analytics/mood-correlation-chart"
 import MoodInsights from "@/components/analytics/mood-insights"
 import { MenuButton } from "@/components/navigation-sidebar"
+import { AuthGuard } from "@/components/auth-guard"
 
 export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState("week")
@@ -133,7 +134,8 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <DashboardLayout>
+    <AuthGuard>
+      <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
         {/* Fixed header with menu button */}
         <div className="sticky top-0 z-50 bg-gray-900 border-b border-gray-700 px-6 py-4 flex items-center gap-4">
@@ -229,5 +231,6 @@ export default function AnalyticsPage() {
         </div>
       </div>
     </DashboardLayout>
+    </AuthGuard>
   )
 }

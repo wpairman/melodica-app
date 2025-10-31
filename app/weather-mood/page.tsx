@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
 import { MenuButton } from "@/components/navigation-sidebar"
+import { AuthGuard } from "@/components/auth-guard"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -257,7 +258,8 @@ export default function WeatherMoodPage() {
   const { icon } = codeToCondition(state.weatherCode || 0)
 
   return (
-    <DashboardLayout>
+    <AuthGuard>
+      <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
         <div className="sticky top-0 z-50 bg-gray-900 border-b border-gray-700 px-6 py-4 flex items-center gap-4">
           <MenuButton />
@@ -408,6 +410,7 @@ export default function WeatherMoodPage() {
         </div>
       </div>
     </DashboardLayout>
+    </AuthGuard>
   )
 }
 

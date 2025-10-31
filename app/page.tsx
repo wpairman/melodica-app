@@ -3,7 +3,11 @@
 // Force dynamic rendering to avoid SSR issues with event handlers
 export const dynamic = 'force-dynamic'
 
+import type { Metadata } from "next"
 import Link from "next/link"
+
+// Note: In Next.js 15, metadata exports in client components require special handling
+// For now, we'll keep this as a client component without metadata export
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Heart, Brain, Calendar, Users, Shield, Sparkles } from "lucide-react"
@@ -166,7 +170,7 @@ export default function Home() {
           <Link className="text-xs hover:underline underline-offset-4 text-gray-400 hover:text-white" href="/terms">
             Terms of Service
           </Link>
-          <Link className="text-xs hover:underline underline-offset-4 text-gray-400 hover:text-white" href="/terms">
+          <Link className="text-xs hover:underline underline-offset-4 text-gray-400 hover:text-white" href="/privacy">
             Privacy Policy
           </Link>
         </nav>

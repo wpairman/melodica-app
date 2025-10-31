@@ -4,13 +4,14 @@ import { useState, useEffect } from "react"
 
 // Force dynamic rendering to avoid SSR issues with event handlers
 export const dynamic = 'force-dynamic'
-import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Minus } from "lucide-react"
+import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Minus, Download } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
 import { MenuButton } from "@/components/navigation-sidebar"
+import { AuthGuard } from "@/components/auth-guard"
 
 type MoodEntry = {
   mood: number
@@ -19,6 +20,7 @@ type MoodEntry = {
 }
 
 export default function MoodHistoryPage() {
+  const { toast } = useSafeToast()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [moodHistory, setMoodHistory] = useState<MoodEntry[]>([])
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
@@ -132,16 +134,68 @@ export default function MoodHistoryPage() {
 
   const trend = getMoodTrend()
 
+  const exportMoodHistory = () => {
+    if (moodHistory.length === 0) {
+      toast({
+        title: "No data to export",
+        description: "You don't have any mood entries yet.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Create CSV content
+    const csvContent = [
+      ["Date", "Time", "Mood (1-10)", "Notes"],
+      ...moodHistory.map(entry => {
+        const date = new Date(entry.timestamp)
+        const dateStr = date.toLocaleDateString()
+        const timeStr = date.toLocaleTimeString()
+        const notes = entry.notes ? entry.notes.replace(/"/g, '""') : ""
+        return [dateStr, timeStr, entry.mood.toString(), notes]
+      })
+    ].map(row => row.map(cell => `"${cell}"`).join(",")).join("\n")
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `mood-history-${new Date().toISOString().split('T')[0]}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+
+    toast({
+      title: "Export successful!",
+      description: "Your mood history has been downloaded.",
+    })
+  }
+
   return (
-    <DashboardLayout>
+    <AuthGuard>
+      <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
         {/* Fixed header with menu button */}
-        <div className="sticky top-0 z-50 bg-gray-900 border-b border-gray-700 px-6 py-4 flex items-center gap-4">
-          <MenuButton />
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-white">Mood History</h1>
-            <p className="text-gray-300 text-sm">Calendar view of your mood journey</p>
+        <div className="sticky top-0 z-50 bg-gray-900 border-b border-gray-700 px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <MenuButton />
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-white">Mood History</h1>
+              <p className="text-gray-300 text-sm">Calendar view of your mood journey</p>
+            </div>
           </div>
+          {moodHistory.length > 0 && (
+            <Button
+              onClick={exportMoodHistory}
+              variant="outline"
+              className="bg-gray-800 border-gray-700 text-white hover:bg-gray-700"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export Data
+            </Button>
+          )}
         </div>
         
         <div className="p-6">
@@ -378,5 +432,6 @@ export default function MoodHistoryPage() {
         </div>
       </div>
     </DashboardLayout>
+    </AuthGuard>
   )
 }

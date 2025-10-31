@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
 import ActivityPreferences from "@/components/activity-preferences"
 import { MenuButton } from "@/components/navigation-sidebar"
+import { AuthGuard } from "@/components/auth-guard"
 
 export const dynamic = 'force-dynamic'
 
@@ -24,7 +25,8 @@ export default function ActivitiesPage() {
   }, [])
 
   return (
-    <DashboardLayout>
+    <AuthGuard>
+      <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
         {/* Fixed header with menu button */}
         <div className="sticky top-0 z-50 bg-gray-900 border-b border-gray-700 px-6 py-4 flex items-center gap-4">
@@ -39,5 +41,6 @@ export default function ActivitiesPage() {
         </div>
       </div>
     </DashboardLayout>
+    </AuthGuard>
   )
 }

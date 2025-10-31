@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
 import { MenuButton } from "@/components/navigation-sidebar"
+import { AuthGuard } from "@/components/auth-guard"
 import {
   Dialog,
   DialogContent,
@@ -220,7 +221,8 @@ export default function CalendarPage() {
   }
 
   return (
-    <DashboardLayout>
+    <AuthGuard>
+      <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
         {/* Fixed header with menu button */}
         <div className="sticky top-0 z-50 bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
@@ -550,5 +552,6 @@ export default function CalendarPage() {
         </div>
       </div>
     </DashboardLayout>
+    </AuthGuard>
   )
 }

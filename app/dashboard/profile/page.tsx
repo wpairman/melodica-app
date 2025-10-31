@@ -17,6 +17,7 @@ import { Camera, Lock, User, Heart, Music, Activity, Save, Edit3 } from "lucide-
 import { useToast } from "@/hooks/use-toast"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
 import { MenuButton } from "@/components/navigation-sidebar"
+import { AuthGuard } from "@/components/auth-guard"
 
 export default function ProfilePage() {
   const { toast } = useToast()
@@ -200,7 +201,8 @@ export default function ProfilePage() {
   }
 
   return (
-    <DashboardLayout>
+    <AuthGuard>
+      <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
         {/* Fixed header with menu button */}
         <div className="sticky top-0 z-50 bg-gray-900 border-b border-gray-700 px-6 py-4 flex items-center justify-between">
@@ -466,5 +468,6 @@ export default function ProfilePage() {
         </div>
       </div>
     </DashboardLayout>
+    </AuthGuard>
   )
 }

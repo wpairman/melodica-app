@@ -27,9 +27,26 @@ export default function Login() {
     rememberMe: false,
   })
 
-  // Load saved credentials on component mount (client-side only)
+  // Load saved credentials on component mount and auto-login if session exists
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      // First, check if user is already logged in
+      const isLoggedIn = localStorage.getItem("isLoggedIn")
+      const currentUser = localStorage.getItem("currentUser")
+      
+      if (isLoggedIn === "true" && currentUser) {
+        try {
+          // User is already logged in, redirect to dashboard
+          const userData = JSON.parse(currentUser)
+          login(userData)
+          router.push("/dashboard")
+          return
+        } catch (error) {
+          console.error("Error parsing current user:", error)
+        }
+      }
+      
+      // Otherwise, load saved credentials for the form
       const savedCredentials = localStorage.getItem("savedCredentials")
       if (savedCredentials) {
         try {
@@ -40,12 +57,27 @@ export default function Login() {
             password: credentials.password || "",
             rememberMe: true,
           }))
+          
+          // Auto-login if credentials are saved
+          const storedData = localStorage.getItem("userData")
+          if (storedData) {
+            try {
+              const userData = JSON.parse(storedData)
+              if (userData.email === credentials.email && userData.password === credentials.password) {
+                // Auto-login the user
+                login(userData)
+                router.push("/dashboard")
+              }
+            } catch (error) {
+              console.error("Error auto-logging in:", error)
+            }
+          }
         } catch (error) {
           console.error("Error parsing saved credentials:", error)
         }
       }
     }
-  }, [])
+  }, [login, router])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target

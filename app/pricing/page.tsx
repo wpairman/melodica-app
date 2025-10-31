@@ -37,11 +37,11 @@ export default function PricingPage() {
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full border-t items-center px-4 md:px-6 border-t">
         <p className="text-xs text-black">© 2025 Melodica. All rights reserved.</p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-          <Link href="#" className="text-xs hover:underline underline-offset-4 text-black">
+          <Link href="/terms" className="text-xs hover:underline underline-offset-4 text-black">
             Terms of Service
           </Link>
-          <Link href="#" className="text-xs hover:underline underline-offset-4 text-black">
-            Privacy
+          <Link href="/privacy" className="text-xs hover:underline underline-offset-4 text-black">
+            Privacy Policy
           </Link>
         </nav>
       </footer>

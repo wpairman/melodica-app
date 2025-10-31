@@ -22,6 +22,7 @@ import { DarkModeToggle } from "@/components/dark-mode-toggle"
 import WeatherMoodDashboard from "@/components/weather-mood-dashboard"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
+import { AuthGuard } from "@/components/auth-guard"
 
 export default function Dashboard() {
   const { toast } = useSafeToast()
@@ -190,7 +191,8 @@ export default function Dashboard() {
   }
 
   return (
-    <DashboardLayout>
+    <AuthGuard>
+      <DashboardLayout>
       <div className="flex min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
       <CalendarNotifications />
       <div className="hidden md:flex w-64 flex-col fixed inset-y-0 z-50 border-r bg-gray-900 border-gray-700">
@@ -416,5 +418,6 @@ export default function Dashboard() {
       </div>
     </div>
     </DashboardLayout>
+    </AuthGuard>
   )
 }

@@ -13,6 +13,7 @@ import { ColorCustomizationPanel } from "@/components/settings/color-customizati
 import { useToast } from "@/hooks/use-toast"
 import { useTheme } from "next-themes"
 import { MenuButton } from "@/components/navigation-sidebar"
+import { AuthGuard } from "@/components/auth-guard"
 
 export default function SettingsPage() {
   const { toast } = useToast()
@@ -444,7 +445,8 @@ export default function SettingsPage() {
   ]
 
   return (
-    <DashboardLayout>
+    <AuthGuard>
+      <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
         {/* Fixed header with menu button */}
         <div className="sticky top-0 z-50 bg-gray-900 border-b border-gray-700 px-6 py-4 flex items-center gap-4">
@@ -1060,5 +1062,6 @@ export default function SettingsPage() {
         </div>
       </div>
     </DashboardLayout>
+    </AuthGuard>
   )
 }

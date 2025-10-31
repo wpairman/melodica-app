@@ -14,6 +14,7 @@ import { BookOpen, Plus, Music, Calendar, Edit, Trash2, MessageSquare, Sparkles 
 import DashboardLayout from "@/components/layouts/dashboard-layout"
 import JournalEntry from "@/components/journal/journal-entry"
 import JournalAIInsights from "@/components/journal/journal-ai-insights"
+import { AuthGuard } from "@/components/auth-guard"
 
 export default function JournalPage() {
   const [entries, setEntries] = useState<any[]>([])
@@ -161,7 +162,8 @@ export default function JournalPage() {
   }
 
   return (
-    <DashboardLayout>
+    <AuthGuard>
+      <DashboardLayout>
       <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <div>
@@ -375,5 +377,6 @@ export default function JournalPage() {
         )}
       </div>
     </DashboardLayout>
+    </AuthGuard>
   )
 }

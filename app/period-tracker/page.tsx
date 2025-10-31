@@ -453,7 +453,7 @@ export default function PeriodTrackerPage() {
         <div className="grid gap-6 lg:grid-cols-2">
           <Card className="bg-gradient-to-br from-pink-50 to-purple-50 border-pink-200">
             <CardHeader className="text-center">
-              <CardTitle className="flex items-center justify-center gap-2 text-2xl">
+              <CardTitle className="flex items-center justify-center gap-2 text-2xl text-purple-600">
                 <Heart className="h-6 w-6 text-pink-500" />
                 Current Cycle Status
               </CardTitle>

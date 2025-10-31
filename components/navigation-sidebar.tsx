@@ -127,8 +127,9 @@ export function MenuButton() {
       <Button
         variant="ghost"
         size="icon"
-        className="text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-800"
+        className="text-gray-900 dark:text-white bg-white/50 dark:bg-gray-800/50 hover:bg-white dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 shadow-sm"
         onClick={() => setIsOpen(true)}
+        aria-label="Open navigation menu"
       >
         <Menu className="h-6 w-6" />
       </Button>

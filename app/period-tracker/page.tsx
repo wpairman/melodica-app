@@ -444,10 +444,10 @@ export default function PeriodTrackerPage() {
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 p-4">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-2">
+          <h1 className="text-4xl font-bold text-purple-600 mb-2">
             Your Cycle Journey
           </h1>
-          <p className="text-lg text-purple-700">Comprehensive period tracking and cycle insights</p>
+          <p className="text-lg text-purple-600">Track your menstrual cycle to understand your body's natural rhythm</p>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">

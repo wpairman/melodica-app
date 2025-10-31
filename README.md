@@ -41,6 +41,14 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+## ⚠️ Important: Missing App Icons
+
+Before deploying, you **must** create PWA icons:
+- Create `/public/icons/` directory
+- Add `icon-192x192.png` and `icon-512x512.png` (maskable icons)
+- Add `favicon.ico` for browser tab icon
+- See `APP_STORE_GUIDE.md` for full icon requirements
+
 ## 📦 Build for Production
 
 ```bash

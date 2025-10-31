@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
-import { Bell, Clock, Moon, Volume2, Palette, Eye, MapPin, Shield, Calendar, Music } from "lucide-react"
+import { Bell, Clock, Moon, Volume2, Palette, Eye, MapPin, Shield, Calendar, Music, Info } from "lucide-react"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
 import { ColorCustomizationPanel } from "@/components/settings/color-customization-panel"
 import { useToast } from "@/hooks/use-toast"
@@ -1055,6 +1055,47 @@ export default function SettingsPage() {
               >
                 Send Test Notification
               </Button>
+            </CardContent>
+          </Card>
+
+          {/* About & Version */}
+          <Card className="bg-gray-800 border-gray-700">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-white">
+                <Info className="h-5 w-5" />
+                About Melodica
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label className="text-gray-300">App Version</Label>
+                  <span className="text-sm font-medium text-white">1.0.0</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <Label className="text-gray-300">Build Date</Label>
+                  <span className="text-sm text-gray-400">
+                    {new Date().toLocaleDateString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <Label className="text-gray-300">Platform</Label>
+                  <span className="text-sm text-gray-400">Web (PWA)</span>
+                </div>
+              </div>
+              <div className="pt-4 border-t border-gray-700">
+                <p className="text-sm text-gray-400 mb-2">
+                  Melodica - Your Mental Wellness Companion
+                </p>
+                <div className="flex gap-4 text-sm">
+                  <a href="/privacy" className="text-teal-400 hover:underline">
+                    Privacy Policy
+                  </a>
+                  <a href="/terms" className="text-teal-400 hover:underline">
+                    Terms of Service
+                  </a>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>

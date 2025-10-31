@@ -8,19 +8,39 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(CACHE)
-      .then((cache) => cache.addAll([OFFLINE_URL, "/", "/icons/icon-192x192.png", "/icons/icon-512x512.png"])),
+      .then((cache) => {
+        // Cache essential offline resources
+        return cache.addAll([
+          OFFLINE_URL,
+          "/",
+          "/icons/icon-192x192.png",
+          "/icons/icon-512x512.png",
+        ]).catch((error) => {
+          console.error("Error caching offline resources:", error)
+          // Continue even if some resources fail to cache
+        })
+      }),
   )
+  // Force the waiting service worker to become the active service worker
+  self.skipWaiting()
 })
 
 // If any fetch fails, it will show the offline page.
 self.addEventListener("fetch", (event) => {
+  // Only handle GET requests
   if (event.request.method !== "GET") return
+  
+  // Skip non-GET requests and cross-origin requests
+  if (event.request.url.startsWith("chrome-extension://") || 
+      event.request.url.startsWith("moz-extension://")) {
+    return
+  }
 
   event.respondWith(
     fetch(event.request)
       .then((response) => {
         // If we got a valid response, cache it
-        if (response.status === 200) {
+        if (response.status === 200 && response.type === "basic") {
           const responseClone = response.clone()
           caches.open(CACHE).then((cache) => {
             cache.put(event.request, responseClone)
@@ -30,9 +50,36 @@ self.addEventListener("fetch", (event) => {
       })
       .catch((error) => {
         // When the fetch fails, try to return the cached page
-        return caches.match(event.request).then((response) => response || caches.match(OFFLINE_URL))
+        return caches.match(event.request).then((response) => {
+          if (response) {
+            return response
+          }
+          // If request is for navigation, return offline page
+          if (event.request.mode === "navigate") {
+            return caches.match(OFFLINE_URL)
+          }
+          // Otherwise return a basic error response
+          return new Response("Offline", { status: 503, statusText: "Service Unavailable" })
+        })
       }),
   )
+})
+
+// Handle activate event to clean up old caches
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE && cacheName !== 'melodica-moods') {
+            return caches.delete(cacheName)
+          }
+        })
+      )
+    })
+  )
+  // Take control of all pages immediately
+  return self.clients.claim()
 })
 
 // This is an event that can be fired from your page to tell the SW to update the offline page

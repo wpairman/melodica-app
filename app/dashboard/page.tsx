@@ -20,9 +20,13 @@ import DashboardLayout from "@/components/layouts/dashboard-layout"
 import { useSafeToast } from "@/components/toast-provider"
 import { DarkModeToggle } from "@/components/dark-mode-toggle"
 import WeatherMoodDashboard from "@/components/weather-mood-dashboard"
+import { useAuth } from "@/contexts/auth-context"
+import { useRouter } from "next/navigation"
 
 export default function Dashboard() {
   const { toast } = useSafeToast()
+  const { logout } = useAuth()
+  const router = useRouter()
   const [userData, setUserData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [hasMusicPreferences, setHasMusicPreferences] = useState(false)
@@ -281,7 +285,18 @@ export default function Dashboard() {
           </div>
         </nav>
         <div className="mt-auto p-4">
-          <Button variant="outline" className="w-full justify-start text-white border-gray-600 hover:bg-gray-800">
+          <Button 
+            variant="outline" 
+            className="w-full justify-start text-white border-gray-600 hover:bg-gray-800"
+            onClick={() => {
+              logout()
+              toast({
+                title: "Logged out",
+                description: "You have been successfully logged out.",
+              })
+              router.push("/login")
+            }}
+          >
             <LogOut className="mr-2 h-4 w-4" />
             Log out
           </Button>

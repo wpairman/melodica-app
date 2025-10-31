@@ -10,6 +10,8 @@ import MoodTrendNotifications from "@/components/mood-trend-notifications"
 import { ConditionalGroundMe } from "@/components/conditional-emergency-support"
 import AppErrorBoundary from "@/components/app-error-boundary"
 import { ToastProvider } from "@/components/toast-provider"
+import { OfflineIndicator } from "@/components/offline-indicator"
+import { PWALifecycle } from "@/app/pwa"
 
 // Force dynamic rendering to avoid SSR issues
 export const dynamic = 'force-dynamic'
@@ -42,8 +44,10 @@ export default function RootLayout({
               <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
                 <ToastProvider>
                   {children}
+                  <PWALifecycle />
                   <ConditionalGroundMe />
                   <MoodTrendNotifications />
+                  <OfflineIndicator />
                   <Toaster />
                 </ToastProvider>
               </ThemeProvider>

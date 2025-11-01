@@ -98,62 +98,69 @@ export default function Dashboard() {
     }
 
     setLoading(false)
-  }, [toast])
-
-  // Separate useEffect for mood check reminders
-  useEffect(() => {
-    // Only set up timers after component is mounted and toast is ready
-    if (typeof window === 'undefined') return
-
-    // Set up hourly mood check reminder
-    const moodCheckInterval = setInterval(() => {
-      try {
-        toast({
-          title: "Time for a mood check-in",
-          description: "How are you feeling right now?",
-          action: (
-            <Link href="/dashboard">
-              <Button variant="outline" size="sm">
-                Check in
-              </Button>
-            </Link>
-          ),
-        })
-      } catch (error) {
-        console.error('Error showing mood check toast:', error)
-      }
-    }, 3600000) // Every hour
-
-    // For demo purposes, show a mood check prompt after 30 seconds
-    const demoPrompt = setTimeout(() => {
-      try {
-        toast({
-          title: "Time for a mood check-in",
-          description: "How are you feeling right now?",
-          action: (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                if (typeof window !== 'undefined') {
-                  document.getElementById("mood-tracker")?.scrollIntoView({ behavior: "smooth" })
-                }
-              }}
-            >
-              Check in
-            </Button>
-          ),
-        })
-      } catch (error) {
-        console.error('Error showing demo mood check toast:', error)
-      }
-    }, 30000)
-
+    
+    // Return cleanup function for service worker listener
     return () => {
-      clearInterval(moodCheckInterval)
-      clearTimeout(demoPrompt)
+      if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+        navigator.serviceWorker.removeEventListener('message', () => {})
+      }
     }
-  }, [toast]) // Add toast as dependency
+  }, []) // Remove toast dependency to prevent infinite loops
+
+  // Separate useEffect for mood check reminders - disabled to prevent infinite loops
+  // useEffect(() => {
+  //   // Only set up timers after component is mounted and toast is ready
+  //   if (typeof window === 'undefined') return
+  //
+  //   // Set up hourly mood check reminder
+  //   const moodCheckInterval = setInterval(() => {
+  //     try {
+  //       toast({
+  //         title: "Time for a mood check-in",
+  //         description: "How are you feeling right now?",
+  //         action: (
+  //           <Link href="/dashboard">
+  //             <Button variant="outline" size="sm">
+  //               Check in
+  //             </Button>
+  //           </Link>
+  //         ),
+  //       })
+  //     } catch (error) {
+  //       console.error('Error showing mood check toast:', error)
+  //     }
+  //   }, 3600000) // Every hour
+  //
+  //   // For demo purposes, show a mood check prompt after 30 seconds
+  //   const demoPrompt = setTimeout(() => {
+  //     try {
+  //       toast({
+  //         title: "Time for a mood check-in",
+  //         description: "How are you feeling right now?",
+  //         action: (
+  //           <Button
+  //             variant="outline"
+  //             size="sm"
+  //             onClick={() => {
+  //               if (typeof window !== 'undefined') {
+  //                 document.getElementById("mood-tracker")?.scrollIntoView({ behavior: "smooth" })
+  //               }
+  //             }}
+  //           >
+  //             Check in
+  //           </Button>
+  //         ),
+  //       })
+  //     } catch (error) {
+  //       console.error('Error showing demo mood check toast:', error)
+  //     }
+  //   }, 30000)
+  //
+  //   return () => {
+  //     clearInterval(moodCheckInterval)
+  //     clearTimeout(demoPrompt)
+  //   }
+  // }, []) // Removed toast dependency
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen text-white">Loading...</div>

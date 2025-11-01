@@ -64,9 +64,9 @@ export default function CalendarNotifications() {
       )
     })
 
-    // Clean up when component unmounts / deps change
+    // Clean up when component unmounts
     return () => timers.forEach(clearTimeout)
-  }, [toast])
+  }, [])
 
   // Nothing to render
   return null

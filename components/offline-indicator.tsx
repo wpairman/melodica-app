@@ -46,7 +46,7 @@ export function OfflineIndicator() {
       window.removeEventListener("online", handleOnline)
       window.removeEventListener("offline", handleOffline)
     }
-  }, [toast])
+  }, []) // Remove toast dependency to prevent infinite loops
 
   const syncOfflineData = async () => {
     if (typeof window === 'undefined') return

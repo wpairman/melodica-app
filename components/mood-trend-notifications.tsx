@@ -132,7 +132,7 @@ export default function MoodTrendNotifications() {
     const interval = setInterval(analyzeTrends, 6 * 60 * 60 * 1000)
 
     return () => clearInterval(interval)
-  }, [toast])
+  }, []) // Remove toast dependency to prevent infinite loops
 
   return null // This component doesn't render anything
 }

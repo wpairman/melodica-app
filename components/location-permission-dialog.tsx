@@ -20,12 +20,23 @@ export function LocationPermissionDialog() {
   const { toast } = useToast()
 
   useEffect(() => {
-    // Show dialog if permission hasn't been requested yet
-    if (permission === "unknown" || permission === "prompt") {
-      // Check if user has already dismissed this dialog
-      const dismissed = localStorage.getItem("location_permission_dismissed")
-      if (!dismissed) {
-        setOpen(true)
+    // Only show dialog to authenticated users after they've registered/logged in
+    if (typeof window !== 'undefined') {
+      const isLoggedIn = localStorage.getItem("isLoggedIn")
+      const hasSeenLocationPrompt = localStorage.getItem("location_permission_shown_after_login")
+      
+      // Only show if user is logged in AND hasn't seen this prompt yet
+      if (isLoggedIn === "true" && !hasSeenLocationPrompt) {
+        // Show dialog if permission hasn't been requested yet
+        if (permission === "unknown" || permission === "prompt") {
+          // Check if user has already dismissed this dialog
+          const dismissed = localStorage.getItem("location_permission_dismissed")
+          if (!dismissed) {
+            setOpen(true)
+            // Mark that we've shown this prompt after login
+            localStorage.setItem("location_permission_shown_after_login", "true")
+          }
+        }
       }
     }
   }, [permission])

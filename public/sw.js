@@ -115,7 +115,7 @@ self.addEventListener("push", (event) => {
       icon: icon,
       badge: icon,
       tag: "mood-checkin",
-      requireInteraction: false,
+      requireInteraction: true, // Set to true so iOS shows actions on pull-down
       actions: actions, // Show 5 actions - most mobile platforms support this
       data: {
         url: "/dashboard",
@@ -123,6 +123,7 @@ self.addEventListener("push", (event) => {
       },
       // For Android/iOS, the notification will expand to show more options
       vibrate: [200, 100, 200],
+      silent: false, // Ensure notification makes sound/alert
     })
   )
 })

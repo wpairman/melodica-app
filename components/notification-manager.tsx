@@ -67,7 +67,7 @@ export default function NotificationManager() {
                 icon: "/icons/icon-192x192.png",
                 badge: "/icons/icon-192x192.png",
                 tag: "mood-checkin",
-                requireInteraction: false,
+                requireInteraction: true, // Set to true so iOS shows actions on pull-down
                 actions: [
                   { action: "mood-1", title: "1 😢" },
                   { action: "mood-2", title: "2" },
@@ -77,7 +77,8 @@ export default function NotificationManager() {
                 ],
                 data: {
                   url: "/dashboard"
-                }
+                },
+                silent: false, // Ensure notification makes sound/alert
               } as any)
             })
           } else {

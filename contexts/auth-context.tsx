@@ -50,16 +50,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (savedCredentials) {
           try {
             const credentials = JSON.parse(savedCredentials)
-            const storedData = localStorage.getItem("userData")
-            if (storedData) {
-              const userData = JSON.parse(storedData)
-              if (userData.email === credentials.email && userData.password === credentials.password) {
-                // Auto-login the user
-                setUser(userData)
-                setIsAuthenticated(true)
-                localStorage.setItem("currentUser", JSON.stringify(userData))
-                localStorage.setItem("isLoggedIn", "true")
+            
+            // First check allUsers array (new system)
+            const allUsersStr = localStorage.getItem("allUsers")
+            let foundUser = null
+            
+            if (allUsersStr) {
+              try {
+                const allUsers = JSON.parse(allUsersStr)
+                foundUser = allUsers.find((user: any) => 
+                  user.email === credentials.email && user.password === credentials.password
+                )
+              } catch (error) {
+                console.error("Error parsing allUsers:", error)
               }
+            }
+            
+            // Fallback to old userData for backward compatibility
+            if (!foundUser) {
+              const storedData = localStorage.getItem("userData")
+              if (storedData) {
+                const userData = JSON.parse(storedData)
+                if (userData.email === credentials.email && userData.password === credentials.password) {
+                  foundUser = userData
+                }
+              }
+            }
+            
+            if (foundUser) {
+              // Auto-login the user
+              setUser(foundUser)
+              setIsAuthenticated(true)
+              localStorage.setItem("currentUser", JSON.stringify(foundUser))
+              localStorage.setItem("isLoggedIn", "true")
+              // Update userData for backward compatibility
+              localStorage.setItem("userData", JSON.stringify(foundUser))
             }
           } catch (error) {
             console.error("Error auto-logging in from saved credentials:", error)

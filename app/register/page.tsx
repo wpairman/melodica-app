@@ -241,16 +241,48 @@ Remember: This is general information only. Always consult with your healthcare 
       return
     }
 
-    // Store user data in localStorage for demo purposes (client-side only)
-    const userData = {
-      ...formData,
-      artistAnalysis: analyses.artists,
-      activityAnalysis: analyses.activities,
-      medicationAnalysis: analyses.medications,
-      selectedPlan: selectedPlan,
-      selectedInterval: selectedInterval,
-    }
+    // Check for duplicate email and store user data (client-side only)
     if (typeof window !== 'undefined') {
+      // Check for duplicate email
+      const allUsersStr = localStorage.getItem("allUsers")
+      let allUsers: any[] = []
+      
+      if (allUsersStr) {
+        try {
+          allUsers = JSON.parse(allUsersStr)
+        } catch (error) {
+          console.error("Error parsing allUsers:", error)
+          allUsers = []
+        }
+      }
+      
+      // Check if email already exists
+      const emailExists = allUsers.some((user: any) => user.email === formData.email)
+      if (emailExists) {
+        toast({
+          title: "Email already registered",
+          description: "This email is already in use. Please use a different email or log in.",
+          variant: "destructive",
+        })
+        return
+      }
+
+      // Store user data
+      const userData = {
+        ...formData,
+        artistAnalysis: analyses.artists,
+        activityAnalysis: analyses.activities,
+        medicationAnalysis: analyses.medications,
+        selectedPlan: selectedPlan,
+        selectedInterval: selectedInterval,
+        createdAt: new Date().toISOString(),
+      }
+      
+      // Add to all users array
+      allUsers.push(userData)
+      localStorage.setItem("allUsers", JSON.stringify(allUsers))
+      
+      // Also save as current user (for backward compatibility)
       localStorage.setItem("userData", JSON.stringify(userData))
       
       // Save credentials for easy login (with "Remember me" enabled by default)
@@ -264,61 +296,61 @@ Remember: This is general information only. Always consult with your healthcare 
         plan: selectedPlan,
         interval: selectedInterval,
       }))
-    }
 
-    // Use the auth context to log in the user
-    login(userData)
+      // Use the auth context to log in the user
+      login(userData)
 
-    // If paid plan selected, redirect to Stripe checkout
-    if (selectedPlan === 'premium' || selectedPlan === 'ultimate') {
-      try {
-        toast({
-          title: "Redirecting to payment...",
-          description: "Please complete payment to activate your subscription",
-        })
+      // If paid plan selected, redirect to Stripe checkout
+      if (selectedPlan === 'premium' || selectedPlan === 'ultimate') {
+        try {
+          toast({
+            title: "Redirecting to payment...",
+            description: "Please complete payment to activate your subscription",
+          })
 
-        const response = await fetch("/api/stripe/checkout", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            tier: `${selectedPlan}_${selectedInterval}`,
-          }),
-        })
+          const response = await fetch("/api/stripe/checkout", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              tier: `${selectedPlan}_${selectedInterval}`,
+            }),
+          })
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ error: "Unknown error occurred" }))
-          throw new Error(errorData.error || `HTTP ${response.status}`)
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: "Unknown error occurred" }))
+            throw new Error(errorData.error || `HTTP ${response.status}`)
+          }
+
+          const data = await response.json()
+
+          if (data?.url) {
+            // Redirect to Stripe checkout
+            window.location.href = data.url
+          } else {
+            throw new Error(data.error || "No checkout URL returned from server")
+          }
+        } catch (err: any) {
+          console.error("Checkout error:", err)
+          toast({
+            title: "Payment Error",
+            description: err.message || "Failed to create checkout session. Please try again.",
+            variant: "destructive",
+          })
         }
-
-        const data = await response.json()
-
-        if (data?.url) {
-          // Redirect to Stripe checkout
-          window.location.href = data.url
-        } else {
-          throw new Error(data.error || "No checkout URL returned from server")
-        }
-      } catch (err: any) {
-        console.error("Checkout error:", err)
-        toast({
-          title: "Payment Error",
-          description: err.message || "Failed to create checkout session. Please try again.",
-          variant: "destructive",
-        })
+        return
       }
-      return
+
+      // Free plan - go directly to dashboard
+      toast({
+        title: "Account created successfully!",
+        description: "Welcome to Melodica - your personalized recommendations are ready!",
+      })
+
+      // Redirect to dashboard
+      router.push("/dashboard")
     }
-
-    // Free plan - go directly to dashboard
-    toast({
-      title: "Account created successfully!",
-      description: "Welcome to Melodica - your personalized recommendations are ready!",
-    })
-
-    // Redirect to dashboard
-    router.push("/dashboard")
   }
 
   const isAnyAnalyzing = Object.values(isAnalyzing).some(Boolean)

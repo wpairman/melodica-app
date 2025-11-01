@@ -90,48 +90,60 @@ export default function Login() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    // In a real app, you would validate credentials against a database
-    // For demo purposes, we'll check if there's user data in localStorage (client-side only)
+    // Check credentials against all users in localStorage (client-side only)
     if (typeof window !== 'undefined') {
-      const storedData = localStorage.getItem("userData")
-
-      if (storedData) {
+      // First check allUsers array (new system)
+      const allUsersStr = localStorage.getItem("allUsers")
+      let foundUser = null
+      
+      if (allUsersStr) {
         try {
-          const userData = JSON.parse(storedData)
-          if (userData.email === formData.email && userData.password === formData.password) {
-            // Save credentials if "Remember me" is checked
-            if (formData.rememberMe) {
-              localStorage.setItem("savedCredentials", JSON.stringify({
-                email: formData.email,
-                password: formData.password,
-              }))
-            } else {
-              // Remove saved credentials if "Remember me" is unchecked
-              localStorage.removeItem("savedCredentials")
-            }
-
-            // Use the auth context to log in the user
-            login(userData)
-            router.push("/dashboard")
-          } else {
-            toast({
-              title: "Login failed",
-              description: "Invalid email or password",
-              variant: "destructive",
-            })
-          }
+          const allUsers = JSON.parse(allUsersStr)
+          foundUser = allUsers.find((user: any) => 
+            user.email === formData.email && user.password === formData.password
+          )
         } catch (error) {
-          console.error("Error parsing user data:", error)
-          toast({
-            title: "Login failed",
-            description: "Invalid email or password",
-            variant: "destructive",
-          })
+          console.error("Error parsing allUsers:", error)
         }
+      }
+      
+      // Fallback to old userData for backward compatibility
+      if (!foundUser) {
+        const storedData = localStorage.getItem("userData")
+        if (storedData) {
+          try {
+            const userData = JSON.parse(storedData)
+            if (userData.email === formData.email && userData.password === formData.password) {
+              foundUser = userData
+            }
+          } catch (error) {
+            console.error("Error parsing userData:", error)
+          }
+        }
+      }
+
+      if (foundUser) {
+        // Save credentials if "Remember me" is checked
+        if (formData.rememberMe) {
+          localStorage.setItem("savedCredentials", JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+          }))
+        } else {
+          // Remove saved credentials if "Remember me" is unchecked
+          localStorage.removeItem("savedCredentials")
+        }
+
+        // Update current userData for backward compatibility
+        localStorage.setItem("userData", JSON.stringify(foundUser))
+
+        // Use the auth context to log in the user
+        login(foundUser)
+        router.push("/dashboard")
       } else {
         toast({
-          title: "Account not found",
-          description: "Please register first",
+          title: "Login failed",
+          description: "Invalid email or password",
           variant: "destructive",
         })
       }

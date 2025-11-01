@@ -9,6 +9,8 @@ import Link from "next/link"
 import RatingDialog, { RatingTarget } from "@/components/rating-dialog"
 import { saveInteraction } from "@/lib/interactions"
 import { useToast } from "@/hooks/use-toast"
+import { getUserPlan, getPlanLimits, type PlanType } from "@/lib/plan-features"
+import { UpgradePrompt } from "@/components/upgrade-prompt"
 
 interface RecommendationsProps {
   userData: {
@@ -96,10 +98,18 @@ export default function Recommendations({ userData }: RecommendationsProps) {
   const { toast } = useToast()
   const [ratingOpen, setRatingOpen] = useState(false)
   const [ratingTarget, setRatingTarget] = useState<RatingTarget | null>(null)
+  const [userPlan, setUserPlan] = useState<PlanType>("free")
+  const [showUpgrade, setShowUpgrade] = useState(false)
+  const [upgradeFeature, setUpgradeFeature] = useState("")
+  const [requiredPlan, setRequiredPlan] = useState<PlanType>("premium")
 
   useEffect(() => {
     // In a real app, you would fetch this from an API (client-side only)
     if (typeof window !== 'undefined') {
+      // Get user's plan
+      const plan = getUserPlan()
+      setUserPlan(plan)
+
       const storedHistory = localStorage.getItem("moodHistory")
       if (storedHistory) {
         try {
@@ -137,11 +147,17 @@ export default function Recommendations({ userData }: RecommendationsProps) {
   // Get personalized recommendations based on user preferences and current mood
   const getPersonalizedMusic = () => {
     const baseRecommendations = musicRecommendations[currentMood]
+    const limits = getPlanLimits(userPlan)
     
-    // Use user's favorite artists to personalize recommendations
-    if (userData.favoriteArtists) {
+    // For free plans, limit to 10 recommendations
+    const recommendations = userPlan === 'free' 
+      ? baseRecommendations.slice(0, limits.maxMusicRecommendations)
+      : baseRecommendations
+    
+    // Use user's favorite artists to personalize recommendations (Premium+ only)
+    if (userData.favoriteArtists && userPlan !== 'free') {
       const favoriteArtists = userData.favoriteArtists.split(',').map(a => a.trim())
-      const personalizedRecs = baseRecommendations.map(rec => {
+      const personalizedRecs = recommendations.map(rec => {
         // Match artist names to user's favorites
         const matchesArtist = favoriteArtists.some(artist => 
           rec.artist.toLowerCase().includes(artist.toLowerCase()) ||
@@ -153,14 +169,14 @@ export default function Recommendations({ userData }: RecommendationsProps) {
       return personalizedRecs.sort((a, b) => (b as any).personalized ? 1 : -1)
     }
     
-    return baseRecommendations
+    return recommendations
   }
 
   const getPersonalizedActivities = () => {
     const baseRecommendations = activityRecommendations[currentMood]
     
-    // Use user's favorite activities to personalize recommendations
-    if (userData.favoriteActivities) {
+    // Use user's favorite activities to personalize recommendations (Premium+ only)
+    if (userData.favoriteActivities && userPlan !== 'free') {
       const favoriteActivities = userData.favoriteActivities.split(',').map(a => a.trim())
       const personalizedRecs = baseRecommendations.map(rec => {
         // Match activity names to user's favorites
@@ -175,6 +191,16 @@ export default function Recommendations({ userData }: RecommendationsProps) {
     }
     
     return baseRecommendations
+  }
+
+  const handleFeatureAccess = (featureName: string, requiredPlanType: PlanType) => {
+    if (userPlan === 'free' && requiredPlanType !== 'free') {
+      setUpgradeFeature(featureName)
+      setRequiredPlan(requiredPlanType)
+      setShowUpgrade(true)
+      return false
+    }
+    return true
   }
 
   return (
@@ -317,6 +343,14 @@ export default function Recommendations({ userData }: RecommendationsProps) {
             </div>
           </CardContent>
         </Card>
+      )}
+      {showUpgrade && (
+        <UpgradePrompt
+          feature={upgradeFeature}
+          requiredPlan={requiredPlan}
+          currentPlan={userPlan}
+          onClose={() => setShowUpgrade(false)}
+        />
       )}
       <RatingDialog
         open={ratingOpen}

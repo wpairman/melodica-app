@@ -278,7 +278,7 @@ export default function Home() {
           <div className="container px-4 md:px-6 mx-auto max-w-4xl">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">Simple, Transparent Pricing</h2>
-              <p className="text-lg text-gray-600 mb-2">Start with a <strong className="text-teal-600">2-week free trial</strong> — no credit card required</p>
+              <p className="text-lg text-gray-600 mb-2">Start with a <strong className="text-teal-600">2-week free trial</strong> on all plans</p>
             </div>
             <div className="grid gap-6 md:grid-cols-3">
               <Card className="border-2 border-gray-200 bg-white">

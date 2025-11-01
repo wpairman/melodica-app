@@ -268,8 +268,8 @@ export default function SettingsPage() {
       localStorage.setItem("quietHoursEnabled", notificationSettings.quietHours.enabled.toString())
     }
 
-    // Schedule the next notification
-    const intervalMs = notificationSettings.frequency * 60 * 60 * 1000 // Convert hours to milliseconds
+    // Schedule the next notification (frequency is in hours, convert to milliseconds)
+    const intervalMs = notificationSettings.frequency * 60 * 60 * 1000
 
     const scheduleNext = () => {
       const now = new Date()
@@ -413,12 +413,15 @@ export default function SettingsPage() {
   }
 
   const frequencyOptions = [
+    { value: 0.0167, label: "Every minute" },
+    { value: 0.0833, label: "Every 5 minutes" },
+    { value: 0.25, label: "Every 15 minutes" },
+    { value: 0.5, label: "Every 30 minutes" },
+    { value: 0.75, label: "Every 45 minutes" },
     { value: 1, label: "Every hour" },
     { value: 2, label: "Every 2 hours" },
     { value: 3, label: "Every 3 hours" },
-    { value: 4, label: "Every 4 hours" },
     { value: 6, label: "Every 6 hours" },
-    { value: 8, label: "Every 8 hours" },
     { value: 12, label: "Every 12 hours" },
     { value: 24, label: "Once a day" },
   ]

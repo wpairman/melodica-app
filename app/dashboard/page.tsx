@@ -32,6 +32,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [hasMusicPreferences, setHasMusicPreferences] = useState(false)
 
+  // Load initial data
   useEffect(() => {
     // In a real app, you would fetch this from an API (client-side only)
     if (typeof window !== 'undefined') {
@@ -47,65 +48,69 @@ export default function Dashboard() {
       // Check if user has completed music preferences quiz
       const storedPreferences = localStorage.getItem("musicPreferences")
       setHasMusicPreferences(!!storedPreferences)
-
-      // Listen for quick mood logs from notification actions (service worker)
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.addEventListener('message', (event) => {
-          if (event.data && event.data.type === 'QUICK_MOOD_LOG') {
-            const moodEntry = event.data.mood
-            
-            // Load existing mood history
-            const storedHistory = localStorage.getItem("moodHistory")
-            let moodHistory = []
-            if (storedHistory) {
-              try {
-                moodHistory = JSON.parse(storedHistory)
-              } catch (e) {
-                console.error("Error parsing mood history:", e)
-              }
-            }
-            
-            // Add the new entry (avoid duplicates)
-            const newEntry = {
-              mood: moodEntry.mood,
-              timestamp: new Date(moodEntry.timestamp),
-              notes: moodEntry.notes
-            }
-            
-            // Check if this entry already exists
-            const exists = moodHistory.some((entry: any) => 
-              entry.timestamp.toISOString() === newEntry.timestamp.toISOString() && 
-              entry.mood === newEntry.mood
-            )
-            
-            if (!exists) {
-              moodHistory.push(newEntry)
-              localStorage.setItem("moodHistory", JSON.stringify(moodHistory))
-              
-              // Show confirmation toast
-              try {
-                toast({
-                  title: "Mood Logged! 💚",
-                  description: `Your mood (${moodEntry.mood}/10) has been saved.`,
-                })
-              } catch (error) {
-                console.error('Error showing mood logged toast:', error)
-              }
-            }
-          }
-        })
-      }
     }
 
     setLoading(false)
+  }, [])
+
+  // Set up service worker listener separately to avoid infinite loops
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return
+
+    // Define message handler for service worker
+    const messageHandler = (event: MessageEvent) => {
+      if (event.data && event.data.type === 'QUICK_MOOD_LOG') {
+        const moodEntry = event.data.mood
+        
+        // Load existing mood history
+        const storedHistory = localStorage.getItem("moodHistory")
+        let moodHistory = []
+        if (storedHistory) {
+          try {
+            moodHistory = JSON.parse(storedHistory)
+          } catch (e) {
+            console.error("Error parsing mood history:", e)
+          }
+        }
+        
+        // Add the new entry (avoid duplicates)
+        const newEntry = {
+          mood: moodEntry.mood,
+          timestamp: new Date(moodEntry.timestamp),
+          notes: moodEntry.notes
+        }
+        
+        // Check if this entry already exists
+        const exists = moodHistory.some((entry: any) => 
+          entry.timestamp.toISOString() === newEntry.timestamp.toISOString() && 
+          entry.mood === newEntry.mood
+        )
+        
+        if (!exists) {
+          moodHistory.push(newEntry)
+          localStorage.setItem("moodHistory", JSON.stringify(moodHistory))
+          
+          // Show confirmation toast
+          try {
+            toast({
+              title: "Mood Logged! 💚",
+              description: `Your mood (${moodEntry.mood}/10) has been saved.`,
+            })
+          } catch (error) {
+            console.error('Error showing mood logged toast:', error)
+          }
+        }
+      }
+    }
+
+    // Listen for quick mood logs from notification actions (service worker)
+    navigator.serviceWorker.addEventListener('message', messageHandler)
     
     // Return cleanup function for service worker listener
     return () => {
-      if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-        navigator.serviceWorker.removeEventListener('message', () => {})
-      }
+      navigator.serviceWorker.removeEventListener('message', messageHandler)
     }
-  }, []) // Remove toast dependency to prevent infinite loops
+  }, [toast])
 
   // Separate useEffect for mood check reminders - disabled to prevent infinite loops
   // useEffect(() => {

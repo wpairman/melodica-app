@@ -261,13 +261,13 @@ export default function GroundMe() {
           </Card>
 
           <Tabs defaultValue="storm" className="w-full">
-            <TabsList className="grid w-full grid-cols-6">
-              <TabsTrigger value="storm" className="text-black font-semibold">🌪️ Storm Response</TabsTrigger>
-              <TabsTrigger value="community">🇯🇲 Community</TabsTrigger>
-              <TabsTrigger value="breathing">Breathing</TabsTrigger>
-              <TabsTrigger value="music">Music</TabsTrigger>
-              <TabsTrigger value="activities">Activities</TabsTrigger>
-              <TabsTrigger value="resources">Resources</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 mb-4">
+              <TabsTrigger value="storm" className="text-black font-semibold text-xs lg:text-base">🌪️ Storm</TabsTrigger>
+              <TabsTrigger value="community" className="text-xs lg:text-base">🇯🇲 Community</TabsTrigger>
+              <TabsTrigger value="breathing" className="text-xs lg:text-base">Breathing</TabsTrigger>
+              <TabsTrigger value="music" className="text-xs lg:text-base">Music</TabsTrigger>
+              <TabsTrigger value="activities" className="text-xs lg:text-base">Activities</TabsTrigger>
+              <TabsTrigger value="resources" className="text-xs lg:text-base">Resources</TabsTrigger>
             </TabsList>
 
             <TabsContent value="community" className="space-y-4">

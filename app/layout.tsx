@@ -13,6 +13,7 @@ import { ToastProvider } from "@/components/toast-provider"
 import { OfflineIndicator } from "@/components/offline-indicator"
 import { PWALifecycle } from "@/app/pwa"
 import { LocationPermissionDialog } from "@/components/location-permission-dialog"
+import { NotificationPermissionDialog } from "@/components/notification-permission-dialog"
 
 // Force dynamic rendering to avoid SSR issues
 export const dynamic = 'force-dynamic'
@@ -118,6 +119,7 @@ export default function RootLayout({
                   <MoodTrendNotifications />
                   <OfflineIndicator />
                   <LocationPermissionDialog />
+                  <NotificationPermissionDialog />
                   <Toaster />
                 </ToastProvider>
               </ThemeProvider>

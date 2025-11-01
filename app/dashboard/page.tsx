@@ -57,7 +57,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return
 
-    // Define message handler for service worker (use useCallback-like pattern)
+    // Define message handler for service worker
     const messageHandler = (event: MessageEvent) => {
       if (event.data && event.data.type === 'QUICK_MOOD_LOG') {
         const moodEntry = event.data.mood
@@ -89,18 +89,6 @@ export default function Dashboard() {
         if (!exists) {
           moodHistory.push(newEntry)
           localStorage.setItem("moodHistory", JSON.stringify(moodHistory))
-          
-          // Show confirmation toast - use setTimeout to prevent infinite loops
-          setTimeout(() => {
-            try {
-              toast({
-                title: "Mood Logged! 💚",
-                description: `Your mood (${moodEntry.mood}/10) has been saved.`,
-              })
-            } catch (error) {
-              console.error('Error showing mood logged toast:', error)
-            }
-          }, 100)
         }
       }
     }
@@ -112,7 +100,7 @@ export default function Dashboard() {
     return () => {
       navigator.serviceWorker.removeEventListener('message', messageHandler)
     }
-  }, []) // Empty dependency array - toast is accessed via closure
+  }, []) // Empty dependency array - no dependencies needed
 
   // Separate useEffect for mood check reminders - disabled to prevent infinite loops
   // useEffect(() => {

@@ -90,6 +90,10 @@ export default function Login() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
+    // Normalize email and password (trim whitespace, lowercase email)
+    const normalizedEmail = formData.email.trim().toLowerCase()
+    const normalizedPassword = formData.password.trim()
+
     // Check credentials against all users in localStorage (client-side only)
     if (typeof window !== 'undefined') {
       // First check allUsers array (new system)
@@ -99,9 +103,15 @@ export default function Login() {
       if (allUsersStr) {
         try {
           const allUsers = JSON.parse(allUsersStr)
-          foundUser = allUsers.find((user: any) => 
-            user.email === formData.email && user.password === formData.password
-          )
+          foundUser = allUsers.find((user: any) => {
+            const userEmail = (user.email || "").trim().toLowerCase()
+            const userPassword = (user.password || "").trim()
+            return userEmail === normalizedEmail && userPassword === normalizedPassword
+          })
+          
+          if (foundUser) {
+            console.log("User found in allUsers array:", foundUser.email)
+          }
         } catch (error) {
           console.error("Error parsing allUsers:", error)
         }
@@ -113,8 +123,12 @@ export default function Login() {
         if (storedData) {
           try {
             const userData = JSON.parse(storedData)
-            if (userData.email === formData.email && userData.password === formData.password) {
+            const userEmail = (userData.email || "").trim().toLowerCase()
+            const userPassword = (userData.password || "").trim()
+            
+            if (userEmail === normalizedEmail && userPassword === normalizedPassword) {
               foundUser = userData
+              console.log("User found in userData (fallback):", userData.email)
             }
           } catch (error) {
             console.error("Error parsing userData:", error)
@@ -126,8 +140,8 @@ export default function Login() {
         // Save credentials if "Remember me" is checked
         if (formData.rememberMe) {
           localStorage.setItem("savedCredentials", JSON.stringify({
-            email: formData.email,
-            password: formData.password,
+            email: normalizedEmail,
+            password: normalizedPassword,
           }))
         } else {
           // Remove saved credentials if "Remember me" is unchecked
@@ -141,9 +155,28 @@ export default function Login() {
         login(foundUser)
         router.push("/dashboard")
       } else {
+        // Debug: Log what we're looking for vs what's stored
+        console.log("Login attempt - Looking for:", {
+          email: normalizedEmail,
+          passwordLength: normalizedPassword.length
+        })
+        
+        if (allUsersStr) {
+          try {
+            const allUsers = JSON.parse(allUsersStr)
+            console.log("Stored users:", allUsers.map((u: any) => ({
+              email: u.email,
+              emailNormalized: (u.email || "").trim().toLowerCase(),
+              passwordLength: (u.password || "").trim().length
+            })))
+          } catch (e) {
+            console.error("Could not parse allUsers for debug:", e)
+          }
+        }
+        
         toast({
           title: "Login failed",
-          description: "Invalid email or password",
+          description: "Invalid email or password. Please check your credentials and try again.",
           variant: "destructive",
         })
       }

@@ -267,9 +267,15 @@ Remember: This is general information only. Always consult with your healthcare 
         return
       }
 
-      // Store user data
+      // Normalize email (lowercase, trim) for consistent storage
+      const normalizedEmail = formData.email.trim().toLowerCase()
+      const normalizedPassword = formData.password.trim()
+      
+      // Store user data with normalized email
       const userData = {
         ...formData,
+        email: normalizedEmail, // Store normalized email
+        password: normalizedPassword, // Store trimmed password
         artistAnalysis: analyses.artists,
         activityAnalysis: analyses.activities,
         medicationAnalysis: analyses.medications,
@@ -287,8 +293,8 @@ Remember: This is general information only. Always consult with your healthcare 
       
       // Save credentials for easy login (with "Remember me" enabled by default)
       localStorage.setItem("savedCredentials", JSON.stringify({
-        email: formData.email,
-        password: formData.password,
+        email: normalizedEmail,
+        password: normalizedPassword,
       }))
 
       // Store plan and interval for later processing

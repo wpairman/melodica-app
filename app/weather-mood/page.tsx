@@ -188,6 +188,16 @@ export default function WeatherMoodPage() {
   const [currentDate, setCurrentDate] = useState<string>("")
 
   useEffect(() => {
+    if (typeof window === 'undefined') return
+    
+    // Set current date (client-side only to avoid hydration issues)
+    setCurrentDate(new Date().toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    }))
+
     if (!navigator.geolocation) {
       setState({ loading: false, error: "Geolocation not supported." })
       return

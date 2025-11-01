@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Clock, Trash2, Edit2, Save, X, Download } from "lucide-react"
-import { useSafeToast } from "@/components/toast-provider"
+import { useToast } from "@/hooks/use-toast"
 
 interface JournalEntry {
   id: string
@@ -16,7 +16,7 @@ interface JournalEntry {
 }
 
 export default function JournalingSection() {
-  const { toast } = useSafeToast()
+  const { toast } = useToast()
   const [entries, setEntries] = useState<JournalEntry[]>([])
   const [newEntry, setNewEntry] = useState("")
   const [editingId, setEditingId] = useState<string | null>(null)

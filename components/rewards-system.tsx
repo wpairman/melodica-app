@@ -22,7 +22,7 @@ import {
   Copy,
   Check,
 } from "lucide-react"
-import { useSafeToast } from "@/components/toast-provider"
+import { useToast } from "@/hooks/use-toast"
 
 interface Achievement {
   id: string
@@ -71,7 +71,7 @@ function deserializeAchievements(raw: string | null, fallback: Achievement[]): A
 }
 
 export default function RewardsSystem({ moodHistory, onAchievementEarned }: RewardsSystemProps) {
-  const { toast } = useSafeToast()
+  const { toast } = useToast()
   const [achievements, setAchievements] = useState<Achievement[]>([])
   const [showCelebration, setShowCelebration] = useState(false)
   const [newAchievement, setNewAchievement] = useState<Achievement | null>(null)

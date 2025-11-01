@@ -4,12 +4,12 @@ import { useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { WifiOff, Wifi, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useSafeToast } from "@/components/toast-provider"
+import { useToast } from "@/hooks/use-toast"
 
 export function OfflineIndicator() {
   const [isOnline, setIsOnline] = useState(true)
   const [isSyncing, setIsSyncing] = useState(false)
-  const { toast } = useSafeToast()
+  const { toast } = useToast()
 
   useEffect(() => {
     // Set initial state

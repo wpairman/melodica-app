@@ -1,0 +1,58 @@
+
+> melodica@1.0.0 build
+> next build
+
+   ▲ Next.js 15.2.4
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+   Generating static pages (0/5) ...
+   Generating static pages (1/5) 
+   Generating static pages (2/5) 
+   Generating static pages (3/5) 
+ ✓ Generating static pages (5/5)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ƒ /                                    7.06 kB         119 kB
+├ ƒ /_not-found                            178 B         101 kB
+├ ƒ /analytics                            117 kB         272 kB
+├ ƒ /api/stripe/checkout                   178 B         101 kB
+├ ƒ /api/stripe/verify-session             178 B         101 kB
+├ ƒ /api/stripe/webhook                    178 B         101 kB
+├ ƒ /calendar                             6.6 kB         135 kB
+├ ƒ /dashboard                           36.9 kB         196 kB
+├ ƒ /dashboard/activities                4.75 kB         137 kB
+├ ƒ /dashboard/journaling                2.98 kB         134 kB
+├ ƒ /dashboard/mood-history               5.4 kB         137 kB
+├ ƒ /dashboard/profile                   5.54 kB         137 kB
+├ ƒ /dashboard/settings                    12 kB         167 kB
+├ ƒ /forgot-password                     3.74 kB         116 kB
+├ ƒ /guided-sessions                      4.7 kB         122 kB
+├ ƒ /journal                             6.11 kB         120 kB
+├ ƒ /login                                4.1 kB         120 kB
+├ ƒ /music-preferences                   6.86 kB         143 kB
+├ ƒ /offline                             2.75 kB         115 kB
+├ ƒ /period-tracker                      11.2 kB         147 kB
+├ ƒ /pricing                             4.55 kB         117 kB
+├ ƒ /privacy                               183 B         104 kB
+├ ƒ /register                            8.38 kB         121 kB
+├ ƒ /subscription                          178 B         101 kB
+├ ƒ /subscription/manage                 10.9 kB         128 kB
+├ ƒ /subscription/success                3.05 kB         115 kB
+├ ƒ /terms                                 183 B         104 kB
+├ ƒ /verify-email                        3.23 kB         115 kB
+└ ƒ /weather-mood                        6.46 kB         135 kB
++ First Load JS shared by all             101 kB
+  ├ chunks/1684-5b6fea9ef4d4aa1e.js      45.8 kB
+  ├ chunks/4bd1b696-b70d3b0eea5a05aa.js  53.3 kB
+  └ other shared chunks (total)          1.94 kB
+
+
+ƒ  (Dynamic)  server-rendered on demand
+

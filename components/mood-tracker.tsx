@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
-import { useSafeToast } from "@/components/toast-provider"
+import { useToast } from "@/hooks/use-toast"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Calendar, Clock, ArrowUpDown } from "lucide-react"
 import RewardsSystem from "./rewards-system"
@@ -20,7 +20,7 @@ interface MoodTrackerProps {
 }
 
 export default function MoodTracker({ userData }: MoodTrackerProps) {
-  const { toast } = useSafeToast()
+  const { toast } = useToast()
   const [selectedMood, setSelectedMood] = useState<number | null>(null)
   const [showFollowUp, setShowFollowUp] = useState(false)
   const [followUpResponse, setFollowUpResponse] = useState("")

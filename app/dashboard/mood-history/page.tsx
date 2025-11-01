@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
 import { MenuButton } from "@/components/navigation-sidebar"
 import { AuthGuard } from "@/components/auth-guard"
-import { useSafeToast } from "@/components/toast-provider"
+import { useToast } from "@/hooks/use-toast"
 import { getUserPlan, type PlanType } from "@/lib/plan-features"
 import { UpgradePrompt } from "@/components/upgrade-prompt"
 
@@ -23,7 +23,7 @@ type MoodEntry = {
 }
 
 export default function MoodHistoryPage() {
-  const { toast } = useSafeToast()
+  const { toast } = useToast()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [moodHistory, setMoodHistory] = useState<MoodEntry[]>([])
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)

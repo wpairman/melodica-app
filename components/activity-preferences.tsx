@@ -6,7 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Star } from "lucide-react"
-import { useSafeToast } from "@/components/toast-provider"
+import { useToast } from "@/hooks/use-toast"
 
 interface ActivityPreferencesProps {
   userData: {
@@ -58,7 +58,7 @@ const ACTIVITIES = [
 ]
 
 export default function ActivityPreferences({ userData }: ActivityPreferencesProps) {
-  const { toast } = useSafeToast()
+  const { toast } = useToast()
   const [completedActivities, setCompletedActivities] = useState<string[]>([])
   const [activityRatings, setActivityRatings] = useState<Record<string, number>>({})
 

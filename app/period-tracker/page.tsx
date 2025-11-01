@@ -24,7 +24,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react"
-import { useSafeToast } from "@/components/toast-provider"
+import { useToast } from "@/hooks/use-toast"
 import { MenuButton } from "@/components/navigation-sidebar"
 import { AuthGuard } from "@/components/auth-guard"
 import { getUserPlan, type PlanType } from "@/lib/plan-features"
@@ -86,7 +86,7 @@ const flowOptions = ["Light", "Medium", "Heavy", "Spotting"]
 const moodOptions = ["Happy", "Sad", "Irritable", "Anxious", "Calm", "Energetic", "Tired"]
 
 export default function PeriodTrackerPage() {
-  const { toast } = useSafeToast()
+  const { toast } = useToast()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [userPlan, setUserPlan] = useState<PlanType>("free")
   const [periodData, setPeriodData] = useState<PeriodData>({

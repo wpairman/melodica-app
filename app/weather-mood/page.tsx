@@ -185,6 +185,7 @@ export default function WeatherMoodPage() {
   const [state, setState] = useState<WeatherState>({ loading: true })
   const [forecast, setForecast] = useState<ForecastHour[]>([])
   const [recommendations, setRecommendations] = useState<Recommendation[]>([])
+  const [currentDate, setCurrentDate] = useState<string>("")
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -287,6 +288,9 @@ export default function WeatherMoodPage() {
                       {icon}
                       <div>
                         <CardTitle className="text-2xl text-white">Today's Weather</CardTitle>
+                        {currentDate && (
+                          <p className="text-gray-400 text-sm mt-1">{currentDate}</p>
+                        )}
                         <CardDescription className="flex items-center gap-1 mt-1 text-gray-300">
                           <MapPin className="h-4 w-4" /> {state.city}
                         </CardDescription>

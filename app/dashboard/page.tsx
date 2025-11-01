@@ -17,7 +17,7 @@ import TherapistFinder from "@/components/therapist-finder"
 import CalendarIntegration from "@/components/calendar-integration"
 import CalendarNotifications from "@/components/calendar-notifications"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
-import { useSafeToast } from "@/components/toast-provider"
+import { useToast } from "@/hooks/use-toast"
 import { DarkModeToggle } from "@/components/dark-mode-toggle"
 import WeatherMoodDashboard from "@/components/weather-mood-dashboard"
 import { useAuth } from "@/contexts/auth-context"
@@ -25,7 +25,7 @@ import { useRouter } from "next/navigation"
 import { AuthGuard } from "@/components/auth-guard"
 
 export default function Dashboard() {
-  const { toast } = useSafeToast()
+  const { toast } = useToast()
   const { logout } = useAuth()
   const router = useRouter()
   const [userData, setUserData] = useState<any>(null)

@@ -258,7 +258,7 @@ function useToast() {
   }, [])
 
   return {
-    ...state,
+    toasts: state.toasts,
     toast: safeToast,
     dismiss: safeDismiss,
   }

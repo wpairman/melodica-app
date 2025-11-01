@@ -12,6 +12,7 @@ import AppErrorBoundary from "@/components/app-error-boundary"
 import { ToastProvider } from "@/components/toast-provider"
 import { OfflineIndicator } from "@/components/offline-indicator"
 import { PWALifecycle } from "@/app/pwa"
+import { LocationPermissionDialog } from "@/components/location-permission-dialog"
 
 // Force dynamic rendering to avoid SSR issues
 export const dynamic = 'force-dynamic'
@@ -116,6 +117,7 @@ export default function RootLayout({
                   <ConditionalGroundMe />
                   <MoodTrendNotifications />
                   <OfflineIndicator />
+                  <LocationPermissionDialog />
                   <Toaster />
                 </ToastProvider>
               </ThemeProvider>

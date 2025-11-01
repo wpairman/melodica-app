@@ -180,14 +180,13 @@ export default function Dashboard() {
   const tabsConfig = [
     { value: "mood", label: "Home" },
     { value: "calendar", label: "Calendar" },
-    { value: "analysis", label: "Mood Analysis" },
     { value: "recommendations", label: "Recommendations" },
     { value: "therapists", label: "Find Therapists" },
   ]
 
   // Add period tracking tab for female users
   if (userData.gender === "female") {
-    tabsConfig.splice(4, 0, { value: "period", label: "Period Tracking" })
+    tabsConfig.splice(3, 0, { value: "period", label: "Period Tracking" })
   }
 
   return (
@@ -393,10 +392,6 @@ export default function Dashboard() {
                     </CardFooter>
                   </Card>
                 </div>
-              </TabsContent>
-
-              <TabsContent value="analysis" className="mt-6">
-                <MoodAnalysis userData={userData} />
               </TabsContent>
 
               <TabsContent value="recommendations" className="mt-6">

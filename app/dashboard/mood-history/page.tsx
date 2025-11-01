@@ -12,6 +12,9 @@ import { cn } from "@/lib/utils"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
 import { MenuButton } from "@/components/navigation-sidebar"
 import { AuthGuard } from "@/components/auth-guard"
+import { useSafeToast } from "@/components/toast-provider"
+import { getUserPlan, type PlanType } from "@/lib/plan-features"
+import { UpgradePrompt } from "@/components/upgrade-prompt"
 
 type MoodEntry = {
   mood: number
@@ -24,6 +27,8 @@ export default function MoodHistoryPage() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [moodHistory, setMoodHistory] = useState<MoodEntry[]>([])
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [userPlan, setUserPlan] = useState<PlanType>("free")
+  const [showUpgrade, setShowUpgrade] = useState(false)
 
   const today = new Date()
   const year = currentDate.getFullYear()
@@ -49,6 +54,10 @@ export default function MoodHistoryPage() {
   useEffect(() => {
     // Load mood history from localStorage (client-side only)
     if (typeof window !== 'undefined') {
+      // Get user's plan
+      const plan = getUserPlan()
+      setUserPlan(plan)
+
       const storedHistory = localStorage.getItem("moodHistory")
       if (storedHistory) {
         const parsed = JSON.parse(storedHistory)
@@ -135,6 +144,12 @@ export default function MoodHistoryPage() {
   const trend = getMoodTrend()
 
   const exportMoodHistory = () => {
+    // Check if user has Ultimate plan (export is Ultimate-only feature)
+    if (userPlan !== 'ultimate' && userPlan !== 'lifetime') {
+      setShowUpgrade(true)
+      return
+    }
+
     if (moodHistory.length === 0) {
       toast({
         title: "No data to export",
@@ -431,6 +446,14 @@ export default function MoodHistoryPage() {
           </div>
         </div>
       </div>
+      {showUpgrade && (
+        <UpgradePrompt
+          feature="Export & Share Mood Data"
+          requiredPlan="ultimate"
+          currentPlan={userPlan}
+          onClose={() => setShowUpgrade(false)}
+        />
+      )}
     </DashboardLayout>
     </AuthGuard>
   )

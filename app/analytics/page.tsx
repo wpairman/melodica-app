@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Heart, Activity, Clock, Calendar, TrendingUp } from "lucide-react"
+import Link from "next/link"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
 import MoodTrendsChart from "@/components/analytics/mood-trends-chart"
 import MoodByTimeChart from "@/components/analytics/mood-by-time-chart"
@@ -15,15 +16,23 @@ import MoodCorrelationChart from "@/components/analytics/mood-correlation-chart"
 import MoodInsights from "@/components/analytics/mood-insights"
 import { MenuButton } from "@/components/navigation-sidebar"
 import { AuthGuard } from "@/components/auth-guard"
+import { getUserPlan, type PlanType } from "@/lib/plan-features"
+import { UpgradePrompt } from "@/components/upgrade-prompt"
 
 export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState("week")
   const [moodData, setMoodData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [userPlan, setUserPlan] = useState<PlanType>("free")
+  const [showUpgrade, setShowUpgrade] = useState(false)
 
   useEffect(() => {
     // In a real app, you would fetch this from an API (client-side only)
     if (typeof window !== 'undefined') {
+      // Get user's plan
+      const plan = getUserPlan()
+      setUserPlan(plan)
+
       const storedHistory = localStorage.getItem("moodHistory")
 
       if (storedHistory) {
@@ -133,6 +142,67 @@ export default function AnalyticsPage() {
     )
   }
 
+  // Premium analytics - show upgrade prompt for free users
+  if (userPlan === 'free') {
+    return (
+      <AuthGuard>
+        <DashboardLayout>
+        <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
+          <div className="sticky top-0 z-50 bg-gray-900 border-b border-gray-700 px-6 py-4 flex items-center gap-4">
+            <MenuButton />
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-white">Mood Analytics</h1>
+              <p className="text-gray-300 text-sm">Visualize your mood patterns and gain insights</p>
+            </div>
+          </div>
+          <div className="p-6">
+            <div className="max-w-2xl mx-auto mt-20">
+              <Card className="bg-gray-800 border-gray-700">
+                <CardHeader className="text-center">
+                  <CardTitle className="text-2xl text-white mb-2">Unlock Advanced Analytics</CardTitle>
+                  <CardDescription className="text-gray-300">
+                    Premium analytics are available with Premium or Ultimate plans
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid gap-4">
+                    <div className="flex items-center gap-3 p-4 bg-gray-700/50 rounded-lg">
+                      <TrendingUp className="h-5 w-5 text-teal-400" />
+                      <div>
+                        <p className="text-white font-medium">Mood Trends Over Time</p>
+                        <p className="text-sm text-gray-400">Visual patterns and long-term changes</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-4 bg-gray-700/50 rounded-lg">
+                      <Clock className="h-5 w-5 text-teal-400" />
+                      <div>
+                        <p className="text-white font-medium">Time-Based Patterns</p>
+                        <p className="text-sm text-gray-400">Discover when you feel your best</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-4 bg-gray-700/50 rounded-lg">
+                      <Activity className="h-5 w-5 text-teal-400" />
+                      <div>
+                        <p className="text-white font-medium">Activity Correlations</p>
+                        <p className="text-sm text-gray-400">See what activities improve your mood</p>
+                      </div>
+                    </div>
+                  </div>
+                  <Link href="/pricing" className="block">
+                    <Button className="w-full bg-gradient-to-r from-teal-600 to-purple-600 hover:from-teal-700 hover:to-purple-700 text-white">
+                      Upgrade to See Analytics
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+        </DashboardLayout>
+        </AuthGuard>
+      )
+    }
+
   return (
     <AuthGuard>
       <DashboardLayout>
@@ -229,6 +299,14 @@ export default function AnalyticsPage() {
         </Tabs>
           </div>
         </div>
+        {showUpgrade && (userPlan === 'free' || userPlan === 'premium') && (
+          <UpgradePrompt
+            feature="Advanced Mood Analytics"
+            requiredPlan="ultimate"
+            currentPlan={userPlan}
+            onClose={() => setShowUpgrade(false)}
+          />
+        )}
       </div>
     </DashboardLayout>
     </AuthGuard>

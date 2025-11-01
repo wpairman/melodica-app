@@ -27,6 +27,9 @@ import {
 import { useSafeToast } from "@/components/toast-provider"
 import { MenuButton } from "@/components/navigation-sidebar"
 import { AuthGuard } from "@/components/auth-guard"
+import { getUserPlan, type PlanType } from "@/lib/plan-features"
+import { UpgradePrompt } from "@/components/upgrade-prompt"
+import Link from "next/link"
 
 interface PeriodData {
   lastPeriodStart: string
@@ -85,6 +88,7 @@ const moodOptions = ["Happy", "Sad", "Irritable", "Anxious", "Calm", "Energetic"
 export default function PeriodTrackerPage() {
   const { toast } = useSafeToast()
   const [currentDate, setCurrentDate] = useState(new Date())
+  const [userPlan, setUserPlan] = useState<PlanType>("free")
   const [periodData, setPeriodData] = useState<PeriodData>({
     lastPeriodStart: "",
     cycleLength: 28,
@@ -113,6 +117,10 @@ export default function PeriodTrackerPage() {
   useEffect(() => {
     // Load period data from localStorage (client-side only)
     if (typeof window !== 'undefined') {
+      // Get user's plan
+      const plan = getUserPlan()
+      setUserPlan(plan)
+
       const storedData = localStorage.getItem("periodData")
       if (storedData) {
         setPeriodData(JSON.parse(storedData))
@@ -439,6 +447,64 @@ export default function PeriodTrackerPage() {
           </div>
         </CardContent>
       </Card>
+    )
+  }
+
+  // Period tracking is Ultimate-only
+  if (userPlan !== 'ultimate' && userPlan !== 'lifetime') {
+    return (
+      <AuthGuard>
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 p-4">
+        <div className="sticky top-0 z-50 bg-gradient-to-r from-pink-50 to-purple-50 border-b border-pink-200 px-6 py-4 flex items-center gap-4 mb-6 -mx-4">
+          <MenuButton />
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold text-purple-600">
+              Your Cycle Journey
+            </h1>
+          </div>
+        </div>
+        <div className="max-w-2xl mx-auto mt-20">
+          <Card className="bg-gradient-to-br from-pink-50 to-purple-50 border-pink-200">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl text-purple-600 mb-2">Unlock Period Tracking</CardTitle>
+              <CardDescription className="text-purple-700">
+                Advanced period tracking is available with Ultimate or Lifetime plans
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-4">
+                <div className="flex items-center gap-3 p-4 bg-white/50 rounded-lg">
+                  <Heart className="h-5 w-5 text-pink-500" />
+                  <div>
+                    <p className="text-purple-900 font-medium">Cycle Visualization</p>
+                    <p className="text-sm text-purple-700">Track your complete menstrual cycle</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-4 bg-white/50 rounded-lg">
+                  <Calendar className="h-5 w-5 text-pink-500" />
+                  <div>
+                    <p className="text-purple-900 font-medium">Symptom Tracking</p>
+                    <p className="text-sm text-purple-700">Monitor physical and emotional symptoms</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-4 bg-white/50 rounded-lg">
+                  <Moon className="h-5 w-5 text-pink-500" />
+                  <div>
+                    <p className="text-purple-900 font-medium">Cycle Insights</p>
+                    <p className="text-sm text-purple-700">Understand your body's natural rhythm</p>
+                  </div>
+                </div>
+              </div>
+              <Link href="/pricing" className="block">
+                <Button className="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white">
+                  Upgrade to Ultimate
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+      </AuthGuard>
     )
   }
 

@@ -3,10 +3,7 @@
 // Inspired by react-hot-toast library
 import * as React from "react"
 
-import type {
-  ToastActionElement,
-  ToastProps,
-} from "@/components/ui/toast"
+import type { ToastActionElement, ToastProps } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 1000000
@@ -85,9 +82,7 @@ export const reducer = (state: State, action: Action): State => {
     case "UPDATE_TOAST":
       return {
         ...state,
-        toasts: state.toasts.map((t) =>
-          t.id === action.toast.id ? { ...t, ...action.toast } : t
-        ),
+        toasts: state.toasts.map((t) => (t.id === action.toast.id ? { ...t, ...action.toast } : t)),
       }
 
     case "DISMISS_TOAST": {
@@ -111,7 +106,7 @@ export const reducer = (state: State, action: Action): State => {
                 ...t,
                 open: false,
               }
-            : t
+            : t,
         ),
       }
     }
@@ -133,61 +128,139 @@ const listeners: Array<(state: State) => void> = []
 
 let memoryState: State = { toasts: [] }
 
+// Initialize state safely
+if (typeof window !== 'undefined') {
+  // Only initialize on client side
+  memoryState = { toasts: [] }
+}
+
+// Ensure listeners array is always available
+if (!listeners) {
+  // This should never happen, but just in case
+  console.warn('Toast listeners array was not initialized')
+}
+
+// Safe dispatch function
 function dispatch(action: Action) {
-  memoryState = reducer(memoryState, action)
-  listeners.forEach((listener) => {
-    listener(memoryState)
-  })
+  // SSR safety check
+  if (typeof window === 'undefined') return
+  
+  try {
+    memoryState = reducer(memoryState, action)
+    listeners.forEach((listener) => {
+      try {
+        listener(memoryState)
+      } catch (error) {
+        console.error('Error in toast listener:', error)
+      }
+    })
+  } catch (error) {
+    console.error('Error in toast dispatch:', error)
+  }
 }
 
 type Toast = Omit<ToasterToast, "id">
 
 function toast({ ...props }: Toast) {
-  const id = genId()
+  // SSR safety check
+  if (typeof window === 'undefined') {
+    return {
+      id: 'ssr-placeholder',
+      dismiss: () => {},
+      update: () => {}
+    }
+  }
 
-  const update = (props: ToasterToast) =>
+  try {
+    const id = genId()
+
+    const update = (props: ToasterToast) =>
+      dispatch({
+        type: "UPDATE_TOAST",
+        toast: { ...props, id },
+      })
+    const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id })
+
     dispatch({
-      type: "UPDATE_TOAST",
-      toast: { ...props, id },
-    })
-  const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id })
-
-  dispatch({
-    type: "ADD_TOAST",
-    toast: {
-      ...props,
-      id,
-      open: true,
-      onOpenChange: (open) => {
-        if (!open) dismiss()
+      type: "ADD_TOAST",
+      toast: {
+        ...props,
+        id,
+        open: true,
+        onOpenChange: (open) => {
+          if (!open) dismiss()
+        },
       },
-    },
-  })
+    })
 
-  return {
-    id: id,
-    dismiss,
-    update,
+    return {
+      id: id,
+      dismiss,
+      update,
+    }
+  } catch (error) {
+    console.error('Error in toast function:', error)
+    return {
+      id: 'error-placeholder',
+      dismiss: () => {},
+      update: () => {}
+    }
   }
 }
 
 function useToast() {
-  const [state, setState] = React.useState<State>(memoryState)
+  // Initialize with safe defaults
+  const [state, setState] = React.useState<State>(() => {
+    // Always return a safe initial state
+    return { toasts: [] }
+  })
 
   React.useEffect(() => {
-    listeners.push(setState)
+    // Only run on client side
+    if (typeof window === 'undefined') return
+
+    // Safety check for listeners array
+    if (listeners && Array.isArray(listeners)) {
+      listeners.push(setState)
+    }
+
     return () => {
-      const index = listeners.indexOf(setState)
-      if (index > -1) {
-        listeners.splice(index, 1)
+      if (listeners && Array.isArray(listeners)) {
+        const index = listeners.indexOf(setState)
+        if (index > -1) {
+          listeners.splice(index, 1)
+        }
       }
     }
-  }, []) // Empty dependency array - setState is stable and doesn't need to be in deps
+  }, []) // Empty dependency array to prevent re-running - setState is stable
+
+  const safeToast = React.useCallback((props: Toast) => {
+    if (typeof window === 'undefined') {
+      return { id: 'ssr-placeholder', dismiss: () => {}, update: () => {} }
+    }
+    
+    try {
+      return toast(props)
+    } catch (error) {
+      console.error('Error in safeToast:', error)
+      return { id: 'error-placeholder', dismiss: () => {}, update: () => {} }
+    }
+  }, [])
+
+  const safeDismiss = React.useCallback((toastId?: string) => {
+    if (typeof window === 'undefined') return
+    
+    try {
+      dispatch({ type: "DISMISS_TOAST", toastId })
+    } catch (error) {
+      console.error('Error in safeDismiss:', error)
+    }
+  }, [])
 
   return {
     ...state,
-    toast,
-    dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
+    toast: safeToast,
+    dismiss: safeDismiss,
   }
 }
 

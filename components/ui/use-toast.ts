@@ -147,13 +147,18 @@ function dispatch(action: Action) {
   
   try {
     memoryState = reducer(memoryState, action)
-    listeners.forEach((listener) => {
-      try {
-        listener(memoryState)
-      } catch (error) {
-        console.error('Error in toast listener:', error)
-      }
-    })
+    // Use setTimeout to prevent infinite loops
+    if (listeners.length > 0) {
+      setTimeout(() => {
+        listeners.forEach((listener) => {
+          try {
+            listener(memoryState)
+          } catch (error) {
+            console.error('Error in toast listener:', error)
+          }
+        })
+      }, 0)
+    }
   } catch (error) {
     console.error('Error in toast dispatch:', error)
   }
@@ -258,7 +263,7 @@ function useToast() {
   }, [])
 
   return {
-    ...state,
+    toasts: state.toasts,
     toast: safeToast,
     dismiss: safeDismiss,
   }

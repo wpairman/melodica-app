@@ -215,24 +215,13 @@ function useToast() {
     return { toasts: [] }
   })
 
-  const [isMounted, setIsMounted] = React.useState(false)
-  const [isInitialized, setIsInitialized] = React.useState(false)
-
   React.useEffect(() => {
     // Only run on client side
     if (typeof window === 'undefined') return
 
-    setIsMounted(true)
-
-    // Initialize with current memory state if available
-    if (memoryState && memoryState.toasts) {
-      setState(memoryState)
-    }
-
     // Safety check for listeners array
     if (listeners && Array.isArray(listeners)) {
       listeners.push(setState)
-      setIsInitialized(true)
     }
 
     return () => {
@@ -243,10 +232,10 @@ function useToast() {
         }
       }
     }
-  }, []) // Empty dependency array to prevent re-running
+  }, []) // Empty dependency array to prevent re-running - setState is stable
 
   const safeToast = React.useCallback((props: Toast) => {
-    if (!isMounted || !isInitialized || typeof window === 'undefined') {
+    if (typeof window === 'undefined') {
       return { id: 'ssr-placeholder', dismiss: () => {}, update: () => {} }
     }
     
@@ -256,17 +245,17 @@ function useToast() {
       console.error('Error in safeToast:', error)
       return { id: 'error-placeholder', dismiss: () => {}, update: () => {} }
     }
-  }, [isMounted, isInitialized])
+  }, [])
 
   const safeDismiss = React.useCallback((toastId?: string) => {
-    if (!isMounted || !isInitialized || typeof window === 'undefined') return
+    if (typeof window === 'undefined') return
     
     try {
       dispatch({ type: "DISMISS_TOAST", toastId })
     } catch (error) {
       console.error('Error in safeDismiss:', error)
     }
-  }, [isMounted, isInitialized])
+  }, [])
 
   return {
     ...state,

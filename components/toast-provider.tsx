@@ -1,16 +1,13 @@
 "use client"
 
 import React from 'react'
-import { useToast } from '@/hooks/use-toast'
 
 interface ToastProviderProps {
   children: React.ReactNode
 }
 
 export function ToastProvider({ children }: ToastProviderProps) {
-  const { toast } = useToast()
-  
-  // This component ensures the toast context is properly initialized
+  // This component is just a wrapper - no need to call useToast here
   // We don't need to do anything special here, just render children
   return <>{children}</>
 }
@@ -32,13 +29,14 @@ export function withToast<P extends object>(
 // Safe toast hook wrapper
 export function useSafeToast() {
   try {
+    const { useToast } = require('@/hooks/use-toast')
     return useToast()
   } catch (error) {
     console.error('Error in useSafeToast:', error)
     return {
       toasts: [],
-      toast: () => ({ id: 'error-placeholder', dismiss: () => {}, update: () => {} }),
-      dismiss: () => {}
+      toast: (() => ({ id: 'error-placeholder', dismiss: () => {}, update: () => {} })) as any,
+      dismiss: (() => {}) as any
     }
   }
 }

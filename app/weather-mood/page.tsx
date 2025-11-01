@@ -293,32 +293,34 @@ export default function WeatherMoodPage() {
               {/* Current Weather Card */}
               <Card className="bg-gray-800 border-gray-700">
                 <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {icon}
-                      <div>
-                        <CardTitle className="text-2xl text-white">Today's Weather</CardTitle>
-                        {currentDate ? (
-                          <p className="text-gray-300 text-base mt-1 mb-1 font-medium">{currentDate}</p>
-                        ) : (
-                          <p className="text-gray-300 text-base mt-1 mb-1 font-medium">
-                            {typeof window !== 'undefined' && new Date().toLocaleDateString('en-US', { 
-                              weekday: 'long', 
-                              year: 'numeric', 
-                              month: 'long', 
-                              day: 'numeric' 
-                            })}
-                          </p>
-                        )}
-                        <CardDescription className="flex items-center gap-1 mt-1 text-gray-300">
-                          <MapPin className="h-4 w-4" /> {state.city}
-                        </CardDescription>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        {icon}
+                        <div>
+                          <CardTitle className="text-2xl text-white">Today's Weather</CardTitle>
+                          <CardDescription className="flex items-center gap-1 mt-1 text-gray-300">
+                            <MapPin className="h-4 w-4" /> {state.city}
+                          </CardDescription>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-5xl font-bold text-white">{state.temperature?.toFixed(0)}°C</p>
+                        <p className="text-lg text-gray-300">{state.condition}</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-5xl font-bold text-white">{state.temperature?.toFixed(0)}°C</p>
-                      <p className="text-lg text-gray-300">{state.condition}</p>
-                    </div>
+                    {currentDate ? (
+                      <p className="text-gray-300 text-base font-medium">{currentDate}</p>
+                    ) : (
+                      <p className="text-gray-300 text-base font-medium">
+                        {typeof window !== 'undefined' && new Date().toLocaleDateString('en-US', { 
+                          weekday: 'long', 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        })}
+                      </p>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent>

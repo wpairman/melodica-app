@@ -1,4 +1,4 @@
-"use client"
+push "use client"
 
 import { useEffect, useState } from "react"
 import DashboardLayout from "@/components/layouts/dashboard-layout"

@@ -135,10 +135,10 @@ export default function Home() {
                 </div>
                 <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl text-gray-900">
                   Melodica
-                  <span className="block text-teal-600 mt-2">Music for Your Mood</span>
+                  <span className="block text-teal-600 mt-2">Your Mental Wellness Companion</span>
                 </h1>
                 <p className="mx-auto max-w-[700px] text-lg md:text-xl text-gray-600 leading-relaxed">
-                  AI-driven music therapy app that helps you manage your mood through personalized music recommendations, mood tracking, and mental health insights.
+                  AI driven therapy app that helps you manage your mood through personalized music recommendations, personalized activity recommendations, mood tracking, and many more mental health insights.
                 </p>
               </div>
 

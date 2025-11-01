@@ -8,7 +8,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Heart, Music, TrendingUp, Sparkles, Download, Apple, Smartphone, CheckCircle2, ArrowRight, Play } from "lucide-react"
+import { Heart, Music, TrendingUp, Sparkles, Download, Apple, Smartphone, CheckCircle2, ArrowRight, Play, BarChart3, ListMusic } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 export default function Home() {
@@ -202,18 +202,120 @@ export default function Home() {
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Screenshot Placeholders */}
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="relative">
-                  <div className="aspect-[9/16] bg-gradient-to-br from-teal-100 to-blue-100 rounded-2xl shadow-lg border-4 border-gray-200 flex items-center justify-center">
-                    <div className="text-center p-8">
-                      <Smartphone className="h-16 w-16 text-teal-600 mx-auto mb-4" />
-                      <p className="text-sm text-gray-600 font-medium">App Screenshot {i}</p>
-                      <p className="text-xs text-gray-500 mt-2">Coming Soon</p>
+              {/* Analytics Chart Preview */}
+              <div className="relative">
+                <div className="aspect-[9/16] bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl shadow-lg border-4 border-gray-200 overflow-hidden">
+                  <div className="h-full p-6 flex flex-col">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <BarChart3 className="h-6 w-6 text-purple-600" />
+                        <span className="text-sm font-bold text-gray-900">Mood Analytics</span>
+                      </div>
+                    </div>
+                    <div className="flex-1 bg-white rounded-lg p-4 flex flex-col gap-2">
+                      {/* Mock chart lines */}
+                      <div className="h-32 flex items-end justify-between gap-1">
+                        {[60, 75, 65, 85, 70, 90, 80].map((height, idx) => (
+                          <div
+                            key={idx}
+                            className="bg-gradient-to-t from-purple-500 to-purple-300 rounded-t flex-1"
+                            style={{ height: `${height}%` }}
+                          />
+                        ))}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-2 flex justify-between">
+                        <span>Mon</span>
+                        <span>Tue</span>
+                        <span>Wed</span>
+                        <span>Thu</span>
+                        <span>Fri</span>
+                        <span>Sat</span>
+                        <span>Sun</span>
+                      </div>
+                      <div className="mt-4 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <span className="text-xs text-gray-600">Average: 7.2/10</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <span className="text-xs text-gray-600">Trend: +15%</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              ))}
+              </div>
+
+              {/* Playlist Preview */}
+              <div className="relative">
+                <div className="aspect-[9/16] bg-gradient-to-br from-teal-50 to-green-50 rounded-2xl shadow-lg border-4 border-gray-200 overflow-hidden">
+                  <div className="h-full p-6 flex flex-col">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <ListMusic className="h-6 w-6 text-teal-600" />
+                        <span className="text-sm font-bold text-gray-900">Your Playlist</span>
+                      </div>
+                    </div>
+                    <div className="flex-1 bg-white rounded-lg p-4 space-y-3">
+                      {[
+                        { title: "Morning Vibes", artist: "Curated for You", mood: "😊 Happy" },
+                        { title: "Relax & Focus", artist: "Melodica AI", mood: "😌 Calm" },
+                        { title: "Energy Boost", artist: "Your Style", mood: "⚡ Energetic" },
+                      ].map((track, idx) => (
+                        <div key={idx} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition">
+                          <div className="w-12 h-12 bg-gradient-to-br from-teal-400 to-teal-600 rounded-lg flex items-center justify-center">
+                            <Music className="h-6 w-6 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-gray-900">{track.title}</p>
+                            <p className="text-xs text-gray-500">{track.artist}</p>
+                          </div>
+                          <span className="text-xs bg-teal-100 text-teal-800 px-2 py-1 rounded-full">
+                            {track.mood}
+                          </span>
+                        </div>
+                      ))}
+                      <div className="pt-2 border-t border-gray-200">
+                        <p className="text-xs text-center text-gray-500">+ More tracks</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Mood Tracker Preview */}
+              <div className="relative">
+                <div className="aspect-[9/16] bg-gradient-to-br from-pink-50 to-orange-50 rounded-2xl shadow-lg border-4 border-gray-200 overflow-hidden">
+                  <div className="h-full p-6 flex flex-col">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <Heart className="h-6 w-6 text-pink-600" />
+                        <span className="text-sm font-bold text-gray-900">How Are You?</span>
+                      </div>
+                    </div>
+                    <div className="flex-1 bg-white rounded-lg p-6 flex flex-col items-center justify-center">
+                      <div className="text-5xl mb-4">😊</div>
+                      <p className="text-sm font-semibold text-gray-900 mb-2">Feeling Great!</p>
+                      <div className="flex items-center gap-2 mb-6">
+                        {[...Array(5)].map((_, idx) => (
+                          <div key={idx} className="w-12 h-12 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-xl cursor-pointer hover:scale-110 transition">
+                            {idx + 1}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="w-full space-y-2 text-xs text-gray-600 text-center">
+                        <div className="flex justify-between">
+                          <span>😢</span>
+                          <span className="flex-1 border-b border-dashed mx-2"></span>
+                          <span>😊</span>
+                        </div>
+                        <p className="text-xs text-center text-gray-500 pt-2">Track your mood daily</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>

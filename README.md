@@ -84,14 +84,17 @@ npm start
 Create a `.env.local` file in the root directory:
 
 ```env
-# Optional: Add your Stripe keys for payment functionality
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
-STRIPE_SECRET_KEY=your_stripe_secret_key
-STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
+# Stripe Payment Integration (Required for subscriptions)
+# Get these from: https://dashboard.stripe.com/apikeys
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key_here
+STRIPE_SECRET_KEY=sk_test_your_secret_key_here
+STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
 
-# Optional: Add your API keys
+# Optional: Weather API
 NEXT_PUBLIC_WEATHER_API_KEY=your_weather_api_key
 ```
+
+**📚 See [STRIPE_SETUP.md](./STRIPE_SETUP.md) for detailed Stripe integration instructions.**
 
 ## 📱 Progressive Web App (PWA)
 

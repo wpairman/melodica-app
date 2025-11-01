@@ -31,7 +31,6 @@ export default function Dashboard() {
   const [userData, setUserData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [hasMusicPreferences, setHasMusicPreferences] = useState(false)
-  const [currentDate, setCurrentDate] = useState<string>("")
 
   useEffect(() => {
     // In a real app, you would fetch this from an API (client-side only)
@@ -99,14 +98,6 @@ export default function Dashboard() {
     }
 
     setLoading(false)
-
-    // Set current date (client-side only to avoid hydration issues)
-    setCurrentDate(new Date().toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    }))
   }, [toast])
 
   // Separate useEffect for mood check reminders
@@ -340,18 +331,6 @@ export default function Dashboard() {
           <div className="flex flex-col gap-6">
             <div>
               <h1 className="text-3xl font-bold tracking-tight text-white">Welcome, {userData.name}</h1>
-              {currentDate ? (
-                <p className="text-gray-300 text-base mt-1 mb-1 font-medium">{currentDate}</p>
-              ) : (
-                <p className="text-gray-300 text-base mt-1 mb-1 font-medium">
-                  {typeof window !== 'undefined' && new Date().toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })}
-                </p>
-              )}
               <p className="text-gray-300">Track your mood and get personalized recommendations</p>
             </div>
 

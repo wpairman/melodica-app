@@ -82,8 +82,19 @@ const getWeatherMoodImpact = (condition: string, temperature: number): {
 
 export default function WeatherMoodDashboard() {
   const [state, setState] = useState<WeatherState>({ loading: true })
+  const [currentDate, setCurrentDate] = useState<string>("")
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Set current date (client-side only to avoid hydration issues)
+      setCurrentDate(new Date().toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      }))
+    }
+
     if (!navigator.geolocation) {
       setState({ loading: false, error: "Geolocation not supported." })
       return
@@ -178,6 +189,9 @@ export default function WeatherMoodDashboard() {
             <Button variant="ghost" size="sm">View Details</Button>
           </Link>
         </div>
+        {currentDate && (
+          <p className="text-gray-300 text-sm mt-1 mb-1 font-medium">{currentDate}</p>
+        )}
         <CardDescription className="flex items-center gap-1 mt-1">
           <MapPin className="h-3 w-3" /> {state.city}
         </CardDescription>

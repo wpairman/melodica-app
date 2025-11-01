@@ -298,8 +298,17 @@ export default function WeatherMoodPage() {
                       {icon}
                       <div>
                         <CardTitle className="text-2xl text-white">Today's Weather</CardTitle>
-                        {currentDate && (
-                          <p className="text-gray-400 text-sm mt-1">{currentDate}</p>
+                        {currentDate ? (
+                          <p className="text-gray-300 text-base mt-1 mb-1 font-medium">{currentDate}</p>
+                        ) : (
+                          <p className="text-gray-300 text-base mt-1 mb-1 font-medium">
+                            {typeof window !== 'undefined' && new Date().toLocaleDateString('en-US', { 
+                              weekday: 'long', 
+                              year: 'numeric', 
+                              month: 'long', 
+                              day: 'numeric' 
+                            })}
+                          </p>
                         )}
                         <CardDescription className="flex items-center gap-1 mt-1 text-gray-300">
                           <MapPin className="h-4 w-4" /> {state.city}

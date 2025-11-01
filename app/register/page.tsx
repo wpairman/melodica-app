@@ -2,18 +2,18 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 // Force dynamic rendering to avoid SSR issues with event handlers
 export const dynamic = 'force-dynamic'
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Heart, ArrowLeft, Loader2, Music, Activity } from "lucide-react"
+import { Heart, ArrowLeft, Loader2, Music, Activity, Check } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/auth-context"
 
@@ -40,6 +40,7 @@ const MENTAL_HEALTH_CONDITIONS = [
 
 export default function Register() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
   const { login } = useAuth()
   const [isAnalyzing, setIsAnalyzing] = useState({
@@ -52,6 +53,8 @@ export default function Register() {
     activities: "",
     medications: "",
   })
+  const [selectedPlan, setSelectedPlan] = useState<string>("free")
+  const [selectedInterval, setSelectedInterval] = useState<string>("monthly")
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -65,6 +68,16 @@ export default function Register() {
     isOnMedication: false,
     medications: "",
   })
+
+  // Check if plan was passed from pricing page
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const planParam = searchParams?.get('plan')
+      if (planParam && (planParam === 'premium' || planParam === 'ultimate')) {
+        setSelectedPlan(planParam)
+      }
+    }
+  }, [searchParams])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target
@@ -206,7 +219,7 @@ Remember: This is general information only. Always consult with your healthcare 
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     // Basic validation
@@ -234,6 +247,8 @@ Remember: This is general information only. Always consult with your healthcare 
       artistAnalysis: analyses.artists,
       activityAnalysis: analyses.activities,
       medicationAnalysis: analyses.medications,
+      selectedPlan: selectedPlan,
+      selectedInterval: selectedInterval,
     }
     if (typeof window !== 'undefined') {
       localStorage.setItem("userData", JSON.stringify(userData))
@@ -243,11 +258,60 @@ Remember: This is general information only. Always consult with your healthcare 
         email: formData.email,
         password: formData.password,
       }))
+
+      // Store plan and interval for later processing
+      localStorage.setItem("pendingSubscription", JSON.stringify({
+        plan: selectedPlan,
+        interval: selectedInterval,
+      }))
     }
 
     // Use the auth context to log in the user
     login(userData)
 
+    // If paid plan selected, redirect to Stripe checkout
+    if (selectedPlan === 'premium' || selectedPlan === 'ultimate') {
+      try {
+        toast({
+          title: "Redirecting to payment...",
+          description: "Please complete payment to activate your subscription",
+        })
+
+        const response = await fetch("/api/stripe/checkout", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            tier: `${selectedPlan}_${selectedInterval}`,
+          }),
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: "Unknown error occurred" }))
+          throw new Error(errorData.error || `HTTP ${response.status}`)
+        }
+
+        const data = await response.json()
+
+        if (data?.url) {
+          // Redirect to Stripe checkout
+          window.location.href = data.url
+        } else {
+          throw new Error(data.error || "No checkout URL returned from server")
+        }
+      } catch (err: any) {
+        console.error("Checkout error:", err)
+        toast({
+          title: "Payment Error",
+          description: err.message || "Failed to create checkout session. Please try again.",
+          variant: "destructive",
+        })
+      }
+      return
+    }
+
+    // Free plan - go directly to dashboard
     toast({
       title: "Account created successfully!",
       description: "Welcome to Melodica - your personalized recommendations are ready!",
@@ -278,7 +342,97 @@ Remember: This is general information only. Always consult with your healthcare 
             <CardDescription className="text-gray-300">Enter your information to get started with personalized mood tracking</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Plan Selection Section */}
+              <div className="space-y-3 pb-4 border-b border-gray-600">
+                <Label className="text-base font-semibold text-white">Choose Your Plan</Label>
+                <div className="grid grid-cols-1 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPlan("free")}
+                    className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
+                      selectedPlan === "free"
+                        ? "border-teal-500 bg-teal-900/20"
+                        : "border-gray-600 bg-gray-700/50 hover:border-gray-500"
+                    }`}
+                  >
+                    <div className="text-left">
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-white">Free Plan</p>
+                        {selectedPlan === "free" && <Check className="h-5 w-5 text-teal-500" />}
+                      </div>
+                      <p className="text-sm text-gray-300">Basic features</p>
+                    </div>
+                    <p className="text-lg font-bold text-white">$0</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPlan("premium")}
+                    className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
+                      selectedPlan === "premium"
+                        ? "border-teal-500 bg-teal-900/20"
+                        : "border-gray-600 bg-gray-700/50 hover:border-gray-500"
+                    }`}
+                  >
+                    <div className="text-left">
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-white">Premium</p>
+                        {selectedPlan === "premium" && <Check className="h-5 w-5 text-teal-500" />}
+                      </div>
+                      <p className="text-sm text-gray-300">Enhanced features</p>
+                    </div>
+                    <p className="text-lg font-bold text-white">$1.99/mo</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPlan("ultimate")}
+                    className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
+                      selectedPlan === "ultimate"
+                        ? "border-teal-500 bg-teal-900/20"
+                        : "border-gray-600 bg-gray-700/50 hover:border-gray-500"
+                    }`}
+                  >
+                    <div className="text-left">
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-white">Ultimate</p>
+                        {selectedPlan === "ultimate" && <Check className="h-5 w-5 text-teal-500" />}
+                      </div>
+                      <p className="text-sm text-gray-300">Complete solution</p>
+                    </div>
+                    <p className="text-lg font-bold text-white">$2.99/mo</p>
+                  </button>
+                </div>
+
+                {/* Interval selection for paid plans */}
+                {(selectedPlan === "premium" || selectedPlan === "ultimate") && (
+                  <div className="flex gap-2 mt-3">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedInterval("monthly")}
+                      className={`flex-1 px-4 py-2 rounded-lg border transition-all ${
+                        selectedInterval === "monthly"
+                          ? "border-teal-500 bg-teal-900/20 text-white font-medium"
+                          : "border-gray-600 bg-gray-700/50 text-gray-300 hover:border-gray-500"
+                      }`}
+                    >
+                      Monthly
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedInterval("yearly")}
+                      className={`flex-1 px-4 py-2 rounded-lg border transition-all ${
+                        selectedInterval === "yearly"
+                          ? "border-teal-500 bg-teal-900/20 text-white font-medium"
+                          : "border-gray-600 bg-gray-700/50 text-gray-300 hover:border-gray-500"
+                      }`}
+                    >
+                      Yearly (Save)
+                    </button>
+                  </div>
+                )}
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-white">Full Name</Label>
                 <Input

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Slider } from "@/components/ui/slider"
+import { Star } from "lucide-react"
 
 export type RatingTarget = {
   kind: "song" | "activity"
@@ -19,11 +19,21 @@ type RatingDialogProps = {
 }
 
 export function RatingDialog({ open, onOpenChange, target, onSubmit }: RatingDialogProps) {
-  const [value, setValue] = useState<number>(7)
+  const [value, setValue] = useState<number>(0)
+  const [hoverValue, setHoverValue] = useState<number>(0)
 
   useEffect(() => {
-    if (open) setValue(7)
+    if (open) {
+      setValue(0)
+      setHoverValue(0)
+    }
   }, [open])
+
+  const handleStarClick = (rating: number) => {
+    setValue(rating)
+  }
+
+  const displayValue = hoverValue || value
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -34,24 +44,50 @@ export function RatingDialog({ open, onOpenChange, target, onSubmit }: RatingDia
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="text-sm text-gray-700 dark:text-gray-300">
             How helpful/enjoyable was: <span className="font-medium">{target?.title}</span>?
           </div>
-          <div className="px-1">
-            <Slider value={[value]} min={1} max={10} step={1} onValueChange={(v) => setValue(v[0])} />
+          
+          <div className="flex items-center justify-center gap-2 py-4">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button
+                key={star}
+                type="button"
+                onClick={() => handleStarClick(star)}
+                onMouseEnter={() => setHoverValue(star)}
+                onMouseLeave={() => setHoverValue(0)}
+                className="focus:outline-none transition-transform hover:scale-110"
+              >
+                <Star
+                  className={`h-10 w-10 transition-colors ${
+                    star <= displayValue
+                      ? 'fill-yellow-400 text-yellow-400'
+                      : 'text-gray-300 dark:text-gray-600 hover:text-yellow-300'
+                  }`}
+                />
+              </button>
+            ))}
           </div>
-          <div className="text-xs text-gray-600 dark:text-gray-400">Rating: {value} / 10</div>
+          
+          {displayValue > 0 && (
+            <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+              {displayValue} {displayValue === 1 ? 'star' : 'stars'}
+            </div>
+          )}
         </div>
 
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button
             onClick={() => {
-              onSubmit(value)
-              onOpenChange(false)
+              if (value > 0) {
+                onSubmit(value)
+                onOpenChange(false)
+              }
             }}
-            className="bg-teal-600 hover:bg-teal-700"
+            disabled={value === 0}
+            className="bg-teal-600 hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Save rating
           </Button>

@@ -365,7 +365,7 @@ export default function Recommendations({ userData }: RecommendationsProps) {
             meta: ratingTarget.meta,
             source: "recommendations",
           } as any)
-          toast({ title: "Thanks!", description: `Saved your ${ratingTarget.kind} rating (${rating}/10).` })
+          toast({ title: "Thanks!", description: `Saved your ${ratingTarget.kind} rating (${rating} ${rating === 1 ? 'star' : 'stars'}).` })
         }}
       />
     </div>

@@ -4,55 +4,92 @@ import { useState, useEffect } from "react"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
 import { AuthGuard } from "@/components/auth-guard"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Music, Activity, ListMusic, ExternalLink } from "lucide-react"
+import { Music, Activity, ListMusic, Star, ExternalLink } from "lucide-react"
 import { MenuButton } from "@/components/navigation-sidebar"
-import Link from "next/link"
+import { getInteractions, type InteractionLog } from "@/lib/interactions"
+
+interface RatedItem {
+  id: string
+  kind: "song" | "activity"
+  title: string
+  rating: number
+  meta?: Record<string, any>
+  timestamp: number
+}
 
 export default function PlaylistsPage() {
-  const [userData, setUserData] = useState<any>(null)
-  const [musicPreferences, setMusicPreferences] = useState<any>(null)
+  const [ratedItems, setRatedItems] = useState<RatedItem[]>([])
+  const [activityRatings, setActivityRatings] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      // Load user data
-      const storedData = localStorage.getItem("userData")
-      if (storedData) {
-        try {
-          const parsed = JSON.parse(storedData)
-          setUserData(parsed)
-        } catch (error) {
-          console.error("Error parsing user data:", error)
-        }
-      }
+      // Load interaction logs (rated songs and activities from recommendations)
+      const interactions = getInteractions()
+      
+      // Convert interactions to rated items
+      const ratedFromInteractions: RatedItem[] = interactions.map((interaction: InteractionLog) => ({
+        id: interaction.id,
+        kind: interaction.kind,
+        title: interaction.title,
+        rating: interaction.rating,
+        meta: interaction.meta,
+        timestamp: interaction.timestamp,
+      }))
 
-      // Load music preferences
-      const storedPreferences = localStorage.getItem("musicPreferences")
-      if (storedPreferences) {
+      // Load activity ratings from activity preferences
+      const storedActivityRatings = localStorage.getItem("activityRatings")
+      let activityRatingsData: Record<string, number> = {}
+      
+      if (storedActivityRatings) {
         try {
-          setMusicPreferences(JSON.parse(storedPreferences))
+          activityRatingsData = JSON.parse(storedActivityRatings)
+          setActivityRatings(activityRatingsData)
+          
+          // Convert activity ratings to rated items
+          const ratedActivities: RatedItem[] = Object.entries(activityRatingsData).map(([activity, rating]) => ({
+            id: `activity-${activity}`,
+            kind: "activity" as const,
+            title: activity,
+            rating,
+            timestamp: Date.now(), // Use current time as fallback
+          }))
+          
+          // Combine all rated items
+          const allRatedItems = [...ratedFromInteractions, ...ratedActivities]
+          
+          // Remove duplicates (prefer interaction logs over activity ratings if same title exists)
+          const uniqueItems = new Map<string, RatedItem>()
+          allRatedItems.forEach(item => {
+            const key = `${item.kind}-${item.title.toLowerCase()}`
+            if (!uniqueItems.has(key) || item.meta?.source) {
+              uniqueItems.set(key, item)
+            }
+          })
+          
+          setRatedItems(Array.from(uniqueItems.values()))
         } catch (error) {
-          console.error("Error parsing music preferences:", error)
+          console.error("Error parsing activity ratings:", error)
+          setRatedItems(ratedFromInteractions)
         }
+      } else {
+        setRatedItems(ratedFromInteractions)
       }
 
       setLoading(false)
     }
   }, [])
 
-  const getFavoriteArtists = () => {
-    if (!userData?.favoriteArtists) return []
-    return userData.favoriteArtists.split(',').map((a: string) => a.trim()).filter(Boolean)
+  // Group items by rating (1-5 stars)
+  const itemsByRating = {
+    1: ratedItems.filter(item => item.rating === 1),
+    2: ratedItems.filter(item => item.rating === 2),
+    3: ratedItems.filter(item => item.rating === 3),
+    4: ratedItems.filter(item => item.rating === 4),
+    5: ratedItems.filter(item => item.rating === 5),
   }
 
-  const getFavoriteActivities = () => {
-    if (!userData?.favoriteActivities) return []
-    return userData.favoriteActivities.split(',').map((a: string) => a.trim()).filter(Boolean)
-  }
-
-  const favoriteArtists = getFavoriteArtists()
-  const favoriteActivities = getFavoriteActivities()
+  const hasAnyRatings = ratedItems.length > 0
 
   if (loading) {
     return (
@@ -78,180 +115,137 @@ export default function PlaylistsPage() {
                 <ListMusic className="h-6 w-6 text-teal-400" />
                 Playlists
               </h1>
-              <p className="text-gray-300 text-sm">Your liked music and activities automatically organized</p>
+              <p className="text-gray-300 text-sm">Your rated music and activities organized by star rating</p>
             </div>
           </div>
 
           <div className="p-6">
             <div className="max-w-6xl mx-auto space-y-6">
-              {/* Music Playlist */}
-              <Card className="bg-gray-800 border-gray-700">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-teal-900/30 rounded-lg">
-                        <Music className="h-6 w-6 text-teal-400" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-white">Music Playlist</CardTitle>
-                        <CardDescription className="text-gray-300">
-                          Artists and songs from your preferences
-                        </CardDescription>
-                      </div>
-                    </div>
-                    <Link href="/music-preferences">
-                      <Button variant="outline" size="sm" className="border-gray-600 text-white hover:bg-gray-700">
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        Edit Preferences
-                      </Button>
-                    </Link>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {favoriteArtists.length > 0 ? (
-                    <div className="space-y-4">
-                      <div>
-                        <h3 className="text-lg font-semibold text-white mb-3">Favorite Artists</h3>
-                        <div className="flex flex-wrap gap-2">
-                          {favoriteArtists.map((artist: string, index: number) => (
-                            <div
-                              key={index}
-                              className="px-4 py-2 bg-teal-900/20 border border-teal-700/50 rounded-lg text-white flex items-center gap-2"
-                            >
-                              <Music className="h-4 w-4 text-teal-400" />
-                              <span>{artist}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {musicPreferences && (
-                        <div className="mt-6 pt-6 border-t border-gray-700">
-                          <h3 className="text-lg font-semibold text-white mb-3">Recommended Songs</h3>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {musicPreferences.favoriteSongs?.slice(0, 10).map((song: string, index: number) => (
-                              <div
-                                key={index}
-                                className="px-4 py-2 bg-gray-700/50 rounded-lg text-gray-300 hover:bg-gray-700 transition-colors"
-                              >
-                                {song}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {musicPreferences?.preferredGenres && (
-                        <div className="mt-6 pt-6 border-t border-gray-700">
-                          <h3 className="text-lg font-semibold text-white mb-3">Preferred Genres</h3>
-                          <div className="flex flex-wrap gap-2">
-                            {musicPreferences.preferredGenres.map((genre: string, index: number) => (
-                              <div
-                                key={index}
-                                className="px-3 py-1 bg-purple-900/20 border border-purple-700/50 rounded-full text-sm text-white"
-                              >
-                                {genre}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <Music className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-                      <p className="text-gray-400 mb-4">No favorite artists added yet</p>
-                      <Link href="/music-preferences">
-                        <Button className="bg-teal-600 hover:bg-teal-700">
-                          Add Music Preferences
-                        </Button>
-                      </Link>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Activities Playlist */}
-              <Card className="bg-gray-800 border-gray-700">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-green-900/30 rounded-lg">
-                        <Activity className="h-6 w-6 text-green-400" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-white">Activities Playlist</CardTitle>
-                        <CardDescription className="text-gray-300">
-                          Your favorite activities for mood enhancement
-                        </CardDescription>
-                      </div>
-                    </div>
-                    <Link href="/dashboard/profile">
-                      <Button variant="outline" size="sm" className="border-gray-600 text-white hover:bg-gray-700">
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        Edit Profile
-                      </Button>
-                    </Link>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {favoriteActivities.length > 0 ? (
-                    <div className="space-y-4">
-                      <div>
-                        <h3 className="text-lg font-semibold text-white mb-3">Favorite Activities</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                          {favoriteActivities.map((activity: string, index: number) => (
-                            <div
-                              key={index}
-                              className="px-4 py-3 bg-green-900/20 border border-green-700/50 rounded-lg text-white flex items-center gap-3 hover:bg-green-900/30 transition-colors"
-                            >
-                              <Activity className="h-5 w-5 text-green-400 flex-shrink-0" />
-                              <span>{activity}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <Activity className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-                      <p className="text-gray-400 mb-4">No favorite activities added yet</p>
-                      <Link href="/dashboard/profile">
-                        <Button className="bg-green-600 hover:bg-green-700">
-                          Add Activities to Profile
-                        </Button>
-                      </Link>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Quick Actions */}
-              {(favoriteArtists.length > 0 || favoriteActivities.length > 0) && (
+              {!hasAnyRatings ? (
                 <Card className="bg-gray-800 border-gray-700">
-                  <CardHeader>
-                    <CardTitle className="text-white">Quick Actions</CardTitle>
-                    <CardDescription className="text-gray-300">
-                      Get started with your playlists
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Link href="/music-preferences">
-                        <Button variant="outline" className="w-full border-gray-600 text-white hover:bg-gray-700">
-                          <Music className="h-4 w-4 mr-2" />
-                          Customize Music Preferences
-                        </Button>
-                      </Link>
-                      <Link href="/dashboard/profile">
-                        <Button variant="outline" className="w-full border-gray-600 text-white hover:bg-gray-700">
-                          <Activity className="h-4 w-4 mr-2" />
-                          Update Favorite Activities
-                        </Button>
-                      </Link>
+                  <CardContent className="py-12">
+                    <div className="text-center">
+                      <Star className="h-16 w-16 text-gray-600 mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold text-white mb-2">No Rated Items Yet</h3>
+                      <p className="text-gray-400 mb-6">
+                        Start rating songs and activities to see them organized here by star rating
+                      </p>
+                      <div className="flex gap-4 justify-center">
+                        <a href="/dashboard" className="text-teal-400 hover:text-teal-300 underline">
+                          Go to Recommendations
+                        </a>
+                        <a href="/music-preferences" className="text-teal-400 hover:text-teal-300 underline">
+                          Browse Songs
+                        </a>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
+              ) : (
+                // Display items organized by star rating (5 stars first, down to 1 star)
+                [5, 4, 3, 2, 1].map((starRating) => {
+                  const items = itemsByRating[starRating as keyof typeof itemsByRating]
+                  if (items.length === 0) return null
+
+                  const songs = items.filter(item => item.kind === "song")
+                  const activities = items.filter(item => item.kind === "activity")
+
+                  return (
+                    <Card key={starRating} className="bg-gray-800 border-gray-700">
+                      <CardHeader>
+                        <CardTitle className="text-white flex items-center gap-2">
+                          <div className="flex items-center gap-1">
+                            {Array.from({ length: starRating }).map((_, i) => (
+                              <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                            ))}
+                            {Array.from({ length: 5 - starRating }).map((_, i) => (
+                              <Star key={i} className="h-5 w-5 text-gray-600" />
+                            ))}
+                          </div>
+                          <span className="ml-2">{starRating} {starRating === 1 ? 'Star' : 'Stars'}</span>
+                          <span className="text-gray-400 text-sm font-normal ml-2">
+                            ({items.length} {items.length === 1 ? 'item' : 'items'})
+                          </span>
+                        </CardTitle>
+                        <CardDescription className="text-gray-300">
+                          {starRating === 5 && "Your absolute favorites"}
+                          {starRating === 4 && "Really enjoyed these"}
+                          {starRating === 3 && "These were okay"}
+                          {starRating === 2 && "Could be better"}
+                          {starRating === 1 && "Not your favorite"}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-6">
+                          {/* Songs Section */}
+                          {songs.length > 0 && (
+                            <div>
+                              <h3 className="text-md font-semibold text-white mb-3 flex items-center gap-2">
+                                <Music className="h-4 w-4 text-teal-400" />
+                                Songs ({songs.length})
+                              </h3>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {songs.map((item) => (
+                                  <div
+                                    key={item.id}
+                                    className="px-4 py-3 bg-gray-700/50 rounded-lg text-white flex items-center justify-between hover:bg-gray-700 transition-colors"
+                                  >
+                                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                                      <Music className="h-5 w-5 text-teal-400 flex-shrink-0" />
+                                      <div className="min-w-0 flex-1">
+                                        <div className="text-sm font-medium truncate">{item.title}</div>
+                                        {item.meta?.artist && (
+                                          <div className="text-xs text-gray-400 truncate">{item.meta.artist}</div>
+                                        )}
+                                        {item.meta?.mood && (
+                                          <div className="text-xs text-teal-400 mt-1">{item.meta.mood}</div>
+                                        )}
+                                      </div>
+                                    </div>
+                                    {item.meta?.source === "recommendations" && (
+                                      <a
+                                        href={`https://www.youtube.com/results?search_query=${encodeURIComponent(item.title)}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="ml-2 flex-shrink-0"
+                                      >
+                                        <ExternalLink className="h-4 w-4 text-gray-400 hover:text-teal-400" />
+                                      </a>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Activities Section */}
+                          {activities.length > 0 && (
+                            <div>
+                              <h3 className="text-md font-semibold text-white mb-3 flex items-center gap-2">
+                                <Activity className="h-4 w-4 text-green-400" />
+                                Activities ({activities.length})
+                              </h3>
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                {activities.map((item) => (
+                                  <div
+                                    key={item.id}
+                                    className="px-4 py-3 bg-gray-700/50 rounded-lg text-white flex items-center gap-3 hover:bg-gray-700 transition-colors"
+                                  >
+                                    <Activity className="h-5 w-5 text-green-400 flex-shrink-0" />
+                                    <span className="text-sm font-medium">{item.title}</span>
+                                    {item.meta?.duration && (
+                                      <span className="text-xs text-gray-400 ml-auto">{item.meta.duration}</span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                })
               )}
             </div>
           </div>
@@ -260,4 +254,3 @@ export default function PlaylistsPage() {
     </AuthGuard>
   )
 }
-

@@ -181,7 +181,7 @@ export default function ArtistSongsList({ favoriteArtists }: ArtistSongsListProp
             meta: ratingTarget.meta,
             source: "artist-songs",
           } as any)
-          toast({ title: "Thanks!", description: `Saved your song rating (${rating}/10).` })
+          toast({ title: "Thanks!", description: `Saved your song rating (${rating} ${rating === 1 ? 'star' : 'stars'}).` })
         }}
       />
     </div>

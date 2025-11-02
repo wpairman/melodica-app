@@ -147,9 +147,9 @@ function dispatch(action: Action) {
   
   try {
     memoryState = reducer(memoryState, action)
-    // Use setTimeout to prevent infinite loops
+    // Use requestAnimationFrame to prevent infinite loops
     if (listeners.length > 0) {
-      setTimeout(() => {
+      requestAnimationFrame(() => {
         listeners.forEach((listener) => {
           try {
             listener(memoryState)
@@ -157,7 +157,7 @@ function dispatch(action: Action) {
             console.error('Error in toast listener:', error)
           }
         })
-      }, 0)
+      })
     }
   } catch (error) {
     console.error('Error in toast dispatch:', error)

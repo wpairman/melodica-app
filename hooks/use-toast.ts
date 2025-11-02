@@ -125,6 +125,7 @@ export const reducer = (state: State, action: Action): State => {
 }
 
 const listeners: Array<(state: State) => void> = []
+const registeredListeners = new WeakSet()
 
 let memoryState: State = { toasts: [] }
 
@@ -134,12 +135,6 @@ if (typeof window !== 'undefined') {
   memoryState = { toasts: [] }
 }
 
-// Ensure listeners array is always available
-if (!listeners) {
-  // This should never happen, but just in case
-  console.warn('Toast listeners array was not initialized')
-}
-
 // Safe dispatch function
 function dispatch(action: Action) {
   // SSR safety check
@@ -147,18 +142,14 @@ function dispatch(action: Action) {
   
   try {
     memoryState = reducer(memoryState, action)
-    // Use requestAnimationFrame to prevent infinite loops
-    if (listeners.length > 0) {
-      requestAnimationFrame(() => {
-        listeners.forEach((listener) => {
-          try {
-            listener(memoryState)
-          } catch (error) {
-            console.error('Error in toast listener:', error)
-          }
-        })
-      })
-    }
+    // Call listeners synchronously - WeakSet prevents duplicate registrations
+    listeners.forEach((listener) => {
+      try {
+        listener(memoryState)
+      } catch (error) {
+        console.error('Error in toast listener:', error)
+      }
+    })
   } catch (error) {
     console.error('Error in toast dispatch:', error)
   }
@@ -220,26 +211,24 @@ function useToast() {
     return { toasts: [] }
   })
 
-  // Use ref to track if listener is registered
-  const listenerRegistered = React.useRef(false)
-
   React.useEffect(() => {
     // Only run on client side
     if (typeof window === 'undefined') return
 
-    // Only register listener once
-    if (!listenerRegistered.current && listeners && Array.isArray(listeners)) {
-      listeners.push(setState)
-      listenerRegistered.current = true
+    // Only register listener once using WeakSet
+    if (listeners && Array.isArray(listeners)) {
+      if (!registeredListeners.has(setState)) {
+        listeners.push(setState)
+        registeredListeners.add(setState)
+      }
     }
 
     return () => {
-      if (listenerRegistered.current && listeners && Array.isArray(listeners)) {
+      if (listeners && Array.isArray(listeners)) {
         const index = listeners.indexOf(setState)
         if (index > -1) {
           listeners.splice(index, 1)
         }
-        listenerRegistered.current = false
       }
     }
   }, []) // Empty dependency array to prevent re-running - setState is stable

@@ -54,12 +54,13 @@ export default function CalendarNotifications() {
             }.`,
           })
 
+          // NOTIFICATIONS TEMPORARILY DISABLED
           // 2) Browser notification (if permission granted)
-          if ("Notification" in window && Notification.permission === "granted") {
-            new Notification("Upcoming event", {
-              body: `${event.title} starts soon.`,
-            })
-          }
+          // if ("Notification" in window && Notification.permission === "granted") {
+          //   new Notification("Upcoming event", {
+          //     body: `${event.title} starts soon.`,
+          //   })
+          // }
         }, fireAt - now),
       )
     })

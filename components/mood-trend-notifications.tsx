@@ -101,21 +101,22 @@ export default function MoodTrendNotifications() {
 
       localStorage.setItem(`lastTrendNotification_${type}`, now.toString())
 
+      // NOTIFICATIONS TEMPORARILY DISABLED
       // Show browser notification if permission granted
-      if ("Notification" in window && Notification.permission === "granted") {
-        const notification = new Notification(title, {
-          body: message,
-          icon: "/icons/icon-192x192.png",
-          badge: "/icons/icon-192x192.png",
-          tag: `mood-trend-${type}`,
-        })
+      // if ("Notification" in window && Notification.permission === "granted") {
+      //   const notification = new Notification(title, {
+      //     body: message,
+      //     icon: "/icons/icon-192x192.png",
+      //     badge: "/icons/icon-192x192.png",
+      //     tag: `mood-trend-${type}`,
+      //   })
 
-        notification.onclick = () => {
-          window.focus()
-          window.location.href = "/dashboard"
-          notification.close()
-        }
-      }
+      //   notification.onclick = () => {
+      //     window.focus()
+      //     window.location.href = "/dashboard"
+      //     notification.close()
+      //   }
+      // }
 
       // Also show in-app toast
       toast({

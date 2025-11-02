@@ -26,6 +26,9 @@ export default function NotificationManager() {
   const { toast } = useToast()
 
   useEffect(() => {
+    // NOTIFICATIONS TEMPORARILY DISABLED
+    return
+    
     // Check if we're in a browser environment
     if (typeof window === 'undefined') return
 

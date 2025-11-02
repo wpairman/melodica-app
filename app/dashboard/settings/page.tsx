@@ -194,12 +194,14 @@ export default function SettingsPage() {
       description: "Your preferences have been updated successfully.",
     })
 
+    // NOTIFICATIONS TEMPORARILY DISABLED
     // Update notification schedule
-    if (newSettings.notifications.enabled) {
-      scheduleNotifications(newSettings.notifications)
-    } else {
-      clearNotifications()
-    }
+    // if (newSettings.notifications.enabled) {
+    //   scheduleNotifications(newSettings.notifications)
+    // } else {
+    //   clearNotifications()
+    // }
+    clearNotifications() // Always clear notifications
 
     // Apply or reset custom theme
     if (newSettings.appearance?.customTheme) {
@@ -765,9 +767,10 @@ export default function SettingsPage() {
                   <Label className="text-base">Enable Notifications</Label>
                   <div className="text-sm text-gray-500 dark:text-gray-400">
                     Receive regular reminders to check in with your mood
+                    <span className="block text-xs text-yellow-500 mt-1">⚠️ Temporarily disabled</span>
                   </div>
                 </div>
-                <Switch checked={settings.notifications.enabled} onCheckedChange={handleNotificationToggle} />
+                <Switch checked={false} disabled onCheckedChange={() => {}} />
               </div>
 
               {settings.notifications.enabled && (

@@ -18,6 +18,9 @@ export function NotificationPermissionDialog() {
   const { toast } = useToast()
 
   useEffect(() => {
+    // NOTIFICATIONS TEMPORARILY DISABLED
+    return
+    
     // Only show dialog to authenticated users after they've registered/logged in
     if (typeof window !== 'undefined') {
       const isLoggedIn = localStorage.getItem("isLoggedIn")

@@ -110,20 +110,26 @@ self.addEventListener("push", (event) => {
   ]
 
   event.waitUntil(
-    self.registration.showNotification(title, {
-      body: body,
-      icon: icon,
-      badge: icon,
-      tag: "mood-checkin",
-      requireInteraction: true, // Set to true so iOS shows actions on pull-down
-      actions: actions, // Show 5 actions - most mobile platforms support this
-      data: {
-        url: "/dashboard",
-        timestamp: Date.now()
-      },
-      // For Android/iOS, the notification will expand to show more options
-      vibrate: [200, 100, 200],
-      silent: false, // Ensure notification makes sound/alert
+    // Close existing notifications with same tag FIRST
+    self.registration.getNotifications({ tag: "mood-checkin" }).then((notifications) => {
+      notifications.forEach(notification => notification.close())
+      
+      // Then show new notification (using same tag ensures only one exists)
+      return self.registration.showNotification(title, {
+        body: body,
+        icon: icon,
+        badge: icon,
+        tag: "mood-checkin", // Same tag = replaces previous notifications
+        requireInteraction: true, // Set to true so iOS shows actions on pull-down
+        actions: actions, // Show 5 actions - most mobile platforms support this
+        data: {
+          url: "/dashboard",
+          timestamp: Date.now()
+        },
+        // For Android/iOS, the notification will expand to show more options
+        vibrate: [200, 100, 200],
+        silent: false, // Ensure notification makes sound/alert
+      })
     })
   )
 })

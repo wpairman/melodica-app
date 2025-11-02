@@ -253,15 +253,27 @@ export default function SettingsPage() {
   }
 
   // Store the notification interval globally to prevent multiple instances
+  // Use same global variables as NotificationManager
   let notificationTimer: NodeJS.Timeout | null = null
+  let isSettingsSchedulerActive = false
+  let lastNotificationTime = 0
+  const MIN_NOTIFICATION_INTERVAL = 5000 // Minimum 5 seconds between notifications
 
   const scheduleNotifications = (notificationSettings: any) => {
+    // CRITICAL: Prevent multiple schedulers from running simultaneously
+    if (isSettingsSchedulerActive) {
+      console.log('Settings notification scheduler already active, clearing and restarting...')
+    }
+    
     // Clear existing notifications and timers FIRST
     clearNotifications()
     if (notificationTimer) {
       clearTimeout(notificationTimer)
       notificationTimer = null
     }
+    
+    // Mark as active
+    isSettingsSchedulerActive = true
 
     if (!("Notification" in window) || Notification.permission !== "granted") {
       return
@@ -317,6 +329,15 @@ export default function SettingsPage() {
 
       // Schedule regular notification
       notificationTimer = setTimeout(() => {
+        // Prevent notifications from firing too close together
+        const now = Date.now()
+        if (now - lastNotificationTime < MIN_NOTIFICATION_INTERVAL) {
+          console.log('Notification throttled - too soon since last notification, rescheduling...')
+          scheduleNext() // Reschedule for next interval
+          return
+        }
+        lastNotificationTime = now
+        
         showMoodNotification()
         scheduleNext()
       }, intervalMs)
@@ -329,27 +350,42 @@ export default function SettingsPage() {
     if ("Notification" in window && Notification.permission === "granted") {
       // Use service worker for better mobile support with actions
       if ('serviceWorker' in navigator) {
-        const registration = await navigator.serviceWorker.ready
-        // Type assertion needed because TypeScript doesn't recognize actions in NotificationOptions
-        // but Service Worker ShowNotificationOptions does support it
-        await registration.showNotification("Melodica - Mood Check-in", {
-          body: "How are you feeling right now? Pull down to log your mood quickly!",
-          icon: "/icons/icon-192x192.png",
-          badge: "/icons/icon-192x192.png",
-          tag: "mood-checkin", // Same tag = replaces previous notification (prevents flooding)
-          requireInteraction: true, // Set to true so iOS shows actions on pull-down
-          actions: [
-            { action: "mood-1", title: "⭐ 1 Star" },
-            { action: "mood-2", title: "⭐⭐ 2 Stars" },
-            { action: "mood-3", title: "⭐⭐⭐ 3 Stars" },
-            { action: "mood-4", title: "⭐⭐⭐⭐ 4 Stars" },
-            { action: "mood-5", title: "⭐⭐⭐⭐⭐ 5 Stars" },
-          ],
-          data: {
-            url: "/dashboard"
-          },
-          silent: false, // Ensure notification makes sound/alert
-        } as any) // Type assertion: Service Worker ShowNotificationOptions supports actions
+        try {
+          const registration = await navigator.serviceWorker.ready
+          
+          // CRITICAL: Close ALL existing notifications with the same tag FIRST
+          const existingNotifications = await registration.getNotifications({ tag: 'mood-checkin' })
+          if (existingNotifications.length > 0) {
+            console.log(`Closing ${existingNotifications.length} existing notifications before showing new one`)
+            existingNotifications.forEach(notification => notification.close())
+            // Wait a bit to ensure closes complete
+            await new Promise(resolve => setTimeout(resolve, 200))
+          }
+          
+          // Now show ONLY ONE new notification
+          // Type assertion needed because TypeScript doesn't recognize actions in NotificationOptions
+          // but Service Worker ShowNotificationOptions does support it
+          await registration.showNotification("Melodica - Mood Check-in", {
+            body: "How are you feeling right now? Pull down to log your mood quickly!",
+            icon: "/icons/icon-192x192.png",
+            badge: "/icons/icon-192x192.png",
+            tag: "mood-checkin", // Same tag = replaces previous notification (prevents flooding)
+            requireInteraction: true, // Set to true so iOS shows actions on pull-down
+            actions: [
+              { action: "mood-1", title: "⭐ 1 Star" },
+              { action: "mood-2", title: "⭐⭐ 2 Stars" },
+              { action: "mood-3", title: "⭐⭐⭐ 3 Stars" },
+              { action: "mood-4", title: "⭐⭐⭐⭐ 4 Stars" },
+              { action: "mood-5", title: "⭐⭐⭐⭐⭐ 5 Stars" },
+            ],
+            data: {
+              url: "/dashboard"
+            },
+            silent: false, // Ensure notification makes sound/alert
+          } as any) // Type assertion: Service Worker ShowNotificationOptions supports actions
+        } catch (error) {
+          console.error('Error showing notification:', error)
+        }
       } else {
         // Fallback to regular notification
         const notification = new Notification("Melodica - Mood Check-in", {

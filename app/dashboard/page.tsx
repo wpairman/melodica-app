@@ -53,52 +53,134 @@ export default function Dashboard() {
     setLoading(false)
   }, [])
 
-  // Set up service worker listener separately to avoid infinite loops
+  // Set up service worker listener and sync IndexedDB moods
   useEffect(() => {
-    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return
+    if (typeof window === 'undefined') return
 
-    // Define message handler for service worker
-    const messageHandler = (event: MessageEvent) => {
-      if (event.data && event.data.type === 'QUICK_MOOD_LOG') {
-        const moodEntry = event.data.mood
+    // Sync moods from IndexedDB to localStorage (for moods saved while app was closed)
+    const syncMoodsFromIndexedDB = async () => {
+      try {
+        const request = indexedDB.open('melodica-moods', 1)
         
-        // Load existing mood history
-        const storedHistory = localStorage.getItem("moodHistory")
-        let moodHistory = []
-        if (storedHistory) {
-          try {
-            moodHistory = JSON.parse(storedHistory)
-          } catch (e) {
-            console.error("Error parsing mood history:", e)
+        request.onupgradeneeded = (event: any) => {
+          const db = event.target.result
+          if (!db.objectStoreNames.contains('moods')) {
+            const objectStore = db.createObjectStore('moods', { keyPath: 'id', autoIncrement: true })
+            objectStore.createIndex('timestamp', 'timestamp', { unique: false })
           }
         }
         
-        // Add the new entry (avoid duplicates)
-        const newEntry = {
-          mood: moodEntry.mood,
-          timestamp: new Date(moodEntry.timestamp),
-          notes: moodEntry.notes
+        request.onsuccess = () => {
+          const db = request.result
+          const transaction = db.transaction(['moods'], 'readonly')
+          const store = transaction.objectStore('moods')
+          const getAllRequest = store.getAll()
+          
+          getAllRequest.onsuccess = () => {
+            const indexedDBMoods = getAllRequest.result
+            
+            if (indexedDBMoods.length > 0) {
+              // Load existing localStorage mood history
+              const storedHistory = localStorage.getItem("moodHistory")
+              let moodHistory: any[] = []
+              if (storedHistory) {
+                try {
+                  moodHistory = JSON.parse(storedHistory)
+                } catch (e) {
+                  console.error("Error parsing mood history:", e)
+                  moodHistory = []
+                }
+              }
+              
+              // Convert IndexedDB moods to localStorage format and merge
+              indexedDBMoods.forEach((entry: any) => {
+                const newEntry = {
+                  mood: entry.mood,
+                  timestamp: new Date(entry.timestamp),
+                  notes: entry.notes || ""
+                }
+                
+                // Check if entry already exists
+                const exists = moodHistory.some((existing: any) => {
+                  const existingDate = new Date(existing.timestamp).toISOString()
+                  const newDate = newEntry.timestamp.toISOString()
+                  return existingDate === newDate && existing.mood === newEntry.mood
+                })
+                
+                if (!exists) {
+                  moodHistory.push(newEntry)
+                }
+              })
+              
+              // Save merged history
+              localStorage.setItem("moodHistory", JSON.stringify(moodHistory))
+              
+              // Clear IndexedDB after syncing
+              const clearTransaction = db.transaction(['moods'], 'readwrite')
+              const clearStore = clearTransaction.objectStore('moods')
+              clearStore.clear()
+            }
+          }
         }
-        
-        // Check if this entry already exists
-        const exists = moodHistory.some((entry: any) => 
-          entry.timestamp.toISOString() === newEntry.timestamp.toISOString() && 
-          entry.mood === newEntry.mood
-        )
-        
-        if (!exists) {
-          moodHistory.push(newEntry)
-          localStorage.setItem("moodHistory", JSON.stringify(moodHistory))
-        }
+      } catch (error) {
+        console.error("Error syncing moods from IndexedDB:", error)
       }
     }
 
-    // Listen for quick mood logs from notification actions (service worker)
-    navigator.serviceWorker.addEventListener('message', messageHandler)
-    
-    // Return cleanup function for service worker listener
-    return () => {
-      navigator.serviceWorker.removeEventListener('message', messageHandler)
+    // Sync on mount
+    syncMoodsFromIndexedDB()
+
+    // Set up service worker message listener
+    if ('serviceWorker' in navigator) {
+      const messageHandler = (event: MessageEvent) => {
+        if (event.data && event.data.type === 'QUICK_MOOD_LOG') {
+          const moodEntry = event.data.mood
+          
+          // Load existing mood history
+          const storedHistory = localStorage.getItem("moodHistory")
+          let moodHistory: any[] = []
+          if (storedHistory) {
+            try {
+              moodHistory = JSON.parse(storedHistory)
+            } catch (e) {
+              console.error("Error parsing mood history:", e)
+            }
+          }
+          
+          // Add the new entry (avoid duplicates)
+          const newEntry = {
+            mood: moodEntry.mood,
+            timestamp: new Date(moodEntry.timestamp),
+            notes: moodEntry.notes || ""
+          }
+          
+          // Check if this entry already exists
+          const exists = moodHistory.some((entry: any) => {
+            const entryDate = new Date(entry.timestamp).toISOString()
+            const newDate = newEntry.timestamp.toISOString()
+            return entryDate === newDate && entry.mood === newEntry.mood
+          })
+          
+          if (!exists) {
+            moodHistory.push(newEntry)
+            localStorage.setItem("moodHistory", JSON.stringify(moodHistory))
+            
+            // Show toast notification
+            toast({
+              title: "Mood logged! 💚",
+              description: `Your ${moodEntry.mood}-star mood has been saved.`,
+            })
+          }
+        }
+      }
+
+      // Listen for quick mood logs from notification actions (service worker)
+      navigator.serviceWorker.addEventListener('message', messageHandler)
+      
+      // Return cleanup function for service worker listener
+      return () => {
+        navigator.serviceWorker.removeEventListener('message', messageHandler)
+      }
     }
   }, []) // Empty dependency array - no dependencies needed
 

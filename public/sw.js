@@ -136,18 +136,17 @@ self.addEventListener("notificationclick", (event) => {
   if (event.action && event.action.startsWith("mood-")) {
     const mood = Number.parseInt(event.action.split("-")[1])
     
-    // Save mood to localStorage via postMessage to active clients
+    const moodEntry = {
+      mood: mood,
+      timestamp: new Date().toISOString(),
+      notes: "Logged from notification"
+    }
+    
+    // Save mood using IndexedDB (works even when app is closed)
     event.waitUntil(
-      clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
-        const moodEntry = {
-          mood: mood,
-          timestamp: new Date().toISOString(),
-          notes: "Logged from notification"
-        }
-        
-        // Store mood in cache for offline access first
-        return saveMoodEntryDB(moodEntry).then(() => {
-          // Then send mood to any open app windows
+      saveMoodToIndexedDB(moodEntry).then(() => {
+        // Also try to send to any open clients
+        return clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
           clientList.forEach((client) => {
             client.postMessage({
               type: "QUICK_MOOD_LOG",
@@ -155,9 +154,6 @@ self.addEventListener("notificationclick", (event) => {
             })
           })
           
-          // Show confirmation notification
-          return Promise.resolve()
-        }).then(() => {
           // Show confirmation notification with star rating
           const stars = "⭐".repeat(mood)
           return self.registration.showNotification("Mood Logged! 💚", {
@@ -167,6 +163,17 @@ self.addEventListener("notificationclick", (event) => {
             tag: "mood-confirmation",
             requireInteraction: false,
           })
+        })
+      }).catch((error) => {
+        console.error("Error saving mood:", error)
+        // Still show confirmation even if save fails
+        const stars = "⭐".repeat(mood)
+        return self.registration.showNotification("Mood Logged! 💚", {
+          body: `Your mood (${stars} ${mood} ${mood === 1 ? 'star' : 'stars'}) has been saved.`,
+          icon: "/icons/icon-192x192.png",
+          badge: "/icons/icon-192x192.png",
+          tag: "mood-confirmation",
+          requireInteraction: false,
         })
       })
     )
@@ -188,7 +195,50 @@ self.addEventListener("notificationclick", (event) => {
   )
 })
 
-// Save mood entry for offline access
+// Save mood entry to IndexedDB (persistent storage that works when app is closed)
+async function saveMoodToIndexedDB(moodEntry) {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('melodica-moods', 1)
+    
+    request.onerror = () => {
+      console.error('Failed to open IndexedDB:', request.error)
+      reject(request.error)
+    }
+    
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result
+      
+      if (!db.objectStoreNames.contains('moods')) {
+        const objectStore = db.createObjectStore('moods', { keyPath: 'id', autoIncrement: true })
+        objectStore.createIndex('timestamp', 'timestamp', { unique: false })
+      }
+    }
+    
+    request.onsuccess = () => {
+      const db = request.result
+      const transaction = db.transaction(['moods'], 'readwrite')
+      const store = transaction.objectStore('moods')
+      
+      const entryWithId = {
+        ...moodEntry,
+        id: Date.now() + Math.random() // Unique ID
+      }
+      
+      const addRequest = store.add(entryWithId)
+      
+      addRequest.onsuccess = () => {
+        resolve()
+      }
+      
+      addRequest.onerror = () => {
+        console.error('Failed to save mood to IndexedDB:', addRequest.error)
+        reject(addRequest.error)
+      }
+    }
+  })
+}
+
+// Legacy function for backward compatibility
 async function saveMoodEntryDB(moodEntry) {
   try {
     // Store in cache for offline access (simpler and more reliable than IndexedDB in service worker)

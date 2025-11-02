@@ -220,7 +220,9 @@ Remember: This is general information only. Always consult with your healthcare 
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log("🚀 REGISTER SUBMIT - HANDLER CALLED!")
     e.preventDefault()
+    console.log("✅ preventDefault called")
 
     // Basic validation
     if (formData.password !== formData.confirmPassword) {
@@ -243,8 +245,10 @@ Remember: This is general information only. Always consult with your healthcare 
 
     // Check for duplicate email and store user data (client-side only)
     if (typeof window !== 'undefined') {
+      console.log("✅ Inside window check")
       // Check for duplicate email
       const allUsersStr = localStorage.getItem("allUsers")
+      console.log("📦 allUsersStr:", allUsersStr || "EMPTY/NULL")
       let allUsers: any[] = []
       
       if (allUsersStr) {
@@ -270,6 +274,8 @@ Remember: This is general information only. Always consult with your healthcare 
       // Normalize email (lowercase, trim) for consistent storage
       const normalizedEmail = formData.email.trim().toLowerCase()
       const normalizedPassword = formData.password.trim()
+      console.log("📧 Normalized email:", normalizedEmail)
+      console.log("🔑 Normalized password length:", normalizedPassword.length)
       
       // Store user data with normalized email
       const userData = {
@@ -287,9 +293,11 @@ Remember: This is general information only. Always consult with your healthcare 
       // Add to all users array
       allUsers.push(userData)
       localStorage.setItem("allUsers", JSON.stringify(allUsers))
+      console.log("💾 Saved to allUsers. Total users:", allUsers.length)
       
       // Also save as current user (for backward compatibility)
       localStorage.setItem("userData", JSON.stringify(userData))
+      console.log("💾 Saved to userData")
       
       // Save credentials for easy login (with "Remember me" enabled by default)
       localStorage.setItem("savedCredentials", JSON.stringify({
@@ -304,7 +312,9 @@ Remember: This is general information only. Always consult with your healthcare 
       }))
 
       // Use the auth context to log in the user
+      console.log("🔐 Calling login() with userData")
       login(userData)
+      console.log("✅ login() called")
 
       // If paid plan selected, redirect to Stripe checkout
       if (selectedPlan === 'premium' || selectedPlan === 'ultimate') {

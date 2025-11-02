@@ -8,7 +8,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Heart, Activity, User, Settings, LogOut, Music, CreditCard, Calendar, Menu, TrendingUp, Cloud } from "lucide-react"
+import { Heart, Activity, User, Settings, LogOut, Music, CreditCard, Calendar, Menu, TrendingUp, Cloud, ListMusic } from "lucide-react"
 import MoodTracker from "@/components/mood-tracker"
 import Recommendations from "@/components/recommendations"
 import MoodAnalysis from "@/components/mood-analysis"
@@ -250,6 +250,12 @@ export default function Dashboard() {
                   Music Preferences
                 </Button>
               </Link>
+              <Link href="/dashboard/playlists">
+                <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
+                  <ListMusic className="mr-2 h-4 w-4" />
+                  Playlists
+                </Button>
+              </Link>
               <Link href="/dashboard/activities">
                 <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
                   <Activity className="mr-2 h-4 w-4" />
@@ -292,12 +298,15 @@ export default function Dashboard() {
             variant="outline" 
             className="w-full justify-start text-white border-gray-600 hover:bg-gray-800"
             onClick={() => {
+              console.log("🚪 DASHBOARD LOGOUT - Button clicked")
               logout()
+              console.log("✅ logout() called")
               toast({
                 title: "Logged out",
                 description: "You have been successfully logged out.",
               })
               router.push("/login")
+              console.log("✅ Redirected to /login")
             }}
           >
             <LogOut className="mr-2 h-4 w-4" />

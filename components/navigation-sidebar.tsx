@@ -2,10 +2,13 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Heart, Activity, User, Settings, LogOut, Music, CreditCard, Calendar, Menu, TrendingUp, Cloud } from "lucide-react"
+import { Heart, Activity, User, Settings, LogOut, Music, CreditCard, Calendar, Menu, TrendingUp, Cloud, ListMusic } from "lucide-react"
 import { DarkModeToggle } from "@/components/dark-mode-toggle"
+import { useAuth } from "@/contexts/auth-context"
+import { useToast } from "@/hooks/use-toast"
 
 interface NavigationSidebarProps {
   isOpen: boolean
@@ -13,6 +16,25 @@ interface NavigationSidebarProps {
 }
 
 export function NavigationSidebar({ isOpen, onOpenChange }: NavigationSidebarProps) {
+  const { logout } = useAuth()
+  const router = useRouter()
+  const { toast } = useToast()
+
+  const handleLogout = () => {
+    console.log("🚪 LOGOUT - Button clicked")
+    logout()
+    console.log("✅ logout() called")
+    toast({
+      title: "Logged out",
+      description: "You have been successfully logged out.",
+    })
+    // Close the sidebar
+    onOpenChange(false)
+    // Redirect to login page
+    router.push("/login")
+    console.log("✅ Redirected to /login")
+  }
+
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
@@ -76,6 +98,12 @@ export function NavigationSidebar({ isOpen, onOpenChange }: NavigationSidebarPro
                     Music Preferences
                   </Button>
                 </Link>
+                <Link href="/dashboard/playlists">
+                  <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
+                    <ListMusic className="mr-2 h-4 w-4" />
+                    Playlists
+                  </Button>
+                </Link>
                 <Link href="/dashboard/activities">
                   <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
                     <Activity className="mr-2 h-4 w-4" />
@@ -108,7 +136,11 @@ export function NavigationSidebar({ isOpen, onOpenChange }: NavigationSidebarPro
 
           {/* Footer */}
           <div className="mt-auto p-4 border-t border-gray-700">
-            <Button variant="outline" className="w-full justify-start text-white border-gray-600 hover:bg-gray-800">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start text-white border-gray-600 hover:bg-gray-800"
+              onClick={handleLogout}
+            >
               <LogOut className="mr-2 h-4 w-4" />
               Log out
             </Button>

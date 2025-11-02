@@ -45,6 +45,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           localStorage.removeItem("isLoggedIn")
         }
       } else {
+        // Check if user explicitly logged out - don't auto-login if they did
+        const explicitlyLoggedOut = localStorage.getItem("explicitlyLoggedOut")
+        if (explicitlyLoggedOut === "true") {
+          console.log("🚫 Auto-login blocked: User explicitly logged out")
+          // Clear the flag after checking (it's only used to prevent immediate re-login)
+          localStorage.removeItem("explicitlyLoggedOut")
+          setIsLoading(false)
+          setIsInitialized(true)
+          return
+        }
+        
         // If not explicitly logged in, check for saved credentials and auto-login
         const savedCredentials = localStorage.getItem("savedCredentials")
         if (savedCredentials) {
@@ -103,19 +114,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== 'undefined') {
       localStorage.setItem("currentUser", JSON.stringify(userData))
       localStorage.setItem("isLoggedIn", "true")
+      // Clear the explicitlyLoggedOut flag when user logs in (manually)
+      localStorage.removeItem("explicitlyLoggedOut")
     }
   }
 
   const logout = () => {
+    console.log("🚪 LOGOUT FUNCTION - Starting logout")
     setUser(null)
     setIsAuthenticated(false)
-    // Clear login session but keep saved credentials if user wants to remember
+    // Clear ALL login-related data to ensure user stays logged out
     if (typeof window !== 'undefined') {
       localStorage.removeItem("currentUser")
       localStorage.removeItem("isLoggedIn")
-      // Note: savedCredentials is kept so user can easily log back in
-      // If they want to clear everything, they can use "Clear Saved Credentials" in profile
+      localStorage.removeItem("userData")
+      // CRITICAL: Clear savedCredentials to prevent auto-login
+      localStorage.removeItem("savedCredentials")
+      // Set flag as extra protection (checked in multiple places)
+      localStorage.setItem("explicitlyLoggedOut", "true")
+      console.log("✅ Cleared: currentUser, isLoggedIn, userData, savedCredentials")
+      console.log("✅ Set explicitlyLoggedOut flag")
+      console.log("🔒 User will stay logged out until they manually log in again")
     }
+    console.log("✅ LOGOUT FUNCTION - Complete")
   }
 
   // Show loading state until initialized

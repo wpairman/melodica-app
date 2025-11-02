@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 
 // Force dynamic rendering to avoid SSR issues with event handlers
 export const dynamic = 'force-dynamic'
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -188,11 +189,14 @@ export default function AnalyticsPage() {
                       </div>
                     </div>
                   </div>
-                  <Link href="/pricing" className="block">
-                    <Button className="w-full bg-gradient-to-r from-teal-600 to-purple-600 hover:from-teal-700 hover:to-purple-700 text-white">
+                  <Button 
+                    asChild
+                    className="w-full bg-gradient-to-r from-teal-600 to-purple-600 hover:from-teal-700 hover:to-purple-700 text-white"
+                  >
+                    <Link href="/pricing">
                       Upgrade to See Analytics
-                    </Button>
-                  </Link>
+                    </Link>
+                  </Button>
                 </CardContent>
               </Card>
             </div>

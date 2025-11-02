@@ -31,6 +31,30 @@ export default function Login() {
   // Load saved credentials on component mount and auto-login if session exists
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      // CRITICAL: Check if user explicitly logged out - DO NOT auto-login if they did
+      const explicitlyLoggedOut = localStorage.getItem("explicitlyLoggedOut")
+      if (explicitlyLoggedOut === "true") {
+        console.log("🚫 LOGIN PAGE - Auto-login blocked: User explicitly logged out")
+        // Clear the flag so it doesn't persist forever
+        localStorage.removeItem("explicitlyLoggedOut")
+        // Still load saved credentials for the form, but DON'T auto-login
+        const savedCredentials = localStorage.getItem("savedCredentials")
+        if (savedCredentials) {
+          try {
+            const credentials = JSON.parse(savedCredentials)
+            setFormData(prev => ({
+              ...prev,
+              email: credentials.email || "",
+              password: credentials.password || "",
+              rememberMe: true,
+            }))
+          } catch (error) {
+            console.error("Error parsing saved credentials:", error)
+          }
+        }
+        return // Exit early - do NOT auto-login
+      }
+      
       // First, check if user is already logged in
       const isLoggedIn = localStorage.getItem("isLoggedIn")
       const currentUser = localStorage.getItem("currentUser")
@@ -59,7 +83,7 @@ export default function Login() {
             rememberMe: true,
           }))
           
-          // Auto-login if credentials are saved
+          // Auto-login if credentials are saved (only if user didn't explicitly log out)
           const storedData = localStorage.getItem("userData")
           if (storedData) {
             try {

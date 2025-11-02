@@ -126,12 +126,19 @@ export const reducer = (state: State, action: Action): State => {
 
 let memoryState: State = { toasts: [] }
 
+// Simple ref to store force update function
+let forceUpdateFn: (() => void) | null = null
+
 // Safe dispatch function
 function dispatch(action: Action) {
   if (typeof window === 'undefined') return
   
   try {
     memoryState = reducer(memoryState, action)
+    // Trigger force update if registered
+    if (forceUpdateFn) {
+      forceUpdateFn()
+    }
   } catch (error) {
     console.error('Error in toast dispatch:', error)
   }
@@ -186,31 +193,22 @@ function toast({ ...props }: Toast) {
 }
 
 function useToast() {
-  // Just return the current state directly - no listeners needed
-  const [state, setState] = React.useState<State>(memoryState)
+  // Use a simple counter to force re-renders
+  const [, setUpdateCounter] = React.useState(0)
+  const counterRef = React.useRef(0)
   
-  // Use an interval to sync state, but with a very long delay to avoid re-renders
+  // Register force update function
   React.useEffect(() => {
     if (typeof window === 'undefined') return
     
-    // Check for updates every second
-    const interval = setInterval(() => {
-      setState((prev) => {
-        // Only update if toasts actually changed
-        if (prev.toasts.length !== memoryState.toasts.length) {
-          return memoryState
-        }
-        // Check if any toast IDs changed
-        const prevIds = prev.toasts.map(t => t.id).join(',')
-        const currIds = memoryState.toasts.map(t => t.id).join(',')
-        if (prevIds !== currIds) {
-          return memoryState
-        }
-        return prev
-      })
-    }, 1000)
+    forceUpdateFn = () => {
+      counterRef.current += 1
+      setUpdateCounter(counterRef.current)
+    }
     
-    return () => clearInterval(interval)
+    return () => {
+      forceUpdateFn = null
+    }
   }, [])
 
   const safeToast = React.useCallback((props: Toast) => {
@@ -237,7 +235,7 @@ function useToast() {
   }, [])
 
   return {
-    toasts: state.toasts,
+    toasts: memoryState.toasts,
     toast: safeToast,
     dismiss: safeDismiss,
   }

@@ -26,6 +26,7 @@ export default function Login() {
     password: "",
     rememberMe: false,
   })
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Load saved credentials on component mount and auto-login if session exists
   useEffect(() => {
@@ -90,6 +91,11 @@ export default function Login() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Prevent duplicate submissions
+    if (isSubmitting) return
+    
+    setIsSubmitting(true)
 
     // Normalize email and password (trim whitespace, lowercase email)
     const normalizedEmail = formData.email.trim().toLowerCase()
@@ -207,6 +213,7 @@ export default function Login() {
           description: "Invalid email or password. Check browser console (F12) for details.",
           variant: "destructive",
         })
+        setIsSubmitting(false)
       }
     }
   }

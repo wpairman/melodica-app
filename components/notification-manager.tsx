@@ -26,15 +26,23 @@ export default function NotificationManager() {
       return
     }
 
-    // Load notification settings
-    const settings = localStorage.getItem("appSettings")
-    if (!settings) return
-
-    const parsedSettings = JSON.parse(settings)
-    if (!parsedSettings.notifications?.enabled) return
+    let notificationInterval: NodeJS.Timeout | null = null
 
     // Set up notification scheduling
     const scheduleNotifications = () => {
+      // Clear any existing interval first to prevent flooding
+      if (notificationInterval) {
+        clearInterval(notificationInterval)
+        notificationInterval = null
+      }
+
+      // Load notification settings
+      const settings = localStorage.getItem("appSettings")
+      if (!settings) return
+
+      const parsedSettings = JSON.parse(settings)
+      if (!parsedSettings.notifications?.enabled) return
+
       const frequency = parsedSettings.notifications.frequency || 2 // Default 2 hours
       const intervalMs = frequency * 60 * 60 * 1000
 
@@ -59,21 +67,22 @@ export default function NotificationManager() {
         // Show notification (prefer service worker for actions on mobile)
         if (Notification.permission === "granted") {
           // Check if service worker is available (better for mobile with actions)
-          if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          if ('serviceWorker' in navigator) {
             navigator.serviceWorker.ready.then((registration) => {
+              // Use tag to replace previous notifications - prevents flooding
               // Type assertion: Service Worker ShowNotificationOptions supports actions
               registration.showNotification("Melodica - Mood Check-in", {
                 body: "How are you feeling right now? Pull down to log your mood quickly!",
                 icon: "/icons/icon-192x192.png",
                 badge: "/icons/icon-192x192.png",
-                tag: "mood-checkin",
+                tag: "mood-checkin", // Same tag = replaces previous notification
                 requireInteraction: true, // Set to true so iOS shows actions on pull-down
                 actions: [
-                  { action: "mood-1", title: "1 😢" },
-                  { action: "mood-2", title: "2" },
-                  { action: "mood-3", title: "3" },
-                  { action: "mood-4", title: "4" },
-                  { action: "mood-5", title: "5 😐" },
+                  { action: "mood-1", title: "⭐ 1 Star" },
+                  { action: "mood-2", title: "⭐⭐ 2 Stars" },
+                  { action: "mood-3", title: "⭐⭐⭐ 3 Stars" },
+                  { action: "mood-4", title: "⭐⭐⭐⭐ 4 Stars" },
+                  { action: "mood-5", title: "⭐⭐⭐⭐⭐ 5 Stars" },
                 ],
                 data: {
                   url: "/dashboard"
@@ -83,11 +92,15 @@ export default function NotificationManager() {
             })
           } else {
             // Fallback to regular notifications if service worker not available
+            // Close any existing notifications with the same tag first
+            // Note: This is a limitation - we can't close notifications directly
+            // But using the same tag should replace them on most browsers
+            
             const notification = new Notification("Melodica - Mood Check-in", {
-              body: "How are you feeling right now? Take a moment to track your mood.",
+              body: "How are you feeling right now? Pull down to log your mood quickly!",
               icon: "/icons/icon-192x192.png",
               badge: "/icons/icon-192x192.png",
-              tag: "mood-checkin",
+              tag: "mood-checkin", // Same tag = replaces previous notification
               requireInteraction: true,
             })
 
@@ -105,11 +118,8 @@ export default function NotificationManager() {
         }
       }
 
-      // Set up recurring notifications
-      const interval = setInterval(showNotification, intervalMs)
-
-      // Clean up on unmount
-      return () => clearInterval(interval)
+      // Set up recurring notifications - store interval for cleanup
+      notificationInterval = setInterval(showNotification, intervalMs)
     }
 
     // Request permission if needed
@@ -121,6 +131,14 @@ export default function NotificationManager() {
       })
     } else if (Notification.permission === "granted") {
       scheduleNotifications()
+    }
+
+    // Clean up on unmount
+    return () => {
+      if (notificationInterval) {
+        clearInterval(notificationInterval)
+        notificationInterval = null
+      }
     }
   }, [])
 

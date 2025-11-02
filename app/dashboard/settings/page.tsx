@@ -252,9 +252,16 @@ export default function SettingsPage() {
     }
   }
 
+  // Store the notification interval globally to prevent multiple instances
+  let notificationTimer: NodeJS.Timeout | null = null
+
   const scheduleNotifications = (notificationSettings: any) => {
-    // Clear existing notifications
+    // Clear existing notifications and timers FIRST
     clearNotifications()
+    if (notificationTimer) {
+      clearTimeout(notificationTimer)
+      notificationTimer = null
+    }
 
     if (!("Notification" in window) || Notification.permission !== "granted") {
       return
@@ -272,6 +279,11 @@ export default function SettingsPage() {
     const intervalMs = notificationSettings.frequency * 60 * 60 * 1000
 
     const scheduleNext = () => {
+      // Clear any existing timer before creating a new one
+      if (notificationTimer) {
+        clearTimeout(notificationTimer)
+      }
+
       const now = new Date()
       const currentHour = now.getHours()
       const currentMinute = now.getMinutes()
@@ -295,7 +307,7 @@ export default function SettingsPage() {
           }
 
           const timeUntilNext = nextNotification.getTime() - now.getTime()
-          setTimeout(() => {
+          notificationTimer = setTimeout(() => {
             showMoodNotification()
             scheduleNext()
           }, timeUntilNext)
@@ -304,7 +316,7 @@ export default function SettingsPage() {
       }
 
       // Schedule regular notification
-      setTimeout(() => {
+      notificationTimer = setTimeout(() => {
         showMoodNotification()
         scheduleNext()
       }, intervalMs)
@@ -324,14 +336,14 @@ export default function SettingsPage() {
           body: "How are you feeling right now? Pull down to log your mood quickly!",
           icon: "/icons/icon-192x192.png",
           badge: "/icons/icon-192x192.png",
-          tag: "mood-checkin",
+          tag: "mood-checkin", // Same tag = replaces previous notification (prevents flooding)
           requireInteraction: true, // Set to true so iOS shows actions on pull-down
           actions: [
-            { action: "mood-1", title: "1 😢" },
-            { action: "mood-2", title: "2" },
-            { action: "mood-3", title: "3" },
-            { action: "mood-4", title: "4" },
-            { action: "mood-5", title: "5 😐" },
+            { action: "mood-1", title: "⭐ 1 Star" },
+            { action: "mood-2", title: "⭐⭐ 2 Stars" },
+            { action: "mood-3", title: "⭐⭐⭐ 3 Stars" },
+            { action: "mood-4", title: "⭐⭐⭐⭐ 4 Stars" },
+            { action: "mood-5", title: "⭐⭐⭐⭐⭐ 5 Stars" },
           ],
           data: {
             url: "/dashboard"

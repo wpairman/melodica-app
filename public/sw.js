@@ -98,15 +98,15 @@ self.addEventListener("push", (event) => {
   const body = data.body || "How are you feeling right now? Take a moment to track your mood."
   const icon = data.icon || "/icons/icon-192x192.png"
 
-  // Create notification actions for quick mood logging
-  // Mobile platforms typically support 2-4 actions, so we'll show the most common ones
+  // Create notification actions for quick mood logging with star ratings (1-5)
+  // Mobile platforms typically support 2-4 actions, so we'll show all 5 star options
   // On mobile, users can expand the notification to see all options
   const actions = [
-    { action: "mood-1", title: "1 😢" },
-    { action: "mood-3", title: "3" },
-    { action: "mood-5", title: "5 😐" },
-    { action: "mood-7", title: "7" },
-    { action: "mood-10", title: "10 😊" },
+    { action: "mood-1", title: "⭐ 1 Star" },
+    { action: "mood-2", title: "⭐⭐ 2 Stars" },
+    { action: "mood-3", title: "⭐⭐⭐ 3 Stars" },
+    { action: "mood-4", title: "⭐⭐⭐⭐ 4 Stars" },
+    { action: "mood-5", title: "⭐⭐⭐⭐⭐ 5 Stars" },
   ]
 
   event.waitUntil(
@@ -158,9 +158,10 @@ self.addEventListener("notificationclick", (event) => {
           // Show confirmation notification
           return Promise.resolve()
         }).then(() => {
-          // Show confirmation notification
+          // Show confirmation notification with star rating
+          const stars = "⭐".repeat(mood)
           return self.registration.showNotification("Mood Logged! 💚", {
-            body: `Your mood (${mood}/10) has been saved. Thank you for checking in!`,
+            body: `Your mood (${stars} ${mood} ${mood === 1 ? 'star' : 'stars'}) has been saved. Thank you for checking in!`,
             icon: "/icons/icon-192x192.png",
             badge: "/icons/icon-192x192.png",
             tag: "mood-confirmation",

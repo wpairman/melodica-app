@@ -77,7 +77,7 @@ export default function Login() {
         }
       }
     }
-  }, [login, router])
+  }, []) // Empty dependency array - only run once on mount
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target

@@ -220,21 +220,26 @@ function useToast() {
     return { toasts: [] }
   })
 
+  // Use ref to track if listener is registered
+  const listenerRegistered = React.useRef(false)
+
   React.useEffect(() => {
     // Only run on client side
     if (typeof window === 'undefined') return
 
-    // Safety check for listeners array
-    if (listeners && Array.isArray(listeners)) {
+    // Only register listener once
+    if (!listenerRegistered.current && listeners && Array.isArray(listeners)) {
       listeners.push(setState)
+      listenerRegistered.current = true
     }
 
     return () => {
-      if (listeners && Array.isArray(listeners)) {
+      if (listenerRegistered.current && listeners && Array.isArray(listeners)) {
         const index = listeners.indexOf(setState)
         if (index > -1) {
           listeners.splice(index, 1)
         }
+        listenerRegistered.current = false
       }
     }
   }, []) // Empty dependency array to prevent re-running - setState is stable

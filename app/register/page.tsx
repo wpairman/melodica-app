@@ -434,7 +434,16 @@ Remember: This is general information only. Always consult with your healthcare 
                       </div>
                       <p className="text-sm text-gray-300">Enhanced features</p>
                     </div>
-                    <p className="text-lg font-bold text-white">$1.99/mo</p>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-white">
+                        {selectedPlan === "premium" && selectedInterval === "yearly" 
+                          ? "$19.99/yr" 
+                          : "$1.99/mo"}
+                      </p>
+                      {selectedPlan === "premium" && selectedInterval === "yearly" && (
+                        <p className="text-xs text-gray-400">Save 15%</p>
+                      )}
+                    </div>
                   </button>
 
                   <button
@@ -453,7 +462,16 @@ Remember: This is general information only. Always consult with your healthcare 
                       </div>
                       <p className="text-sm text-gray-300">Complete solution</p>
                     </div>
-                    <p className="text-lg font-bold text-white">$2.99/mo</p>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-white">
+                        {selectedPlan === "ultimate" && selectedInterval === "yearly" 
+                          ? "$29.99/yr" 
+                          : "$2.99/mo"}
+                      </p>
+                      {selectedPlan === "ultimate" && selectedInterval === "yearly" && (
+                        <p className="text-xs text-gray-400">Save 15%</p>
+                      )}
+                    </div>
                   </button>
                 </div>
 

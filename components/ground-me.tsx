@@ -169,7 +169,7 @@ export default function GroundMe() {
     description: "Short guided sessions (2-5 minutes) for grounding during disasters",
     affirmations: [
       { text: "I am safe for now", icon: "🛡️" },
-      { text: "Mi vous gonna be alright, mi strong", icon: "💪" },
+      { text: "Mi gonna be alright, mi strong", icon: "💪" },
       { text: "My feelings are valid and real", icon: "💙" },
       { text: "Let's pause and breathe deeply", icon: "🌬️" },
       { text: "This feeling will pass, mi wah be okay", icon: "⏰" },
@@ -230,7 +230,7 @@ export default function GroundMe() {
             Ground Me - You're Not Alone
           </DialogTitle>
           <DialogDescription className="text-black">
-            If you're experiencing a panic attack, anxiety, or emotional crisis, these resources can help you right now. Mi-vous gonna be alright, yuh strong.
+            If you're experiencing a panic attack, anxiety, or emotional crisis, these resources can help you right now. Mi gonna be alright, yuh strong.
           </DialogDescription>
         </DialogHeader>
 
@@ -319,7 +319,7 @@ export default function GroundMe() {
 
                   <div className="p-4 bg-orange-100 rounded-lg border border-orange-300">
                     <p className="text-sm text-black">
-                      <strong>🌴 For Jamaica Users:</strong> Everything here works offline. Mi vous gonna be alright. Big up yuhself! One love. 💚
+                      <strong>🌴 For Jamaica Users:</strong> Everything here works offline. Mi gonna be alright. Big up yuhself! One love. 💚
                     </p>
                   </div>
                 </CardContent>

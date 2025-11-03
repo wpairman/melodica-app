@@ -193,37 +193,31 @@ export default function CalendarIntegration() {
     }
 
     setSyncing(true)
-    
-    // Add timeout
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error("Request timed out")), 30000)
-    )
 
     try {
       console.log("Starting calendar sync with URL:", icalUrl)
       
-      // Try to fetch the calendar
-      const fetchPromise = fetch(icalUrl, {
-        method: 'GET',
+      // Use our API route to fetch the calendar (no CORS issues)
+      const apiResponse = await fetch('/api/calendar-sync', {
+        method: 'POST',
         headers: {
-          'Accept': 'text/calendar, text/plain, */*',
+          'Content-Type': 'application/json',
         },
-        mode: 'cors',
-      }).catch(async (error) => {
-        // If CORS fails, provide helpful error message
-        if (error.name === 'TypeError' && error.message.includes('fetch')) {
-          throw new Error("CORS blocked: The calendar URL cannot be accessed directly from the browser. Please use the 'Upload File' option instead.")
-        }
-        throw error
+        body: JSON.stringify({ url: icalUrl }),
       })
 
-      const response = await Promise.race([fetchPromise, timeoutPromise]) as Response
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch calendar: ${response.status} ${response.statusText}`)
+      if (!apiResponse.ok) {
+        const errorData = await apiResponse.json().catch(() => ({}))
+        throw new Error(errorData.error || `Failed to fetch calendar: ${apiResponse.status}`)
       }
 
-      const icalData = await response.text()
+      const result = await apiResponse.json()
+      
+      if (!result.success || !result.data) {
+        throw new Error("Invalid response from server")
+      }
+
+      const icalData = result.data
       console.log("Received calendar data, length:", icalData.length)
 
       if (!icalData || icalData.trim().length === 0) {
@@ -282,9 +276,7 @@ export default function CalendarIntegration() {
       
       toast({
         title: "Sync failed",
-        description: errorMessage.includes("CORS") 
-          ? "Cannot access calendar URL directly. Please download your calendar file (.ics) and use the 'Upload File' option below."
-          : `Could not sync calendar: ${errorMessage}`,
+        description: `Could not sync calendar: ${errorMessage}. If the issue persists, try using the file upload option below.`,
         variant: "destructive",
         duration: 8000,
       })
@@ -666,7 +658,7 @@ export default function CalendarIntegration() {
                 className="mt-1"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Note: Direct URL access may be blocked by CORS. If it doesn't work, use Option 2 below.
+                Your calendar URL will be fetched securely through our server to avoid CORS issues.
               </p>
               <Button 
                 onClick={syncICloudCalendar} 

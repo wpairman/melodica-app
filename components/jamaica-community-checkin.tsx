@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
-import { Users, MessageCircle, Shield, Radio, CheckCircle2, AlertCircle, Heart, MapPin } from "lucide-react"
+import { Users, MessageCircle, Shield, Radio, CheckCircle2, AlertCircle, Heart, MapPin, Play } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -30,6 +30,29 @@ export default function JamaicaCommunityCheckIn() {
     status: "safe" as "safe" | "need-help" | "want-to-talk",
   })
   const [isOpen, setIsOpen] = useState(false)
+
+  const calmingSounds = [
+    {
+      name: "Forest Sounds",
+      description: "Gentle forest ambiance for reflection",
+      url: "https://www.youtube.com/results?search_query=forest+sounds+relaxing+nature+ambiance",
+    },
+    {
+      name: "Ocean Waves",
+      description: "Calming ocean waves",
+      url: "https://www.youtube.com/results?search_query=ocean+waves+sound+relaxing+meditation",
+    },
+    {
+      name: "Rain Meditation",
+      description: "Soft rain for mindfulness",
+      url: "https://www.youtube.com/results?search_query=rain+sound+meditation+relaxing",
+    },
+    {
+      name: "Wind Chimes",
+      description: "Peaceful wind chimes",
+      url: "https://www.youtube.com/results?search_query=wind+chimes+sound+peaceful+meditation",
+    },
+  ]
 
   useEffect(() => {
     // Load check-ins from localStorage (client-side only)
@@ -268,6 +291,33 @@ export default function JamaicaCommunityCheckIn() {
           <p className="text-xs text-yellow-800">
             <strong>Privacy & Safety:</strong> Messages are moderated for safety. If you need urgent help, contact emergency services (119) or the resources in Storm Response mode.
           </p>
+        </div>
+
+        {/* Calming Sounds Section */}
+        <div className="mt-6">
+          <h3 className="text-lg font-semibold text-yellow-900 mb-3">Calming Sounds</h3>
+          <div className="space-y-2">
+            {calmingSounds.map((sound, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border border-yellow-200">
+                <div className="flex-1">
+                  <h4 className="font-medium text-black">{sound.name}</h4>
+                  <p className="text-sm text-gray-600">{sound.description}</p>
+                </div>
+                <Button
+                  size="sm"
+                  className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                  onClick={() => {
+                    if (sound.url && typeof window !== 'undefined') {
+                      window.open(sound.url, '_blank', 'noopener,noreferrer')
+                    }
+                  }}
+                >
+                  <Play className="h-4 w-4 mr-1" />
+                  Play
+                </Button>
+              </div>
+            ))}
+          </div>
         </div>
       </CardContent>
     </Card>

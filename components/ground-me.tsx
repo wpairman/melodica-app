@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -18,6 +18,8 @@ import JamaicaCommunityCheckIn from "./jamaica-community-checkin"
 
 export default function GroundMe() {
   const [isOpen, setIsOpen] = useState(false)
+  const [userLocation, setUserLocation] = useState<{ country?: string; state?: string; city?: string } | null>(null)
+  const [locationLoading, setLocationLoading] = useState(true)
 
   const calmingPlaylists = [
     {
@@ -25,18 +27,21 @@ export default function GroundMe() {
       description: "Gentle instrumental music to help reduce anxiety",
       duration: "15 min",
       tracks: ["Weightless - Marconi Union", "Clair de Lune - Debussy", "Gymnopédie No.1 - Erik Satie"],
+      url: "https://www.youtube.com/results?search_query=anxiety+relief+calming+instrumental+music",
     },
     {
       title: "Panic Attack Recovery",
       description: "Slow, rhythmic music to help regulate breathing",
       duration: "10 min",
       tracks: ["Deep Calm - Max Richter", "On Earth as It Is in Heaven - Ólafur Arnalds", "Porcelain - Moby"],
+      url: "https://www.youtube.com/results?search_query=panic+attack+recovery+calming+music",
     },
     {
       title: "Grounding Sounds",
       description: "Nature sounds and ambient music for grounding",
       duration: "20 min",
       tracks: ["Rain on Leaves", "Ocean Waves", "Forest Ambience"],
+      url: "https://www.youtube.com/results?search_query=nature+sounds+grounding+meditation",
     },
   ]
 
@@ -110,59 +115,180 @@ export default function GroundMe() {
     },
   ]
 
-  const resources = [
+  // USA General Resources (default)
+  const usaResources = [
     {
       name: "Crisis Text Line",
       contact: "Text HOME to 741741",
       description: "24/7 crisis support via text message",
       urgent: true,
+      url: "https://www.crisistextline.org/",
     },
     {
       name: "National Suicide Prevention Lifeline",
       contact: "988",
       description: "24/7 free and confidential support",
       urgent: true,
+      url: "https://988lifeline.org/",
     },
     {
       name: "SAMHSA National Helpline",
       contact: "1-800-662-4357",
       description: "Treatment referral and information service",
       urgent: false,
+      url: "https://www.samhsa.gov/find-help/national-helpline",
     },
     {
       name: "Crisis Chat",
       contact: "suicidepreventionlifeline.org/chat",
       description: "Online chat support",
       urgent: false,
+      url: "https://suicidepreventionlifeline.org/chat/",
     },
   ]
 
-  const jamaicaResources = [
+  // Florida Specific Resources
+  const floridaResources = [
+    {
+      name: "Crisis Text Line",
+      contact: "Text HOME to 741741",
+      description: "24/7 crisis support via text message",
+      urgent: true,
+      url: "https://www.crisistextline.org/",
+    },
+    {
+      name: "988 Suicide & Crisis Lifeline",
+      contact: "988",
+      description: "24/7 free and confidential support",
+      urgent: true,
+      url: "https://988lifeline.org/",
+    },
+    {
+      name: "Florida 211",
+      contact: "211 or 1-866-762-8487",
+      description: "24/7 health and human services helpline for Florida",
+      urgent: true,
+      url: "https://www.211.org/",
+    },
+    {
+      name: "Florida Behavioral Health Services",
+      contact: "1-800-662-4357",
+      description: "Mental health and substance abuse services in Florida",
+      urgent: false,
+      url: "https://www.myflfamilies.com/service-programs/mental-health",
+    },
+    {
+      name: "Florida Crisis Chat",
+      contact: "suicidepreventionlifeline.org/chat",
+      description: "Online chat support available 24/7",
+      urgent: false,
+      url: "https://suicidepreventionlifeline.org/chat/",
+    },
+  ]
+
+  // Jamaica Specific Resources
+  const jamaicaResourcesList = [
     {
       name: "Jamaica Mental Health Hotline",
       contact: "888-NEW-LIFE (639-5433)",
       description: "Jamaica mental health and crisis support",
       urgent: true,
+      url: "https://www.moh.gov.jm/",
     },
     {
       name: "Office of Disaster Preparedness & Emergency Management (ODPEM)",
       contact: "888-SAFETY (723-3898)",
       description: "Emergency disaster response in Jamaica",
       urgent: true,
+      url: "http://www.odpem.org.jm/",
     },
     {
       name: "Jamaica Red Cross",
       contact: "876-984-7860",
       description: "Disaster relief and support services",
       urgent: false,
+      url: "https://www.redcross.org.jm/",
     },
     {
       name: "Ministry of Health and Wellness",
       contact: "888-ONE-LOVE (663-5683)",
-      description: "Health and wellness information",
+      description: "Health and wellness information and support",
       urgent: false,
+      url: "https://www.moh.gov.jm/",
     },
   ]
+
+  // Detect user location
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const detectLocation = async () => {
+      try {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            async (position) => {
+              try {
+                const { latitude, longitude } = position.coords
+                const geo = await fetch(
+                  `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
+                ).then((r) => r.json())
+
+                const locationData = {
+                  country: geo.address?.country,
+                  state: geo.address?.state || geo.address?.state_district,
+                  city: geo.address?.city || geo.address?.town || geo.address?.village,
+                }
+
+                setUserLocation(locationData)
+                setLocationLoading(false)
+              } catch (error) {
+                console.error("Error reverse geocoding:", error)
+                setLocationLoading(false)
+              }
+            },
+            (error) => {
+              console.error("Geolocation error:", error)
+              setLocationLoading(false)
+            },
+            { timeout: 10000 }
+          )
+        } else {
+          setLocationLoading(false)
+        }
+      } catch (error) {
+        console.error("Location detection error:", error)
+        setLocationLoading(false)
+      }
+    }
+
+    detectLocation()
+  }, [])
+
+  // Determine which resources to show based on location
+  const getResourcesForLocation = () => {
+    if (!userLocation) return usaResources // Default to USA
+
+    const country = userLocation.country?.toLowerCase() || ""
+    const state = userLocation.state?.toLowerCase() || ""
+
+    // Check for Jamaica
+    if (country.includes("jamaica")) {
+      return jamaicaResourcesList
+    }
+
+    // Check for Florida
+    if (country.includes("united states") || country.includes("usa") || country.includes("america")) {
+      if (state.includes("florida") || state.includes("fl")) {
+        return floridaResources
+      }
+    }
+
+    // Default to USA general resources
+    return usaResources
+  }
+
+  const resources = getResourcesForLocation()
+
 
   const stormResponseMode = {
     title: "Storm Response Mode",
@@ -388,7 +514,15 @@ export default function GroundMe() {
                               </li>
                             ))}
                           </ul>
-                          <Button size="sm" className="mt-3 bg-green-600 hover:bg-green-700">
+                          <Button 
+                            size="sm" 
+                            className="mt-3 bg-green-600 hover:bg-green-700"
+                            onClick={() => {
+                              if (playlist.url && typeof window !== 'undefined') {
+                                window.open(playlist.url, '_blank', 'noopener,noreferrer')
+                              }
+                            }}
+                          >
                             <Play className="h-4 w-4 mr-2" />
                             Play Now
                           </Button>
@@ -429,7 +563,19 @@ export default function GroundMe() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-black">Mental Health Resources</CardTitle>
-                  <CardDescription className="text-black">Professional support and helplines available 24/7</CardDescription>
+                  <CardDescription className="text-black">
+                    Professional support and helplines available 24/7
+                    {userLocation && (
+                      <span className="block mt-1 text-sm">
+                        Showing resources for: {userLocation.city ? `${userLocation.city}, ` : ""}
+                        {userLocation.state ? `${userLocation.state}, ` : ""}
+                        {userLocation.country || "your location"}
+                      </span>
+                    )}
+                    {locationLoading && (
+                      <span className="block mt-1 text-sm text-gray-500">Detecting your location...</span>
+                    )}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {resources.map((resource, index) => (
@@ -442,7 +588,15 @@ export default function GroundMe() {
                         <Badge variant={resource.urgent ? "destructive" : "outline"} className="font-mono">
                           {resource.contact}
                         </Badge>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            if (resource.url && typeof window !== 'undefined') {
+                              window.open(resource.url, '_blank', 'noopener,noreferrer')
+                            }
+                          }}
+                        >
                           <ExternalLink className="h-4 w-4" />
                         </Button>
                       </div>

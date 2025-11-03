@@ -17,6 +17,8 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { generateEventPreparationRecommendations, parseICalData, type SyncedCalendarEvent } from "@/lib/calendar-sync"
+import { useToast } from "@/hooks/use-toast"
 
 type EventTopic = "Meeting" | "Homework" | "Quiz" | "Test" | "Sports Practice" | "Event" | "Concert"
 
@@ -104,8 +106,10 @@ const READINESS_KITS: Record<EventTopic, string[]> = {
 }
 
 export default function CalendarIntegration() {
+  const { toast } = useToast()
   const [connected, setConnected] = useState<boolean>(false)
   const [events, setEvents] = useState<CalendarEvent[]>([])
+  const [syncedEvents, setSyncedEvents] = useState<SyncedCalendarEvent[]>([])
   const [leadMinutes, setLeadMinutes] = useState<number>(60) // default 1 h
   const [open, setOpen] = useState<boolean>(false)
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
@@ -114,6 +118,9 @@ export default function CalendarIntegration() {
   const [newEventTitle, setNewEventTitle] = useState("")
   const [newEventDate, setNewEventDate] = useState("")
   const [newEventLocation, setNewEventLocation] = useState("")
+  const [syncDialogOpen, setSyncDialogOpen] = useState(false)
+  const [icalUrl, setIcalUrl] = useState("")
+  const [syncing, setSyncing] = useState(false)
 
   /* Load persisted prefs on mount */
   useEffect(() => {
@@ -127,8 +134,38 @@ export default function CalendarIntegration() {
       setLeadMinutes(savedLead)
     }
     if (isConnected) {
-      // In a real app fetch user's live events here.
-      setEvents(MOCK_EVENTS)
+      // Load events from localStorage (including synced events)
+      const storedEvents = localStorage.getItem("calendarEvents")
+      if (storedEvents) {
+        try {
+          const parsedEvents = JSON.parse(storedEvents).map((event: any) => ({
+            ...event,
+            start: new Date(event.start),
+            end: event.end ? new Date(event.end) : undefined,
+          }))
+          setEvents(parsedEvents)
+        } catch (error) {
+          console.error("Error loading events:", error)
+          setEvents(MOCK_EVENTS)
+        }
+      } else {
+        setEvents(MOCK_EVENTS)
+      }
+      
+      // Load synced events
+      const storedSyncedEvents = localStorage.getItem("syncedCalendarEvents")
+      if (storedSyncedEvents) {
+        try {
+          const parsedSynced = JSON.parse(storedSyncedEvents).map((event: any) => ({
+            ...event,
+            start: new Date(event.start),
+            end: event.end ? new Date(event.end) : undefined,
+          }))
+          setSyncedEvents(parsedSynced)
+        } catch (error) {
+          console.error("Error loading synced events:", error)
+        }
+      }
     }
   }, [])
 
@@ -141,13 +178,85 @@ export default function CalendarIntegration() {
   }, [leadMinutes])
 
   const connectCalendar = async () => {
-    // ─── REPLACE WITH REAL OAUTH FLOW ──────────────────────────
-    setConnected(true)
-    // Check if we're in a browser environment
-    if (typeof window !== 'undefined') {
-      localStorage.setItem("calendarConnected", "true")
+    // Show sync dialog for iCloud/CalDAV
+    setSyncDialogOpen(true)
+  }
+
+  const syncICloudCalendar = async () => {
+    if (!icalUrl.trim()) {
+      toast({
+        title: "URL required",
+        description: "Please enter your calendar URL",
+        variant: "destructive",
+      })
+      return
     }
-    setEvents(MOCK_EVENTS)
+
+    setSyncing(true)
+    try {
+      // In production, this would make a proper CalDAV request
+      // For now, we'll fetch the iCal feed URL
+      const response = await fetch(icalUrl)
+      if (!response.ok) {
+        throw new Error("Failed to fetch calendar")
+      }
+
+      const icalData = await response.text()
+      const parsedEvents = parseICalData(icalData)
+
+      // Transfer synced events to app calendar
+      const appEvents: CalendarEvent[] = parsedEvents.map((syncedEvent) => ({
+        id: syncedEvent.id,
+        title: syncedEvent.title,
+        start: syncedEvent.start,
+        end: syncedEvent.end,
+        location: syncedEvent.location,
+        topic: detectEventTopic(syncedEvent),
+      }))
+
+      // Merge with existing events
+      const existingEvents = JSON.parse(localStorage.getItem("calendarEvents") || "[]")
+      const allEvents = [...existingEvents, ...appEvents]
+
+      // Save to localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem("calendarEvents", JSON.stringify(allEvents))
+        localStorage.setItem("syncedCalendarEvents", JSON.stringify(parsedEvents))
+        localStorage.setItem("calendarConnected", "true")
+      }
+
+      setSyncedEvents(parsedEvents)
+      setEvents([...events, ...appEvents])
+      setConnected(true)
+      setSyncDialogOpen(false)
+      setIcalUrl("")
+
+      toast({
+        title: "Calendar synced! ✅",
+        description: `Successfully imported ${parsedEvents.length} events from your calendar`,
+      })
+    } catch (error) {
+      console.error("Error syncing calendar:", error)
+      toast({
+        title: "Sync failed",
+        description: "Could not sync calendar. Please check your URL and try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setSyncing(false)
+    }
+  }
+
+  // Detect event topic for AI recommendations
+  const detectEventTopic = (event: SyncedCalendarEvent): EventTopic => {
+    const titleLower = event.title.toLowerCase()
+    if (titleLower.includes("meeting")) return "Meeting"
+    if (titleLower.includes("homework") || titleLower.includes("assignment")) return "Homework"
+    if (titleLower.includes("quiz")) return "Quiz"
+    if (titleLower.includes("test") || titleLower.includes("exam")) return "Test"
+    if (titleLower.includes("practice") || titleLower.includes("workout") || titleLower.includes("gym")) return "Sports Practice"
+    if (titleLower.includes("concert") || titleLower.includes("show")) return "Concert"
+    return "Event"
   }
 
   const handleNotifLeadChange = (value: string) => {
@@ -170,10 +279,15 @@ export default function CalendarIntegration() {
 
         <CardContent>
           {!connected ? (
-            <Button onClick={connectCalendar} className="flex gap-2">
-              <Plus className="size-4" />
-              Connect Google Calendar
-            </Button>
+            <div className="space-y-3">
+              <Button onClick={connectCalendar} className="flex gap-2 w-full">
+                <Plus className="size-4" />
+                Sync iCloud Calendar
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Connect your iCloud calendar to automatically import events and get AI-powered preparation recommendations
+              </p>
+            </div>
           ) : (
             <>
               <p className="mb-4 text-sm text-muted-foreground">
@@ -258,19 +372,48 @@ export default function CalendarIntegration() {
               A personalized preparation checklist for your upcoming {selectedEvent?.topic?.toLowerCase() || "event"}.
             </DialogDescription>
           </DialogHeader>
-          {selectedEvent?.topic && (
+          {selectedEvent && (
             <div className="space-y-3">
-              <h4 className="font-medium text-sm">Preparation Checklist:</h4>
-              <ul className="space-y-2">
-                {READINESS_KITS[selectedEvent.topic].map((item, index) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <div className="mt-1 h-5 w-5 rounded-full border-2 border-emerald-600 flex items-center justify-center shrink-0">
-                      <div className="h-2 w-2 rounded-full bg-emerald-600" />
-                    </div>
-                    <span className="text-sm">{item}</span>
-                  </li>
-                ))}
-              </ul>
+              <h4 className="font-medium text-sm">AI-Powered Preparation Checklist:</h4>
+              {(() => {
+                // Check if this is a synced event
+                const syncedEvent = syncedEvents.find(e => e.id === selectedEvent.id)
+                let recommendations: string[] = []
+
+                if (syncedEvent) {
+                  // Use AI recommendations for synced events
+                  recommendations = generateEventPreparationRecommendations(syncedEvent)
+                } else if (selectedEvent.topic) {
+                  // Use topic-based recommendations for manually added events
+                  recommendations = READINESS_KITS[selectedEvent.topic]
+                } else {
+                  // Generate AI recommendations for events without topics
+                  const mockSyncedEvent: SyncedCalendarEvent = {
+                    id: selectedEvent.id,
+                    title: selectedEvent.title,
+                    start: selectedEvent.start,
+                    end: selectedEvent.end,
+                    location: selectedEvent.location,
+                    description: "",
+                    calendarId: "local",
+                    calendarName: "Local Calendar",
+                  }
+                  recommendations = generateEventPreparationRecommendations(mockSyncedEvent)
+                }
+
+                return (
+                  <ul className="space-y-2">
+                    {recommendations.map((item, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <div className="mt-1 h-5 w-5 rounded-full border-2 border-emerald-600 flex items-center justify-center shrink-0">
+                          <div className="h-2 w-2 rounded-full bg-emerald-600" />
+                        </div>
+                        <span className="text-sm">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )
+              })()}
             </div>
           )}
           <DialogFooter>
@@ -353,6 +496,48 @@ export default function CalendarIntegration() {
                 setAddEventDialog(false)
               }
             }}>Add Event</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* iCloud Calendar Sync Dialog */}
+      <Dialog open={syncDialogOpen} onOpenChange={setSyncDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sync iCloud Calendar</DialogTitle>
+            <DialogDescription>
+              Enter your iCloud calendar URL to import events. You can find this in your iCloud calendar settings.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="ical-url">Calendar URL (iCal format)</Label>
+              <Input
+                id="ical-url"
+                type="url"
+                placeholder="https://pXX-caldav.icloud.com/..."
+                value={icalUrl}
+                onChange={(e) => setIcalUrl(e.target.value)}
+                disabled={syncing}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Tip: In iCloud, go to Calendar → Settings → Calendars → Click the (i) icon → Find "Public Calendar" and copy the URL
+              </p>
+            </div>
+            <div className="bg-blue-50 border border-blue-200 rounded p-3">
+              <p className="text-xs text-blue-900">
+                <strong>Note:</strong> For automatic sync, you'll need to provide CalDAV credentials. 
+                This basic sync imports your calendar data once. For full integration, OAuth or CalDAV authentication is required.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSyncDialogOpen(false)} disabled={syncing}>
+              Cancel
+            </Button>
+            <Button onClick={syncICloudCalendar} disabled={syncing || !icalUrl.trim()}>
+              {syncing ? "Syncing..." : "Sync Calendar"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

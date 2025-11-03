@@ -76,7 +76,7 @@ const MOCK_EVENTS: CalendarEvent[] = [
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState<Date | null>(null)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
-  const [events, setEvents] = useState<CalendarEvent[]>(MOCK_EVENTS)
+  const [events, setEvents] = useState<CalendarEvent[]>([])
   const [showAddEvent, setShowAddEvent] = useState(false)
   const [newEvent, setNewEvent] = useState({
     title: "",
@@ -89,6 +89,26 @@ export default function CalendarPage() {
 
   useEffect(() => {
     setCurrentDate(new Date())
+    
+    // Load events from localStorage (including synced events)
+    if (typeof window !== 'undefined') {
+      const storedEvents = localStorage.getItem("calendarEvents")
+      if (storedEvents) {
+        try {
+          const parsedEvents = JSON.parse(storedEvents).map((event: any) => ({
+            ...event,
+            start: new Date(event.start),
+            end: event.end ? new Date(event.end) : undefined,
+          }))
+          setEvents(parsedEvents.length > 0 ? parsedEvents : MOCK_EVENTS)
+        } catch (error) {
+          console.error("Error loading calendar events:", error)
+          setEvents(MOCK_EVENTS)
+        }
+      } else {
+        setEvents(MOCK_EVENTS)
+      }
+    }
   }, [])
 
   if (!currentDate) {
@@ -181,7 +201,14 @@ export default function CalendarPage() {
       type: newEvent.type,
     }
 
-    setEvents([...events, event])
+    const updatedEvents = [...events, event]
+    setEvents(updatedEvents)
+    
+    // Save to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem("calendarEvents", JSON.stringify(updatedEvents))
+    }
+    
     setNewEvent({
       title: "",
       date: "",

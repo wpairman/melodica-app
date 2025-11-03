@@ -291,6 +291,9 @@ Remember: This is general information only. Always consult with your healthcare 
       }
       
       // Add to all users array
+      // NOTE: allUsers is stored per-device in localStorage
+      // Users can sign in on multiple devices - each device maintains its own session
+      // When logging in on a new device, users can use their credentials to access their account
       allUsers.push(userData)
       localStorage.setItem("allUsers", JSON.stringify(allUsers))
       console.log("💾 Saved to allUsers. Total users:", allUsers.length)
@@ -300,6 +303,7 @@ Remember: This is general information only. Always consult with your healthcare 
       console.log("💾 Saved to userData")
       
       // Save credentials for easy login (with "Remember me" enabled by default)
+      // This enables auto-login on this device only - other devices remain independent
       localStorage.setItem("savedCredentials", JSON.stringify({
         email: normalizedEmail,
         password: normalizedPassword,

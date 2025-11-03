@@ -211,7 +211,35 @@ export default function Login() {
 
       if (foundUser) {
         console.log("✅ LOGIN SUCCESS")
+        
+        // IMPORTANT: Add user to this device's allUsers array if not already present
+        // This allows users to sign in on any device after registering on any other device
+        const allUsersStr = localStorage.getItem("allUsers")
+        let allUsers: any[] = []
+        
+        if (allUsersStr) {
+          try {
+            allUsers = JSON.parse(allUsersStr)
+          } catch (error) {
+            console.error("Error parsing allUsers:", error)
+            allUsers = []
+          }
+        }
+        
+        // Check if user already exists in this device's allUsers
+        const userExists = allUsers.some((user: any) => 
+          (user.email || "").trim().toLowerCase() === normalizedEmail
+        )
+        
+        // If user doesn't exist on this device, add them to enable future logins
+        if (!userExists) {
+          allUsers.push(foundUser)
+          localStorage.setItem("allUsers", JSON.stringify(allUsers))
+          console.log("✅ Added user to this device's allUsers array for multi-device support")
+        }
+        
         // Save credentials if "Remember me" is checked
+        // NOTE: Users can sign in on multiple devices - each device maintains its own session
         if (formData.rememberMe) {
           localStorage.setItem("savedCredentials", JSON.stringify({
             email: normalizedEmail,
@@ -226,6 +254,7 @@ export default function Login() {
         localStorage.setItem("userData", JSON.stringify(foundUser))
 
         // Use the auth context to log in the user
+        // This login is device-specific - other devices remain unaffected
         login(foundUser)
         router.push("/dashboard")
       } else {

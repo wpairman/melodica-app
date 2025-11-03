@@ -111,6 +111,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(userData)
     setIsAuthenticated(true)
     // Save to localStorage (client-side only)
+    // NOTE: localStorage is device-specific, so users can sign in on multiple devices simultaneously
+    // Each device maintains its own independent session
     if (typeof window !== 'undefined') {
       localStorage.setItem("currentUser", JSON.stringify(userData))
       localStorage.setItem("isLoggedIn", "true")
@@ -124,17 +126,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null)
     setIsAuthenticated(false)
     // Clear ALL login-related data to ensure user stays logged out
+    // NOTE: This only affects the current device. Other devices remain logged in independently
     if (typeof window !== 'undefined') {
       localStorage.removeItem("currentUser")
       localStorage.removeItem("isLoggedIn")
       localStorage.removeItem("userData")
-      // CRITICAL: Clear savedCredentials to prevent auto-login
+      // CRITICAL: Clear savedCredentials to prevent auto-login on THIS device
       localStorage.removeItem("savedCredentials")
       // Set flag as extra protection (checked in multiple places)
       localStorage.setItem("explicitlyLoggedOut", "true")
       console.log("✅ Cleared: currentUser, isLoggedIn, userData, savedCredentials")
       console.log("✅ Set explicitlyLoggedOut flag")
-      console.log("🔒 User will stay logged out until they manually log in again")
+      console.log("🔒 User will stay logged out on THIS device until they manually log in again")
+      console.log("ℹ️ Note: Other devices remain logged in independently")
     }
     console.log("✅ LOGOUT FUNCTION - Complete")
   }

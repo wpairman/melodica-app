@@ -193,16 +193,55 @@ export default function CalendarIntegration() {
     }
 
     setSyncing(true)
+    
+    // Add timeout
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error("Request timed out")), 30000)
+    )
+
     try {
-      // In production, this would make a proper CalDAV request
-      // For now, we'll fetch the iCal feed URL
-      const response = await fetch(icalUrl)
+      console.log("Starting calendar sync with URL:", icalUrl)
+      
+      // Try to fetch the calendar
+      const fetchPromise = fetch(icalUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': 'text/calendar, text/plain, */*',
+        },
+        mode: 'cors',
+      }).catch(async (error) => {
+        // If CORS fails, provide helpful error message
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+          throw new Error("CORS blocked: The calendar URL cannot be accessed directly from the browser. Please use the 'Upload File' option instead.")
+        }
+        throw error
+      })
+
+      const response = await Promise.race([fetchPromise, timeoutPromise]) as Response
+
       if (!response.ok) {
-        throw new Error("Failed to fetch calendar")
+        throw new Error(`Failed to fetch calendar: ${response.status} ${response.statusText}`)
       }
 
       const icalData = await response.text()
+      console.log("Received calendar data, length:", icalData.length)
+
+      if (!icalData || icalData.trim().length === 0) {
+        throw new Error("Calendar file appears to be empty")
+      }
+
       const parsedEvents = parseICalData(icalData)
+      console.log("Parsed events:", parsedEvents.length)
+
+      if (parsedEvents.length === 0) {
+        toast({
+          title: "No events found",
+          description: "The calendar file was loaded but contained no events.",
+          variant: "destructive",
+        })
+        setSyncing(false)
+        return
+      }
 
       // Transfer synced events to app calendar
       const appEvents: CalendarEvent[] = parsedEvents.map((syncedEvent) => ({
@@ -214,9 +253,11 @@ export default function CalendarIntegration() {
         topic: detectEventTopic(syncedEvent),
       }))
 
-      // Merge with existing events
+      // Merge with existing events (avoid duplicates)
       const existingEvents = JSON.parse(localStorage.getItem("calendarEvents") || "[]")
-      const allEvents = [...existingEvents, ...appEvents]
+      const existingIds = new Set(existingEvents.map((e: CalendarEvent) => e.id))
+      const newEvents = appEvents.filter(e => !existingIds.has(e.id))
+      const allEvents = [...existingEvents, ...newEvents]
 
       // Save to localStorage
       if (typeof window !== 'undefined') {
@@ -225,26 +266,129 @@ export default function CalendarIntegration() {
         localStorage.setItem("calendarConnected", "true")
       }
 
-      setSyncedEvents(parsedEvents)
-      setEvents([...events, ...appEvents])
+      setSyncedEvents([...syncedEvents, ...parsedEvents])
+      setEvents(allEvents)
       setConnected(true)
       setSyncDialogOpen(false)
       setIcalUrl("")
 
       toast({
         title: "Calendar synced! ✅",
-        description: `Successfully imported ${parsedEvents.length} events from your calendar`,
+        description: `Successfully imported ${parsedEvents.length} event${parsedEvents.length === 1 ? '' : 's'} from your calendar`,
       })
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error syncing calendar:", error)
+      const errorMessage = error?.message || "Unknown error occurred"
+      
       toast({
         title: "Sync failed",
-        description: "Could not sync calendar. Please check your URL and try again.",
+        description: errorMessage.includes("CORS") 
+          ? "Cannot access calendar URL directly. Please download your calendar file (.ics) and use the 'Upload File' option below."
+          : `Could not sync calendar: ${errorMessage}`,
         variant: "destructive",
+        duration: 8000,
       })
     } finally {
       setSyncing(false)
     }
+  }
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    if (!file.name.endsWith('.ics') && !file.name.endsWith('.ical')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a .ics or .ical calendar file",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setSyncing(true)
+    const reader = new FileReader()
+
+    reader.onload = (e) => {
+      try {
+        const icalData = e.target?.result as string
+        console.log("Loaded file, length:", icalData.length)
+
+        if (!icalData || icalData.trim().length === 0) {
+          throw new Error("File appears to be empty")
+        }
+
+        const parsedEvents = parseICalData(icalData)
+        console.log("Parsed events from file:", parsedEvents.length)
+
+        if (parsedEvents.length === 0) {
+          toast({
+            title: "No events found",
+            description: "The calendar file was loaded but contained no events.",
+            variant: "destructive",
+          })
+          setSyncing(false)
+          return
+        }
+
+        // Transfer synced events to app calendar
+        const appEvents: CalendarEvent[] = parsedEvents.map((syncedEvent) => ({
+          id: syncedEvent.id,
+          title: syncedEvent.title,
+          start: syncedEvent.start,
+          end: syncedEvent.end,
+          location: syncedEvent.location,
+          topic: detectEventTopic(syncedEvent),
+        }))
+
+        // Merge with existing events (avoid duplicates)
+        const existingEvents = JSON.parse(localStorage.getItem("calendarEvents") || "[]")
+        const existingIds = new Set(existingEvents.map((e: CalendarEvent) => e.id))
+        const newEvents = appEvents.filter(e => !existingIds.has(e.id))
+        const allEvents = [...existingEvents, ...newEvents]
+
+        // Save to localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.setItem("calendarEvents", JSON.stringify(allEvents))
+          localStorage.setItem("syncedCalendarEvents", JSON.stringify([...syncedEvents, ...parsedEvents]))
+          localStorage.setItem("calendarConnected", "true")
+        }
+
+        setSyncedEvents([...syncedEvents, ...parsedEvents])
+        setEvents(allEvents)
+        setConnected(true)
+        setSyncDialogOpen(false)
+        setIcalUrl("")
+
+        toast({
+          title: "Calendar imported! ✅",
+          description: `Successfully imported ${parsedEvents.length} event${parsedEvents.length === 1 ? '' : 's'} from your calendar file`,
+        })
+      } catch (error: any) {
+        console.error("Error processing calendar file:", error)
+        toast({
+          title: "Import failed",
+          description: `Could not import calendar: ${error?.message || "Unknown error"}`,
+          variant: "destructive",
+        })
+      } finally {
+        setSyncing(false)
+        // Reset file input
+        event.target.value = ""
+      }
+    }
+
+    reader.onerror = () => {
+      toast({
+        title: "File read error",
+        description: "Could not read the calendar file. Please try again.",
+        variant: "destructive",
+      })
+      setSyncing(false)
+      event.target.value = ""
+    }
+
+    reader.readAsText(file)
   }
 
   // Detect event topic for AI recommendations
@@ -502,16 +646,16 @@ export default function CalendarIntegration() {
 
       {/* iCloud Calendar Sync Dialog */}
       <Dialog open={syncDialogOpen} onOpenChange={setSyncDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Sync iCloud Calendar</DialogTitle>
+            <DialogTitle>Sync Calendar</DialogTitle>
             <DialogDescription>
-              Enter your iCloud calendar URL to import events. You can find this in your iCloud calendar settings.
+              Import events from your iCloud calendar. You can either paste a calendar URL or upload a .ics file.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="ical-url">Calendar URL (iCal format)</Label>
+              <Label htmlFor="ical-url">Option 1: Calendar URL (iCal format)</Label>
               <Input
                 id="ical-url"
                 type="url"
@@ -519,24 +663,60 @@ export default function CalendarIntegration() {
                 value={icalUrl}
                 onChange={(e) => setIcalUrl(e.target.value)}
                 disabled={syncing}
+                className="mt-1"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Tip: In iCloud, go to Calendar → Settings → Calendars → Click the (i) icon → Find "Public Calendar" and copy the URL
+                Note: Direct URL access may be blocked by CORS. If it doesn't work, use Option 2 below.
+              </p>
+              <Button 
+                onClick={syncICloudCalendar} 
+                disabled={syncing || !icalUrl.trim()}
+                className="mt-2 w-full"
+              >
+                {syncing ? "Syncing..." : "Sync from URL"}
+              </Button>
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">Or</span>
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="file-upload">Option 2: Upload Calendar File (.ics)</Label>
+              <p className="text-xs text-muted-foreground mt-1 mb-2">
+                Download your calendar from iCloud as a .ics file, then upload it here
+              </p>
+              <Input
+                id="file-upload"
+                type="file"
+                accept=".ics,.ical"
+                onChange={handleFileUpload}
+                disabled={syncing}
+                className="mt-1"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                How to export: In iCloud Calendar → Settings → Calendars → Select your calendar → Export
               </p>
             </div>
-            <div className="bg-blue-50 border border-blue-200 rounded p-3">
-              <p className="text-xs text-blue-900">
-                <strong>Note:</strong> For automatic sync, you'll need to provide CalDAV credentials. 
-                This basic sync imports your calendar data once. For full integration, OAuth or CalDAV authentication is required.
-              </p>
-            </div>
+
+            {syncing && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                Processing calendar...
+              </div>
+            )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSyncDialogOpen(false)} disabled={syncing}>
-              Cancel
-            </Button>
-            <Button onClick={syncICloudCalendar} disabled={syncing || !icalUrl.trim()}>
-              {syncing ? "Syncing..." : "Sync Calendar"}
+            <Button variant="outline" onClick={() => {
+              setSyncDialogOpen(false)
+              setIcalUrl("")
+            }} disabled={syncing}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

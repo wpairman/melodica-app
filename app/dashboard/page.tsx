@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 
 // Force dynamic rendering to avoid SSR issues with event handlers
 import Link from "next/link"
@@ -183,7 +183,7 @@ export default function Dashboard() {
         navigator.serviceWorker.removeEventListener('message', messageHandler)
       }
     }
-  }, []) // Empty dependency array - no dependencies needed
+  }, [toast])
 
   // Separate useEffect for mood check reminders - disabled to prevent infinite loops
   // useEffect(() => {
@@ -241,7 +241,11 @@ export default function Dashboard() {
   // }, []) // Removed toast dependency
 
   if (loading || !isMounted) {
-    return <div className="flex items-center justify-center min-h-screen text-white">Loading...</div>
+    return (
+      <div className="flex items-center justify-center min-h-screen text-white">
+        Loading...
+      </div>
+    )
   }
 
   if (!userData) {
@@ -252,7 +256,9 @@ export default function Dashboard() {
             <Card className="w-full max-w-md bg-gray-800 border-gray-700">
               <CardHeader>
                 <CardTitle className="text-white">Not Logged In</CardTitle>
-                <CardDescription className="text-gray-300">Please log in or create an account to continue</CardDescription>
+                <CardDescription className="text-gray-300">
+                  Please log in or create an account to continue
+                </CardDescription>
               </CardHeader>
               <CardFooter>
                 <Link href="/login" className="w-full">
@@ -266,240 +272,256 @@ export default function Dashboard() {
     )
   }
 
+  const tabsConfig = userData.gender === "female"
+    ? [
+        { value: "mood", label: "Home" },
+        { value: "calendar", label: "Calendar" },
+        { value: "recommendations", label: "Recommendations" },
+        { value: "period", label: "Period Tracking" },
+        { value: "therapists", label: "Find Therapists" },
+      ]
+    : [
+        { value: "mood", label: "Home" },
+        { value: "calendar", label: "Calendar" },
+        { value: "recommendations", label: "Recommendations" },
+        { value: "therapists", label: "Find Therapists" },
+      ]
+
   return (
     <AuthGuard>
       <DashboardLayout>
-      <>
-      <div className="flex min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
-      <CalendarNotifications />
-      <div className="hidden md:flex w-64 flex-col fixed inset-y-0 z-50 border-r bg-gray-900 border-gray-700">
-        <div className="flex h-14 items-center border-b border-gray-700 px-4 justify-between">
-          <Link href="/" className="flex items-center gap-2 font-semibold text-white">
-            <Heart className="h-6 w-6 text-rose-500" />
-            <span>Melodica</span>
-          </Link>
-          <DarkModeToggle />
-        </div>
-        <nav className="flex-1 overflow-auto py-4">
-          <div className="px-4 py-2">
-            <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight text-white">Dashboard</h2>
-            <div className="space-y-1">
-              <Link href="/dashboard">
-                <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
-                  <Heart className="mr-2 h-4 w-4" />
-                  Home
-                </Button>
-              </Link>
-              <Link href="/calendar">
-                <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
-                  <Calendar className="mr-2 h-4 w-4" />
-                  Calendar
-                </Button>
-              </Link>
-              <Link href="/dashboard/mood-history">
-                <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
-                  <Activity className="mr-2 h-4 w-4" />
-                  Mood History
-                </Button>
-              </Link>
-              <Link href="/analytics">
-                <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
-                  <TrendingUp className="mr-2 h-4 w-4" />
-                  Mood Analytics
-                </Button>
-              </Link>
-              <Link href="/weather-mood">
-                <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
-                  <Cloud className="mr-2 h-4 w-4" />
-                  Weather & Mood
-                </Button>
-              </Link>
-              <Link href="/dashboard/profile">
-                <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
-                  <User className="mr-2 h-4 w-4" />
-                  Profile
-                </Button>
-              </Link>
-              <Link href="/music-preferences">
-                <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
-                  <Music className="mr-2 h-4 w-4" />
-                  Music Preferences
-                </Button>
-              </Link>
-              <Link href="/dashboard/playlists">
-                <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
-                  <ListMusic className="mr-2 h-4 w-4" />
-                  Playlists
-                </Button>
-              </Link>
-              <Link href="/dashboard/activities">
-                <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
-                  <Activity className="mr-2 h-4 w-4" />
-                  Activities
-                </Button>
-              </Link>
-              <Link href="/dashboard/journaling">
-                <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                  Journaling
-                </Button>
-              </Link>
-              <Link href="/pricing">
-                <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  Subscription
-                </Button>
-              </Link>
-              <Link href="/dashboard/settings">
-                <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
-                </Button>
-              </Link>
-              {userData.gender === "female" && (
-                <Link href="/period-tracker">
-                  <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
-                    <Music className="mr-2 h-4 w-4" />
-                    Period Tracking
-                  </Button>
+        <>
+          <div className="flex min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
+            <CalendarNotifications />
+            <div className="hidden md:flex w-64 flex-col fixed inset-y-0 z-50 border-r bg-gray-900 border-gray-700">
+              <div className="flex h-14 items-center border-b border-gray-700 px-4 justify-between">
+                <Link href="/" className="flex items-center gap-2 font-semibold text-white">
+                  <Heart className="h-6 w-6 text-rose-500" />
+                  <span>Melodica</span>
                 </Link>
-              )}
-            </div>
-          </div>
-        </nav>
-        <div className="mt-auto p-4">
-          <Button 
-            variant="outline" 
-            className="w-full justify-start text-white border-gray-600 hover:bg-gray-800"
-            onClick={() => {
-              console.log("🚪 DASHBOARD LOGOUT - Button clicked")
-              logout()
-              console.log("✅ logout() called")
-              toast({
-                title: "Logged out",
-                description: "You have been successfully logged out.",
-              })
-              router.push("/login")
-              console.log("✅ Redirected to /login")
-            }}
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Log out
-          </Button>
-        </div>
-      </div>
-      <div className="flex-1 md:ml-64">
-        <header className="sticky top-0 z-40 border-b bg-gray-900 border-gray-700 md:hidden">
-          <div className="flex h-14 items-center px-4 justify-between">
-            <Link href="/" className="flex items-center gap-2 font-semibold text-white">
-              <Heart className="h-6 w-6 text-rose-500" />
-              <span>Melodica</span>
-            </Link>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className="text-white hover:bg-gray-800"
-              onClick={() => {
-                // Toggle mobile menu
-                const sidebar = document.querySelector('[class*="fixed"]')
-                if (sidebar) {
-                  sidebar.classList.toggle('hidden')
-                }
-              }}
-            >
-              <Menu className="h-6 w-6" />
-            </Button>
-          </div>
-        </header>
-        <main className="container mx-auto p-4 md:p-6">
-          <div className="flex flex-col gap-6">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-white">Welcome, {userData.name}</h1>
-              <p className="text-gray-300">Track your mood and get personalized recommendations</p>
-            </div>
-
-            {!hasMusicPreferences && (
-              <Card className="bg-teal-900/20 border-teal-800 mb-4">
-                <CardHeader>
-                  <CardTitle className="flex items-center text-white">
-                    <Music className="h-5 w-5 mr-2 text-teal-400" />
-                    Complete Your Music Profile
-                  </CardTitle>
-                  <CardDescription className="text-gray-300">
-                    Take our detailed music preference quiz to get more personalized recommendations
-                  </CardDescription>
-                </CardHeader>
-                <CardFooter>
-                  <Link href="/music-preferences" className="w-full">
-                    <Button className="w-full bg-teal-600 hover:bg-teal-700">Take Music Quiz</Button>
-                  </Link>
-                </CardFooter>
-              </Card>
-            )}
-
-            <Tabs defaultValue="mood" className="w-full">
-              <TabsList className="flex w-full flex-wrap bg-gray-800 gap-1">
-                {tabsConfig.map((tab) => (
-                  <TabsTrigger key={tab.value} value={tab.value} className="flex-1 min-w-[120px] text-xs sm:text-sm text-white data-[state=active]:bg-gray-700 data-[state=active]:text-white whitespace-nowrap">
-                    {tab.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-
-              <TabsContent value="mood" className="mt-6">
-                <div className="space-y-6">
-                  <WeatherMoodDashboard />
-                  <div id="mood-tracker">
-                    <MoodTracker userData={userData} />
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="calendar" className="mt-6">
-                <div className="space-y-4">
-                  <CalendarIntegration />
-                  <Card className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 border-blue-800">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-white">
-                        <Calendar className="h-5 w-5 text-blue-400" />
-                        Full Calendar View
-                      </CardTitle>
-                      <CardDescription className="text-gray-300">
-                        View and manage all your events, appointments, and mood check-ins in a comprehensive calendar
-                      </CardDescription>
-                    </CardHeader>
-                    <CardFooter>
-                      <Link href="/calendar" className="w-full">
-                        <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600">
-                          Open Full Calendar
+                <DarkModeToggle />
+              </div>
+              <nav className="flex-1 overflow-auto py-4">
+                <div className="px-4 py-2">
+                  <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight text-white">Dashboard</h2>
+                  <div className="space-y-1">
+                    <Link href="/dashboard">
+                      <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
+                        <Heart className="mr-2 h-4 w-4" />
+                        Home
+                      </Button>
+                    </Link>
+                    <Link href="/calendar">
+                      <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
+                        <Calendar className="mr-2 h-4 w-4" />
+                        Calendar
+                      </Button>
+                    </Link>
+                    <Link href="/dashboard/mood-history">
+                      <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
+                        <Activity className="mr-2 h-4 w-4" />
+                        Mood History
+                      </Button>
+                    </Link>
+                    <Link href="/analytics">
+                      <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
+                        <TrendingUp className="mr-2 h-4 w-4" />
+                        Mood Analytics
+                      </Button>
+                    </Link>
+                    <Link href="/weather-mood">
+                      <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
+                        <Cloud className="mr-2 h-4 w-4" />
+                        Weather & Mood
+                      </Button>
+                    </Link>
+                    <Link href="/dashboard/profile">
+                      <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
+                        <User className="mr-2 h-4 w-4" />
+                        Profile
+                      </Button>
+                    </Link>
+                    <Link href="/music-preferences">
+                      <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
+                        <Music className="mr-2 h-4 w-4" />
+                        Music Preferences
+                      </Button>
+                    </Link>
+                    <Link href="/dashboard/playlists">
+                      <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
+                        <ListMusic className="mr-2 h-4 w-4" />
+                        Playlists
+                      </Button>
+                    </Link>
+                    <Link href="/dashboard/activities">
+                      <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
+                        <Activity className="mr-2 h-4 w-4" />
+                        Activities
+                      </Button>
+                    </Link>
+                    <Link href="/dashboard/journaling">
+                      <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        Journaling
+                      </Button>
+                    </Link>
+                    <Link href="/pricing">
+                      <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        Subscription
+                      </Button>
+                    </Link>
+                    <Link href="/dashboard/settings">
+                      <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Settings
+                      </Button>
+                    </Link>
+                    {userData.gender === "female" && (
+                      <Link href="/period-tracker">
+                        <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
+                          <Music className="mr-2 h-4 w-4" />
+                          Period Tracking
                         </Button>
                       </Link>
-                    </CardFooter>
-                  </Card>
+                    )}
+                  </div>
                 </div>
-              </TabsContent>
+              </nav>
+              <div className="mt-auto p-4">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start text-white border-gray-600 hover:bg-gray-800"
+                  onClick={() => {
+                    console.log("🚪 DASHBOARD LOGOUT - Button clicked")
+                    logout()
+                    console.log("✅ logout() called")
+                    toast({
+                      title: "Logged out",
+                      description: "You have been successfully logged out.",
+                    })
+                    router.push("/login")
+                    console.log("✅ Redirected to /login")
+                  }}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Log out
+                </Button>
+              </div>
+            </div>
+            <div className="flex-1 md:ml-64">
+              <header className="sticky top-0 z-40 border-b bg-gray-900 border-gray-700 md:hidden">
+                <div className="flex h-14 items-center px-4 justify-between">
+                  <Link href="/" className="flex items-center gap-2 font-semibold text-white">
+                    <Heart className="h-6 w-6 text-rose-500" />
+                    <span>Melodica</span>
+                  </Link>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="text-white hover:bg-gray-800"
+                    onClick={() => {
+                      // Toggle mobile menu
+                      const sidebar = document.querySelector('[class*="fixed"]')
+                      if (sidebar) {
+                        sidebar.classList.toggle('hidden')
+                      }
+                    }}
+                  >
+                    <Menu className="h-6 w-6" />
+                  </Button>
+                </div>
+              </header>
+              <main className="container mx-auto p-4 md:p-6">
+                <div className="flex flex-col gap-6">
+                  <div>
+                    <h1 className="text-3xl font-bold tracking-tight text-white">Welcome, {userData.name}</h1>
+                    <p className="text-gray-300">Track your mood and get personalized recommendations</p>
+                  </div>
 
-              <TabsContent value="recommendations" className="mt-6">
-                <Recommendations userData={userData} />
-              </TabsContent>
+                  {!hasMusicPreferences && (
+                    <Card className="bg-teal-900/20 border-teal-800 mb-4">
+                      <CardHeader>
+                        <CardTitle className="flex items-center text-white">
+                          <Music className="h-5 w-5 mr-2 text-teal-400" />
+                          Complete Your Music Profile
+                        </CardTitle>
+                        <CardDescription className="text-gray-300">
+                          Take our detailed music preference quiz to get more personalized recommendations
+                        </CardDescription>
+                      </CardHeader>
+                      <CardFooter>
+                        <Link href="/music-preferences" className="w-full">
+                          <Button className="w-full bg-teal-600 hover:bg-teal-700">Take Music Quiz</Button>
+                        </Link>
+                      </CardFooter>
+                    </Card>
+                  )}
 
-              <TabsContent value="therapists" className="mt-6">
-                <TherapistFinder />
-              </TabsContent>
+                  <Tabs defaultValue="mood" className="w-full">
+                    <TabsList className="flex w-full flex-wrap bg-gray-800 gap-1">
+                      {tabsConfig.map((tab) => (
+                        <TabsTrigger key={tab.value} value={tab.value} className="flex-1 min-w-[120px] text-xs sm:text-sm text-white data-[state=active]:bg-gray-700 data-[state=active]:text-white whitespace-nowrap">
+                          {tab.label}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
 
-              {userData.gender === "female" && (
-                <TabsContent value="period" className="mt-6">
-                  <PeriodTracker />
-                </TabsContent>
-              )}
-            </Tabs>
+                    <TabsContent value="mood" className="mt-6">
+                      <div className="space-y-6">
+                        <WeatherMoodDashboard />
+                        <div id="mood-tracker">
+                          <MoodTracker userData={userData} />
+                        </div>
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="calendar" className="mt-6">
+                      <div className="space-y-4">
+                        <CalendarIntegration />
+                        <Card className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 border-blue-800">
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-white">
+                              <Calendar className="h-5 w-5 text-blue-400" />
+                              Full Calendar View
+                            </CardTitle>
+                            <CardDescription className="text-gray-300">
+                              View and manage all your events, appointments, and mood check-ins in a comprehensive calendar
+                            </CardDescription>
+                          </CardHeader>
+                          <CardFooter>
+                            <Link href="/calendar" className="w-full">
+                              <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600">
+                                Open Full Calendar
+                              </Button>
+                            </Link>
+                          </CardFooter>
+                        </Card>
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="recommendations" className="mt-6">
+                      <Recommendations userData={userData} />
+                    </TabsContent>
+
+                    <TabsContent value="therapists" className="mt-6">
+                      <TherapistFinder />
+                    </TabsContent>
+
+                    {userData.gender === "female" && (
+                      <TabsContent value="period" className="mt-6">
+                        <PeriodTracker />
+                      </TabsContent>
+                    )}
+                  </Tabs>
+                </div>
+              </main>
+            </div>
           </div>
-        </main>
-      </div>
-      </>
-    </DashboardLayout>
+        </>
+      </DashboardLayout>
     </AuthGuard>
   )
 }

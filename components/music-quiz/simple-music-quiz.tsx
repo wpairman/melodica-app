@@ -10,7 +10,16 @@ interface SimpleMusicQuizProps {
 }
 
 export default function SimpleMusicQuiz({ initialAnswers, onChange }: SimpleMusicQuizProps) {
-  const [answers, setAnswers] = useState<Record<string, string>>(initialAnswers || {})
+  const [answers, setAnswers] = useState<Record<string, string>>({})
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+    // Only set initial answers after mount to avoid hydration mismatch
+    if (initialAnswers) {
+      setAnswers(initialAnswers)
+    }
+  }, [initialAnswers])
 
   const questions = [
     {
@@ -41,8 +50,10 @@ export default function SimpleMusicQuiz({ initialAnswers, onChange }: SimpleMusi
   ]
 
   useEffect(() => {
-    onChange(answers)
-  }, [answers, onChange])
+    if (isMounted) {
+      onChange(answers)
+    }
+  }, [answers, onChange, isMounted])
 
   const handleAnswerChange = (questionId: string, value: string) => {
     setAnswers({
@@ -53,7 +64,7 @@ export default function SimpleMusicQuiz({ initialAnswers, onChange }: SimpleMusi
 
   return (
     <div className="space-y-6">
-      {questions.map((q, index) => (
+      {isMounted && questions.map((q, index) => (
         <div key={q.id} className="bg-white rounded-lg p-6 shadow-md">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
@@ -74,6 +85,11 @@ export default function SimpleMusicQuiz({ initialAnswers, onChange }: SimpleMusi
           </div>
         </div>
       ))}
+      {!isMounted && (
+        <div className="text-center py-8">
+          <p className="text-gray-600">Loading quiz...</p>
+        </div>
+      )}
     </div>
   )
 }

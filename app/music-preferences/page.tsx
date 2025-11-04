@@ -97,23 +97,27 @@ export default function MusicPreferences() {
           </TabsList>
 
           <TabsContent value="quiz">
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">Music Preference Quiz</h1>
-              <p className="text-lg text-gray-700">Help us understand your music taste to provide better recommendations</p>
-            </div>
-            <div className="space-y-8">
-              <SimpleMusicQuiz initialAnswers={quizData.answers} onChange={updateQuizData} />
-            </div>
-            <div className="flex justify-center mt-8">
-              <Button onClick={() => {
-                if (typeof window !== 'undefined') {
-                  handleSubmit()
-                }
-              }} className="bg-teal-600 hover:bg-teal-700 px-8 py-3 text-lg">
-                Save Preferences
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </div>
+            {!isMounted ? (
+              <div className="text-center py-12">
+                <p className="text-gray-600">Loading quiz...</p>
+              </div>
+            ) : (
+              <>
+                <div className="text-center mb-8">
+                  <h1 className="text-4xl font-bold text-gray-900 mb-4">Music Preference Quiz</h1>
+                  <p className="text-lg text-gray-700">Help us understand your music taste to provide better recommendations</p>
+                </div>
+                <div className="space-y-8">
+                  <SimpleMusicQuiz initialAnswers={quizData.answers} onChange={updateQuizData} />
+                </div>
+                <div className="flex justify-center mt-8">
+                  <Button onClick={handleSubmitClick} className="bg-teal-600 hover:bg-teal-700 px-8 py-3 text-lg">
+                    Save Preferences
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </div>
+              </>
+            )}
           </TabsContent>
 
           <TabsContent value="songs">

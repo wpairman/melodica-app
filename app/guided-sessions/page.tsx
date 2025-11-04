@@ -13,6 +13,7 @@ import AudioPlayer from "@/components/guided-sessions/audio-player"
 
 export default function GuidedSessionsPage() {
   const [activeTab, setActiveTab] = useState("meditation")
+  const [selectedSession, setSelectedSession] = useState<any>(null)
 
   const sessions = {
     meditation: [
@@ -113,7 +114,20 @@ export default function GuidedSessionsPage() {
     ],
   }
 
-  const [selectedSession, setSelectedSession] = useState<any>(null)
+  const handleSessionClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const sessionId = e.currentTarget.getAttribute('data-session-id')
+    const tab = e.currentTarget.getAttribute('data-tab')
+    if (sessionId && tab && sessions[tab as keyof typeof sessions]) {
+      const session = sessions[tab as keyof typeof sessions].find(s => s.id === sessionId)
+      if (session) {
+        setSelectedSession(session)
+      }
+    }
+  }
+
+  const handleBackToSessions = () => {
+    setSelectedSession(null)
+  }
 
   return (
     <DashboardLayout>
@@ -125,11 +139,7 @@ export default function GuidedSessionsPage() {
 
         {selectedSession ? (
           <div className="space-y-6">
-            <Button variant="ghost" className="flex items-center gap-2" onClick={() => {
-              if (typeof window !== 'undefined') {
-                setSelectedSession(null)
-              }
-            }}>
+            <Button variant="ghost" className="flex items-center gap-2" onClick={handleBackToSessions}>
               <SkipBack className="h-4 w-4" />
               Back to sessions
             </Button>
@@ -212,11 +222,7 @@ export default function GuidedSessionsPage() {
                           <Badge variant="secondary">{session.category}</Badge>
                           <Badge>{session.mood}</Badge>
                         </div>
-                        <Button onClick={() => {
-                          if (typeof window !== 'undefined') {
-                            setSelectedSession(session)
-                          }
-                        }}>
+                        <Button onClick={handleSessionClick} data-session-id={session.id} data-tab={key}>
                           <Play className="h-4 w-4 mr-2" />
                           Play
                         </Button>

@@ -26,6 +26,7 @@ export default function Home() {
 
   const handleEmailSignup = async (e: React.FormEvent) => {
     e.preventDefault()
+    handleEmailSignupCTA() // Track the click
     if (!email) {
       toast({
         title: "Email required",
@@ -88,50 +89,61 @@ export default function Home() {
     }
   }
 
+  const handleHeaderSignup = () => {
+    trackCTAClick('header_signup')
+    if (typeof window !== 'undefined') {
+      window.location.href = '/register'
+    }
+  }
+
   const handleHeroStartFreeClick = () => {
-    handleHeroStartFree()
+    trackCTAClick('hero_start_free')
     if (typeof window !== 'undefined') {
       window.location.href = '/register'
     }
   }
 
   const handleHeroViewPricingClick = () => {
-    handleHeroViewPricing()
+    trackCTAClick('hero_view_pricing')
     if (typeof window !== 'undefined') {
       window.location.href = '/pricing'
     }
   }
 
   const handlePricingFreeClick = () => {
-    handlePricingFree()
+    trackCTAClick('pricing_free')
     if (typeof window !== 'undefined') {
       window.location.href = '/register'
     }
   }
 
   const handlePricingPremiumClick = () => {
-    handlePricingPremium()
+    trackCTAClick('pricing_premium')
     if (typeof window !== 'undefined') {
       window.location.href = '/pricing'
     }
   }
 
   const handlePricingUltimateClick = () => {
-    handlePricingUltimate()
+    trackCTAClick('pricing_ultimate')
     if (typeof window !== 'undefined') {
       window.location.href = '/pricing'
     }
   }
 
+  const handleEmailSignupCTA = () => {
+    trackCTAClick('email_signup')
+  }
+
   const handleFinalCTASignupClick = () => {
-    handleFinalCTASignup()
+    trackCTAClick('final_cta_signup')
     if (typeof window !== 'undefined') {
       window.location.href = '/register'
     }
   }
 
   const handleFinalCTAPricingClick = () => {
-    handleFinalCTAPricing()
+    trackCTAClick('final_cta_pricing')
     if (typeof window !== 'undefined') {
       window.location.href = '/pricing'
     }
@@ -163,11 +175,13 @@ export default function Home() {
           <Link href="/login" className="text-sm font-medium hover:underline underline-offset-4 text-gray-700 hover:text-teal-600">
             Login
           </Link>
-          <Link href="/register">
-            <Button size="sm" className="bg-teal-600 hover:bg-teal-700 text-white" onClick={handleHeaderSignup}>
-              Sign Up
-            </Button>
-          </Link>
+          <Button 
+            size="sm" 
+            className="bg-teal-600 hover:bg-teal-700 text-white" 
+            onClick={handleHeaderSignup}
+          >
+            Sign Up
+          </Button>
         </nav>
       </header>
 
@@ -570,7 +584,6 @@ export default function Home() {
                     type="submit" 
                     disabled={loading}
                     className="bg-teal-600 hover:bg-teal-700 text-white"
-                    onClick={handleEmailSignupCTA}
                   >
                     {loading ? "Joining..." : "Get Notified"}
                   </Button>

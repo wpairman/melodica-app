@@ -74,6 +74,21 @@ export default function MoodHistoryPage() {
   const daysInMonth = lastDayOfMonth.getDate()
   const startingDayOfWeek = firstDayOfMonth.getDay()
 
+  const handlePreviousMonth = () => {
+    navigateMonth(-1)
+  }
+
+  const handleNextMonth = () => {
+    navigateMonth(1)
+  }
+
+  const handleDateClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const dateStr = e.currentTarget.getAttribute('data-date')
+    if (dateStr) {
+      setSelectedDate(new Date(dateStr))
+    }
+  }
+
   const navigateMonth = (direction: number) => {
     setCurrentDate(new Date(year, month + direction, 1))
   }
@@ -237,21 +252,13 @@ export default function MoodHistoryPage() {
                 <Card className="bg-gray-800 border-gray-700">
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <Button variant="ghost" className="text-white hover:bg-gray-700" onClick={() => {
-                        if (typeof window !== 'undefined') {
-                          navigateMonth(-1)
-                        }
-                      }}>
+                      <Button variant="ghost" className="text-white hover:bg-gray-700" onClick={handlePreviousMonth}>
                         <ChevronLeft className="h-5 w-5" />
                       </Button>
                       <CardTitle className="text-2xl text-white">
                         {monthNames[month]} {year}
                       </CardTitle>
-                      <Button variant="ghost" className="text-white hover:bg-gray-700" onClick={() => {
-                        if (typeof window !== 'undefined') {
-                          navigateMonth(1)
-                        }
-                      }}>
+                      <Button variant="ghost" className="text-white hover:bg-gray-700" onClick={handleNextMonth}>
                         <ChevronRight className="h-5 w-5" />
                       </Button>
                     </div>
@@ -276,11 +283,8 @@ export default function MoodHistoryPage() {
                         return (
                           <div
                             key={index}
-                            onClick={() => {
-                              if (typeof window !== 'undefined') {
-                                setSelectedDate(date)
-                              }
-                            }}
+                            onClick={handleDateClick}
+                            data-date={date.toISOString()}
                             className={cn(
                               "min-h-[80px] p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md relative",
                               isCurrentMonth ? "bg-gray-700 hover:bg-gray-600 border-gray-600" : "bg-gray-800 text-gray-500 border-gray-700",

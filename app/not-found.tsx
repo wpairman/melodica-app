@@ -6,6 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Home, ArrowLeft } from "lucide-react"
 
 export default function NotFound() {
+  const handleGoBack = () => {
+    if (typeof window !== 'undefined') {
+      window.history.back()
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -29,7 +35,7 @@ export default function NotFound() {
                 Go Home
               </Button>
             </Link>
-            <Button variant="outline" onClick={() => window.history.back()} className="w-full">
+            <Button variant="outline" onClick={handleGoBack} className="w-full">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Go Back
             </Button>

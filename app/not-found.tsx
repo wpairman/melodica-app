@@ -1,11 +1,16 @@
 // Force dynamic rendering to avoid SSR issues with event handlers
 
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Home, ArrowLeft } from "lucide-react"
 
 export default function NotFound() {
+  const handleGoHome = () => {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/'
+    }
+  }
+
   const handleGoBack = () => {
     if (typeof window !== 'undefined') {
       window.history.back()
@@ -29,12 +34,10 @@ export default function NotFound() {
             <p>The page you requested doesn't exist or has been moved.</p>
           </div>
           <div className="flex flex-col gap-2">
-            <Link href="/">
-              <Button className="w-full">
-                <Home className="h-4 w-4 mr-2" />
-                Go Home
-              </Button>
-            </Link>
+            <Button className="w-full" onClick={handleGoHome}>
+              <Home className="h-4 w-4 mr-2" />
+              Go Home
+            </Button>
             <Button variant="outline" onClick={handleGoBack} className="w-full">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Go Back

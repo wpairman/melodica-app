@@ -365,7 +365,15 @@ export default function PeriodTrackerPage() {
       "December",
     ]
 
-    const navigateMonth = (direction: number) => {
+    const handlePreviousMonth = () => {
+    navigateMonth(-1)
+  }
+
+  const handleNextMonth = () => {
+    navigateMonth(1)
+  }
+
+  const navigateMonth = (direction: number) => {
       setCurrentDate(new Date(year, month + direction, 1))
     }
 
@@ -373,13 +381,13 @@ export default function PeriodTrackerPage() {
       <Card className="bg-gradient-to-br from-pink-50 to-purple-50 border-pink-200">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <Button variant="ghost" onClick={() => navigateMonth(-1)} className="p-2">
+            <Button variant="ghost" onClick={handlePreviousMonth} className="p-2">
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <CardTitle className="text-xl text-purple-800">
               {monthNames[month]} {year}
             </CardTitle>
-            <Button variant="ghost" onClick={() => navigateMonth(1)} className="p-2">
+            <Button variant="ghost" onClick={handleNextMonth} className="p-2">
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

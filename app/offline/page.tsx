@@ -1,15 +1,25 @@
 "use client"
 
-// Force dynamic rendering to avoid SSR issues with event handlers
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Heart, WifiOff, RefreshCw, CheckCircle2, BookOpen, TrendingUp } from "lucide-react"
-import Link from "next/link"
 
 export default function OfflinePage() {
   const [isOnline, setIsOnline] = useState(false)
   const [cachedFeatures, setCachedFeatures] = useState<string[]>([])
+
+  const handleViewMoodHistory = () => {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/dashboard'
+    }
+  }
+
+  const handleViewJournal = () => {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/journal'
+    }
+  }
 
   const handleReload = () => {
     if (typeof window !== 'undefined') {
@@ -93,21 +103,25 @@ export default function OfflinePage() {
             </p>
 
             {cachedFeatures.includes("Mood History") && (
-              <Link href="/dashboard">
-                <Button variant="outline" className="w-full bg-gray-700 border-gray-600 text-white hover:bg-gray-600">
-                  <TrendingUp className="mr-2 h-4 w-4" />
-                  View Mood History
-                </Button>
-              </Link>
+              <Button 
+                variant="outline" 
+                className="w-full bg-gray-700 border-gray-600 text-white hover:bg-gray-600"
+                onClick={handleViewMoodHistory}
+              >
+                <TrendingUp className="mr-2 h-4 w-4" />
+                View Mood History
+              </Button>
             )}
 
             {cachedFeatures.includes("Journal Entries") && (
-              <Link href="/journal">
-                <Button variant="outline" className="w-full bg-gray-700 border-gray-600 text-white hover:bg-gray-600">
-                  <BookOpen className="mr-2 h-4 w-4" />
-                  View Journal
-                </Button>
-              </Link>
+              <Button 
+                variant="outline" 
+                className="w-full bg-gray-700 border-gray-600 text-white hover:bg-gray-600"
+                onClick={handleViewJournal}
+              >
+                <BookOpen className="mr-2 h-4 w-4" />
+                View Journal
+              </Button>
             )}
           </div>
 

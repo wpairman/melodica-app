@@ -30,9 +30,11 @@ export default function Dashboard() {
   const [userData, setUserData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [hasMusicPreferences, setHasMusicPreferences] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
 
   // Load initial data
   useEffect(() => {
+    setIsMounted(true)
     // In a real app, you would fetch this from an API (client-side only)
     if (typeof window !== 'undefined') {
       const storedData = localStorage.getItem("userData")
@@ -238,7 +240,7 @@ export default function Dashboard() {
   //   }
   // }, []) // Removed toast dependency
 
-  if (loading) {
+  if (loading || !isMounted) {
     return <div className="flex items-center justify-center min-h-screen text-white">Loading...</div>
   }
 

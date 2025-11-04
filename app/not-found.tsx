@@ -1,4 +1,4 @@
-// Force dynamic rendering to avoid SSR issues with event handlers
+"use client"
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
@@ -59,4 +59,3 @@ export default function NotFound() {
     </div>
   )
 }
-

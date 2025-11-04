@@ -1,5 +1,4 @@
 // Force dynamic rendering to avoid SSR issues with event handlers
-export const dynamic = 'force-dynamic'
 
 import Link from "next/link"
 import { Heart, ArrowLeft } from "lucide-react"

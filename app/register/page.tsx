@@ -5,7 +5,6 @@ import type React from "react"
 import { useState, useEffect } from "react"
 
 // Force dynamic rendering to avoid SSR issues with event handlers
-export const dynamic = 'force-dynamic'
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -17,6 +16,7 @@ import { Heart, ArrowLeft, Loader2, Music, Activity, Check } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/auth-context"
 import { hashPassword } from "@/lib/password-utils"
+import { createStripeCheckoutSession } from "@/lib/api-utils"
 
 const MENTAL_HEALTH_CONDITIONS = [
   "Depression",
@@ -333,22 +333,7 @@ Remember: This is general information only. Always consult with your healthcare 
             description: "Please complete payment to activate your subscription",
           })
 
-          const response = await fetch("/api/stripe/checkout", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              tier: `${selectedPlan}_${selectedInterval}`,
-            }),
-          })
-
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: "Unknown error occurred" }))
-            throw new Error(errorData.error || `HTTP ${response.status}`)
-          }
-
-          const data = await response.json()
+          const data = await createStripeCheckoutSession(`${selectedPlan}_${selectedInterval}`)
 
           if (data?.url) {
             // Redirect to Stripe checkout

@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 
 // Force dynamic rendering to avoid SSR issues with event handlers
-export const dynamic = 'force-dynamic'
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"

@@ -1,7 +1,6 @@
 "use client"
 
 // Force dynamic rendering to avoid SSR issues with event handlers
-export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from "react"
 import Link from "next/link"

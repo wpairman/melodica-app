@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { generateEventPreparationRecommendations, parseICalData, type SyncedCalendarEvent } from "@/lib/calendar-sync"
+import { syncCalendar } from "@/lib/api-utils"
 import { useToast } from "@/hooks/use-toast"
 
 type EventTopic = "Meeting" | "Homework" | "Quiz" | "Test" | "Sports Practice" | "Event" | "Concert"
@@ -198,34 +199,19 @@ export default function CalendarIntegration() {
       console.log("Starting calendar sync with URL:", icalUrl)
       
       // Use our API route to fetch the calendar (no CORS issues)
-      const apiResponse = await fetch('/api/calendar-sync', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ url: icalUrl }),
-      })
-
-      if (!apiResponse.ok) {
-        const errorData = await apiResponse.json().catch(() => ({}))
-        throw new Error(errorData.error || `Failed to fetch calendar: ${apiResponse.status}`)
-      }
-
-      const result = await apiResponse.json()
+      const result = await syncCalendar(icalUrl)
       
       if (!result.success || !result.data) {
         throw new Error("Invalid response from server")
       }
 
       const icalData = result.data
-      console.log("Received calendar data, length:", icalData.length)
 
       if (!icalData || icalData.trim().length === 0) {
         throw new Error("Calendar file appears to be empty")
       }
 
       const parsedEvents = parseICalData(icalData)
-      console.log("Parsed events:", parsedEvents.length)
 
       if (parsedEvents.length === 0) {
         toast({

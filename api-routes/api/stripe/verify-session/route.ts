@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
 
+// Force dynamic rendering - API routes cannot be statically exported
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url)

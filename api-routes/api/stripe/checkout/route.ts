@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
+// Force dynamic rendering - API routes cannot be statically exported
+export const dynamic = 'force-dynamic';
+
 const priceMap: Record<string, Record<string, string>> = {
   premium: {
     monthly: "price_1Rgy9yHc0HPmM6HNPf15gTLT",

@@ -5,8 +5,6 @@ import JournalingSection from "@/components/journaling-section"
 import { MenuButton } from "@/components/navigation-sidebar"
 import { AuthGuard } from "@/components/auth-guard"
 
-export const dynamic = 'force-dynamic'
-
 export default function JournalingPage() {
   return (
     <AuthGuard>

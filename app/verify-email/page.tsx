@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Heart, ArrowLeft, Mail, CheckCircle, AlertCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
-export const dynamic = 'force-dynamic'
 
 export default function VerifyEmail() {
   const { toast } = useToast()

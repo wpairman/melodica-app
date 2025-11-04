@@ -6,7 +6,6 @@ import ActivityPreferences from "@/components/activity-preferences"
 import { MenuButton } from "@/components/navigation-sidebar"
 import { AuthGuard } from "@/components/auth-guard"
 
-export const dynamic = 'force-dynamic'
 
 export default function ActivitiesPage() {
   const [userData, setUserData] = useState<any>(null)

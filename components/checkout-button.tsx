@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createStripeCheckoutSession } from "@/lib/api-utils";
 
 type CheckoutButtonProps = {
   plan: "premium" | "ultimate";
@@ -21,32 +22,15 @@ const CheckoutButton = ({ plan, interval, className, children }: CheckoutButtonP
     setError(null);
 
     try {
-      const response = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          tier: `${plan}_${interval}`, // must match backend expectations
-        }),
-      });
-
-      // Check if response is ok before parsing
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: "Unknown error occurred" }));
-        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
+      const data = await createStripeCheckoutSession(`${plan}_${interval}`);
 
       if (data?.url) {
         // Redirect to Stripe checkout
         window.location.href = data.url;
       } else {
-        throw new Error(data.error || "No checkout URL returned from server");
+        throw new Error("No checkout URL returned from server");
       }
     } catch (err: any) {
-      console.error("Checkout error:", err);
       const errorMessage = err.message || "Failed to create checkout session. Please try again.";
       setError(errorMessage);
       alert(`Payment Error: ${errorMessage}\n\nPlease check your connection and try again.`);

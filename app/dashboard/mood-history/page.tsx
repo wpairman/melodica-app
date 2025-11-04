@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 
 // Force dynamic rendering to avoid SSR issues with event handlers
-export const dynamic = 'force-dynamic'
 import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Minus, Download } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"

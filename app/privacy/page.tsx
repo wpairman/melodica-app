@@ -1,5 +1,4 @@
 // Force dynamic rendering to avoid SSR issues with event handlers
-export const dynamic = 'force-dynamic'
 
 import type { Metadata } from "next"
 import Link from "next/link"

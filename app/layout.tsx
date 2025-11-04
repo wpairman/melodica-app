@@ -16,7 +16,6 @@ import { LocationPermissionDialog } from "@/components/location-permission-dialo
 import { NotificationPermissionDialog } from "@/components/notification-permission-dialog"
 
 // Force dynamic rendering to avoid SSR issues
-export const dynamic = 'force-dynamic'
 
 const inter = Inter({ subsets: ["latin"] })
 

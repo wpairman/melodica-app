@@ -61,6 +61,11 @@ export default function ActivityPreferences({ userData }: ActivityPreferencesPro
   const { toast } = useToast()
   const [completedActivities, setCompletedActivities] = useState<string[]>([])
   const [activityRatings, setActivityRatings] = useState<Record<string, number>>({})
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   useEffect(() => {
     // Load from localStorage
@@ -125,88 +130,94 @@ export default function ActivityPreferences({ userData }: ActivityPreferencesPro
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Favorite Activities Section */}
-        <div>
-          <h3 className="text-lg font-semibold mb-3">Your Favorite Activities</h3>
-          <div className="flex flex-wrap gap-2">
-            {getFavoriteActivities().map((activity) => (
-              <Badge key={activity} variant="secondary" className="bg-teal-600 text-white">
-                {activity}
-              </Badge>
-            ))}
-          </div>
-        </div>
-
-        {/* Activity Checkbox Section */}
-        <div>
-          <h3 className="text-lg font-semibold mb-3">Mark Activities You've Done</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {ACTIVITIES.map((activity) => (
-              <div key={activity} className="flex items-center space-x-2">
-                <Checkbox
-                  id={activity}
-                  checked={completedActivities.includes(activity)}
-                  onCheckedChange={() => toggleActivity(activity)}
-                  className="data-[state=checked]:bg-teal-600 data-[state=unchecked]:bg-gray-700"
-                />
-                <Label htmlFor={activity} className="text-sm text-white cursor-pointer">
-                  {activity}
-                </Label>
+        {!isMounted ? (
+          <div className="text-gray-300">Loading...</div>
+        ) : (
+          <>
+            {/* Favorite Activities Section */}
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Your Favorite Activities</h3>
+              <div className="flex flex-wrap gap-2">
+                {getFavoriteActivities().map((activity) => (
+                  <Badge key={activity} variant="secondary" className="bg-teal-600 text-white">
+                    {activity}
+                  </Badge>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Rated Activities Section */}
-        {Object.keys(activityRatings).length > 0 && (
-          <div>
-            <h3 className="text-lg font-semibold mb-3">Your Activity Ratings</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {Object.entries(activityRatings).map(([activity, rating]) => (
-                <div key={activity} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
-                  <span className="text-white">{activity}</span>
-                  <div className="flex items-center gap-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        className={`h-4 w-4 ${star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-500'}`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ))}
             </div>
-          </div>
-        )}
 
-        {/* Rate Activities Section */}
-        <div>
-          <h3 className="text-lg font-semibold mb-3">Rate Your Activities</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {completedActivities.map((activity) => (
-              <div key={activity} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
-                <span className="text-white">{activity}</span>
-                <div className="flex items-center gap-1">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      onClick={() => handleRateActivity(activity, star)}
-                      className="focus:outline-none"
-                    >
-                      <Star
-                        className={`h-5 w-5 transition-colors ${
-                          star <= (activityRatings[activity] || 0)
-                            ? 'fill-yellow-400 text-yellow-400'
-                            : 'text-gray-500 hover:text-yellow-400'
-                        }`}
-                      />
-                    </button>
+            {/* Activity Checkbox Section */}
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Mark Activities You've Done</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {ACTIVITIES.map((activity) => (
+                  <div key={activity} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={activity}
+                      checked={completedActivities.includes(activity)}
+                      onCheckedChange={() => toggleActivity(activity)}
+                      className="data-[state=checked]:bg-teal-600 data-[state=unchecked]:bg-gray-700"
+                    />
+                    <Label htmlFor={activity} className="text-sm text-white cursor-pointer">
+                      {activity}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Rated Activities Section */}
+            {Object.keys(activityRatings).length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Your Activity Ratings</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {Object.entries(activityRatings).map(([activity, rating]) => (
+                    <div key={activity} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
+                      <span className="text-white">{activity}</span>
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            className={`h-4 w-4 ${star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-500'}`}
+                          />
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
+            )}
+
+            {/* Rate Activities Section */}
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Rate Your Activities</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {completedActivities.map((activity) => (
+                  <div key={activity} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
+                    <span className="text-white">{activity}</span>
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          onClick={() => handleRateActivity(activity, star)}
+                          className="focus:outline-none"
+                        >
+                          <Star
+                            className={`h-5 w-5 transition-colors ${
+                              star <= (activityRatings[activity] || 0)
+                                ? 'fill-yellow-400 text-yellow-400'
+                                : 'text-gray-500 hover:text-yellow-400'
+                            }`}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   )

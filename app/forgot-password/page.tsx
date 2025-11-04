@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Heart, ArrowLeft, Mail, CheckCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+
 
 
 export default function ForgotPassword() {
@@ -58,7 +59,9 @@ export default function ForgotPassword() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {isSubmitted ? (
+            {!isMounted ? (
+              <div className="text-gray-300 text-center py-8">Loading...</div>
+            ) : isSubmitted ? (
               <div className="space-y-4 text-center py-8">
                 <div className="flex justify-center">
                   <div className="rounded-full bg-teal-900/20 p-4">

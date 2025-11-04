@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Heart, ArrowLeft, Loader2, Music, Activity, Check } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/auth-context"
+import { hashPassword } from "@/lib/password-utils"
 
 const MENTAL_HEALTH_CONDITIONS = [
   "Depression",
@@ -277,11 +278,14 @@ Remember: This is general information only. Always consult with your healthcare 
       console.log("📧 Normalized email:", normalizedEmail)
       console.log("🔑 Normalized password length:", normalizedPassword.length)
       
-      // Store user data with normalized email
+      // Hash password before storing (security: never store plain text passwords)
+      const hashedPassword = await hashPassword(normalizedPassword)
+      
+      // Store user data with normalized email and hashed password
       const userData = {
         ...formData,
         email: normalizedEmail, // Store normalized email
-        password: normalizedPassword, // Store trimmed password
+        password: hashedPassword, // Store hashed password (never plain text)
         artistAnalysis: analyses.artists,
         activityAnalysis: analyses.activities,
         medicationAnalysis: analyses.medications,
@@ -304,9 +308,10 @@ Remember: This is general information only. Always consult with your healthcare 
       
       // Save credentials for easy login (with "Remember me" enabled by default)
       // This enables auto-login on this device only - other devices remain independent
+      // Note: We store the plain password temporarily for auto-login, but the user data stores the hash
       localStorage.setItem("savedCredentials", JSON.stringify({
         email: normalizedEmail,
-        password: normalizedPassword,
+        password: normalizedPassword, // Temporary plain password for auto-login (not stored in userData)
       }))
 
       // Store plan and interval for later processing

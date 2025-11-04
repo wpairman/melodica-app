@@ -303,7 +303,7 @@ export default function AnalyticsPage() {
         </Tabs>
           </div>
         </div>
-        {showUpgrade && (userPlan === 'free' || userPlan === 'premium') && (
+        {showUpgrade && (userPlan !== 'ultimate' && userPlan !== 'lifetime') && (
           <UpgradePrompt
             feature="Advanced Mood Analytics"
             requiredPlan="ultimate"

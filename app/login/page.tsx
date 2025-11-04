@@ -16,6 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Heart, ArrowLeft } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/auth-context"
+import { verifyPassword, isOldHashFormat, migratePassword } from "@/lib/password-utils"
 
 export default function Login() {
   const router = useRouter()
@@ -113,7 +114,7 @@ export default function Login() {
     }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     // Prevent duplicate submissions
@@ -141,30 +142,43 @@ export default function Login() {
           const allUsers = JSON.parse(allUsersStr)
           console.log("Total users in allUsers:", allUsers.length)
           
-          // Log all stored emails for debugging
-          allUsers.forEach((user: any, index: number) => {
+          // Check each user with password verification
+          for (const user of allUsers) {
             const userEmail = (user.email || "").trim().toLowerCase()
-            const userPassword = (user.password || "").trim()
-            console.log(`User ${index}:`, {
-              storedEmail: user.email,
-              normalizedEmail: userEmail,
-              emailMatch: userEmail === normalizedEmail,
-              passwordLength: userPassword.length,
-              inputPasswordLength: normalizedPassword.length,
-              passwordMatch: userPassword === normalizedPassword
-            })
-          })
-          
-          foundUser = allUsers.find((user: any) => {
-            const userEmail = (user.email || "").trim().toLowerCase()
-            const userPassword = (user.password || "").trim()
             const emailMatch = userEmail === normalizedEmail
-            const passwordMatch = userPassword === normalizedPassword
             
-            console.log(`Checking user ${user.email}:`, { emailMatch, passwordMatch })
-            
-            return emailMatch && passwordMatch
-          })
+            if (emailMatch) {
+              // Check if password is in old format (plain text) or new format (hashed)
+              const storedPassword = user.password || ""
+              
+              if (isOldHashFormat(storedPassword)) {
+                // Old format: plain text comparison (for backward compatibility)
+                console.log("⚠️ Using old password format for user:", user.email)
+                if (storedPassword === normalizedPassword) {
+                  foundUser = user
+                  // Migrate password to new format
+                  const hashedPassword = await migratePassword(user.email, normalizedPassword)
+                  user.password = hashedPassword
+                  // Update in localStorage
+                  const updatedUsers = allUsers.map((u: any) => 
+                    u.email === user.email ? { ...u, password: hashedPassword } : u
+                  )
+                  localStorage.setItem("allUsers", JSON.stringify(updatedUsers))
+                  localStorage.setItem("userData", JSON.stringify({ ...user, password: hashedPassword }))
+                  console.log("✅ Migrated password to new format")
+                  break
+                }
+              } else {
+                // New format: verify password hash
+                const passwordMatch = await verifyPassword(normalizedPassword, storedPassword)
+                if (passwordMatch) {
+                  foundUser = user
+                  console.log("✅ User found with password verification:", user.email)
+                  break
+                }
+              }
+            }
+          }
           
           if (foundUser) {
             console.log("✅ User found in allUsers array:", foundUser.email)
@@ -186,22 +200,28 @@ export default function Login() {
           try {
             const userData = JSON.parse(storedData)
             const userEmail = (userData.email || "").trim().toLowerCase()
-            const userPassword = (userData.password || "").trim()
+            const storedPassword = userData.password || ""
             
-            console.log("Checking userData fallback:", {
-              storedEmail: userData.email,
-              normalizedEmail: userEmail,
-              emailMatch: userEmail === normalizedEmail,
-              passwordLength: userPassword.length,
-              inputPasswordLength: normalizedPassword.length,
-              passwordMatch: userPassword === normalizedPassword
-            })
-            
-            if (userEmail === normalizedEmail && userPassword === normalizedPassword) {
-              foundUser = userData
-              console.log("✅ User found in userData (fallback):", userData.email)
-            } else {
-              console.log("❌ User NOT found in userData (fallback)")
+            if (userEmail === normalizedEmail) {
+              // Check if password is in old format or new format
+              if (isOldHashFormat(storedPassword)) {
+                // Old format: plain text comparison
+                if (storedPassword === normalizedPassword) {
+                  foundUser = userData
+                  // Migrate password
+                  const hashedPassword = await migratePassword(userData.email, normalizedPassword)
+                  userData.password = hashedPassword
+                  localStorage.setItem("userData", JSON.stringify(userData))
+                  console.log("✅ Migrated password in userData to new format")
+                }
+              } else {
+                // New format: verify password hash
+                const passwordMatch = await verifyPassword(normalizedPassword, storedPassword)
+                if (passwordMatch) {
+                  foundUser = userData
+                  console.log("✅ User found in userData with password verification")
+                }
+              }
             }
           } catch (error) {
             console.error("Error parsing userData:", error)

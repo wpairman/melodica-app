@@ -2,6 +2,7 @@
 
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
+import { verifyPassword, isOldHashFormat } from "@/lib/password-utils"
 
 interface User {
   name: string
@@ -69,9 +70,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (allUsersStr) {
               try {
                 const allUsers = JSON.parse(allUsersStr)
-                foundUser = allUsers.find((user: any) => 
-                  user.email === credentials.email && user.password === credentials.password
-                )
+                // Check credentials with password verification
+                for (const user of allUsers) {
+                  if (user.email === credentials.email) {
+                    const storedPassword = user.password || ""
+                    
+                    // Check if password is in old format or new format
+                    if (isOldHashFormat(storedPassword)) {
+                      // Old format: plain text comparison
+                      if (storedPassword === credentials.password) {
+                        foundUser = user
+                        break
+                      }
+                    } else {
+                      // New format: verify password hash (async)
+                      verifyPassword(credentials.password, storedPassword).then((match) => {
+                        if (match) {
+                          foundUser = user
+                        }
+                      })
+                      // For auto-login, we'll use synchronous check if available
+                      // Otherwise, the user will need to manually log in
+                      if (storedPassword && storedPassword.includes(':')) {
+                        // Hashed format exists, but async verification needed
+                        // Skip auto-login for hashed passwords in auto-login flow
+                        // User will need to manually log in
+                        foundUser = null
+                      }
+                    }
+                  }
+                }
               } catch (error) {
                 console.error("Error parsing allUsers:", error)
               }
@@ -82,8 +110,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               const storedData = localStorage.getItem("userData")
               if (storedData) {
                 const userData = JSON.parse(storedData)
-                if (userData.email === credentials.email && userData.password === credentials.password) {
-                  foundUser = userData
+                if (userData.email === credentials.email) {
+                  const storedPassword = userData.password || ""
+                  
+                  // Check if password is in old format or new format
+                  if (isOldHashFormat(storedPassword)) {
+                    // Old format: plain text comparison
+                    if (storedPassword === credentials.password) {
+                      foundUser = userData
+                    }
+                  } else {
+                    // New format: skip auto-login (requires async verification)
+                    // User will need to manually log in
+                    foundUser = null
+                  }
                 }
               }
             }

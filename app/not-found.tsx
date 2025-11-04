@@ -1,10 +1,17 @@
 // Force dynamic rendering to avoid SSR issues with event handlers
 
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Home, ArrowLeft } from "lucide-react"
 
 export default function NotFound() {
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
   const handleGoHome = () => {
     if (typeof window !== 'undefined') {
       window.location.href = '/'
@@ -34,14 +41,18 @@ export default function NotFound() {
             <p>The page you requested doesn't exist or has been moved.</p>
           </div>
           <div className="flex flex-col gap-2">
-            <Button className="w-full" onClick={handleGoHome}>
-              <Home className="h-4 w-4 mr-2" />
-              Go Home
-            </Button>
-            <Button variant="outline" onClick={handleGoBack} className="w-full">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Go Back
-            </Button>
+            {isMounted && (
+              <>
+                <Button className="w-full" onClick={handleGoHome}>
+                  <Home className="h-4 w-4 mr-2" />
+                  Go Home
+                </Button>
+                <Button variant="outline" onClick={handleGoBack} className="w-full">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Go Back
+                </Button>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>

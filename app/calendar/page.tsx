@@ -157,6 +157,34 @@ export default function CalendarPage() {
     setCurrentDate(new Date(year, month + direction, 1))
   }
 
+  const handleAddEventClick = () => {
+    setShowAddEvent(true)
+  }
+
+  const handlePreviousMonth = () => {
+    navigateMonth(-1)
+  }
+
+  const handleGoToToday = () => {
+    setCurrentDate(new Date())
+  }
+
+  const handleNextMonth = () => {
+    navigateMonth(1)
+  }
+
+  const handleDateClick = (date: Date) => {
+    setSelectedDate(date)
+  }
+
+  const handleCancelAddEvent = () => {
+    setShowAddEvent(false)
+  }
+
+  const handleAddEventSubmit = () => {
+    addEvent()
+  }
+
   const getEventsForDate = (date: Date) => {
     return events.filter((event) => {
       const eventDate = new Date(event.start)
@@ -266,11 +294,7 @@ export default function CalendarPage() {
             {/* Header */}
             <div className="flex items-center justify-end">
             <Button
-              onClick={() => {
-                if (typeof window !== 'undefined') {
-                  setShowAddEvent(true)
-                }
-              }}
+              onClick={handleAddEventClick}
               className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -287,11 +311,7 @@ export default function CalendarPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => {
-                        if (typeof window !== 'undefined') {
-                          navigateMonth(-1)
-                        }
-                      }}
+                      onClick={handlePreviousMonth}
                       className="p-2 hover:bg-gray-100 transition-colors"
                       title="Previous Month"
                     >
@@ -304,11 +324,7 @@ export default function CalendarPage() {
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        onClick={() => {
-                          if (typeof window !== 'undefined') {
-                            setCurrentDate(new Date())
-                          }
-                        }}
+                        onClick={handleGoToToday}
                         className="mt-2 text-xs"
                       >
                         Go to Today
@@ -317,11 +333,7 @@ export default function CalendarPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => {
-                        if (typeof window !== 'undefined') {
-                          navigateMonth(1)
-                        }
-                      }}
+                      onClick={handleNextMonth}
                       className="p-2 hover:bg-gray-100 transition-colors"
                       title="Next Month"
                     >
@@ -355,11 +367,7 @@ export default function CalendarPage() {
                             isSelected && "bg-purple-50 border-purple-300",
                             !isCurrentMonth && "bg-gray-50"
                           )}
-                          onClick={() => {
-                            if (typeof window !== 'undefined') {
-                              setSelectedDate(date)
-                            }
-                          }}
+                          onClick={handleDateClick.bind(null, date)}
                         >
                           <div className={cn(
                             "text-lg font-bold mb-1 flex items-center justify-between",
@@ -557,18 +565,10 @@ export default function CalendarPage() {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => {
-                  if (typeof window !== 'undefined') {
-                    setShowAddEvent(false)
-                  }
-                }}>
+                <Button variant="outline" onClick={handleCancelAddEvent}>
                   Cancel
                 </Button>
-                <Button onClick={() => {
-                  if (typeof window !== 'undefined') {
-                    addEvent()
-                  }
-                }} disabled={!newEvent.title || !newEvent.date}>
+                <Button onClick={handleAddEventSubmit} disabled={!newEvent.title || !newEvent.date}>
                   Add Event
                 </Button>
               </DialogFooter>

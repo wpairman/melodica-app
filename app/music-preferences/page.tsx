@@ -75,6 +75,10 @@ export default function MusicPreferences() {
     router.push("/dashboard")
   }
 
+  const handleSubmitClick = () => {
+    handleSubmit()
+  }
+
   return (
     <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-b from-blue-50 to-green-50">

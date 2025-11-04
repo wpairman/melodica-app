@@ -15,6 +15,10 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState("")
   const [isSubmitted, setIsSubmitted] = useState(false)
 
+  const handleResetClick = () => {
+    setIsSubmitted(false)
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -71,7 +75,7 @@ export default function ForgotPassword() {
                   </p>
                 </div>
                 <Button 
-                  onClick={() => setIsSubmitted(false)} 
+                  onClick={handleResetClick} 
                   variant="outline" 
                   className="w-full"
                 >

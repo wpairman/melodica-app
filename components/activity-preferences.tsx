@@ -112,6 +112,10 @@ export default function ActivityPreferences({ userData }: ActivityPreferencesPro
     return userData.favoriteActivities.split(',').map(a => a.trim())
   }
 
+  const handleRateActivity = (activity: string, star: number) => {
+    rateActivity(activity, star)
+  }
+
   return (
     <Card className="bg-gray-800 text-white border-gray-700">
       <CardHeader>
@@ -186,7 +190,7 @@ export default function ActivityPreferences({ userData }: ActivityPreferencesPro
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
                       key={star}
-                      onClick={() => rateActivity(activity, star)}
+                      onClick={() => handleRateActivity(activity, star)}
                       className="focus:outline-none"
                     >
                       <Star

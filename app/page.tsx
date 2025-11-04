@@ -88,6 +88,55 @@ export default function Home() {
     }
   }
 
+  const handleHeroStartFreeClick = () => {
+    handleHeroStartFree()
+    if (typeof window !== 'undefined') {
+      window.location.href = '/register'
+    }
+  }
+
+  const handleHeroViewPricingClick = () => {
+    handleHeroViewPricing()
+    if (typeof window !== 'undefined') {
+      window.location.href = '/pricing'
+    }
+  }
+
+  const handlePricingFreeClick = () => {
+    handlePricingFree()
+    if (typeof window !== 'undefined') {
+      window.location.href = '/register'
+    }
+  }
+
+  const handlePricingPremiumClick = () => {
+    handlePricingPremium()
+    if (typeof window !== 'undefined') {
+      window.location.href = '/pricing'
+    }
+  }
+
+  const handlePricingUltimateClick = () => {
+    handlePricingUltimate()
+    if (typeof window !== 'undefined') {
+      window.location.href = '/pricing'
+    }
+  }
+
+  const handleFinalCTASignupClick = () => {
+    handleFinalCTASignup()
+    if (typeof window !== 'undefined') {
+      window.location.href = '/register'
+    }
+  }
+
+  const handleFinalCTAPricingClick = () => {
+    handleFinalCTAPricing()
+    if (typeof window !== 'undefined') {
+      window.location.href = '/pricing'
+    }
+  }
+
   if (showSplash) {
     return (
       <div className="fixed inset-0 bg-white flex items-center justify-center z-50">
@@ -115,7 +164,7 @@ export default function Home() {
             Login
           </Link>
           <Link href="/register">
-            <Button size="sm" className="bg-teal-600 hover:bg-teal-700 text-white" onClick={() => trackCTAClick('header_signup')}>
+            <Button size="sm" className="bg-teal-600 hover:bg-teal-700 text-white" onClick={handleHeaderSignup}>
               Sign Up
             </Button>
           </Link>
@@ -143,17 +192,22 @@ export default function Home() {
 
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 items-center">
-                <Link href="/register" onClick={() => trackCTAClick('hero_start_free')}>
-                  <Button size="lg" className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-6 text-lg">
-                    Start Free Trial
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
-                <Link href="/pricing" onClick={() => trackCTAClick('hero_view_pricing')}>
-                  <Button size="lg" variant="outline" className="px-8 py-6 text-lg border-2">
-                    View Plans
-                  </Button>
-                </Link>
+                <Button 
+                  size="lg" 
+                  className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-6 text-lg"
+                  onClick={handleHeroStartFreeClick}
+                >
+                  Start Free Trial
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="px-8 py-6 text-lg border-2"
+                  onClick={handleHeroViewPricingClick}
+                >
+                  View Plans
+                </Button>
               </div>
 
               {/* App Store Download Buttons */}
@@ -402,9 +456,13 @@ export default function Home() {
                       <span className="text-sm text-gray-600">Ad-supported</span>
                     </li>
                   </ul>
-                  <Link href="/register" onClick={() => trackCTAClick('pricing_free')}>
-                    <Button variant="outline" className="w-full">Get Started</Button>
-                  </Link>
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={handlePricingFreeClick}
+                  >
+                    Get Started
+                  </Button>
                 </CardContent>
               </Card>
 
@@ -436,9 +494,12 @@ export default function Home() {
                       <span className="text-sm text-gray-600">Ad-free experience</span>
                     </li>
                   </ul>
-                  <Link href="/pricing" onClick={() => trackCTAClick('pricing_premium')}>
-                    <Button className="w-full bg-teal-600 hover:bg-teal-700 text-white">Start Free Trial</Button>
-                  </Link>
+                  <Button 
+                    className="w-full bg-teal-600 hover:bg-teal-700 text-white"
+                    onClick={handlePricingPremiumClick}
+                  >
+                    Start Free Trial
+                  </Button>
                 </CardContent>
               </Card>
 
@@ -467,9 +528,13 @@ export default function Home() {
                       <span className="text-sm text-gray-600">Priority support</span>
                     </li>
                   </ul>
-                  <Link href="/pricing" onClick={() => trackCTAClick('pricing_ultimate')}>
-                    <Button variant="outline" className="w-full">Start Free Trial</Button>
-                  </Link>
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={handlePricingUltimateClick}
+                  >
+                    Start Free Trial
+                  </Button>
                 </CardContent>
               </Card>
             </div>
@@ -505,7 +570,7 @@ export default function Home() {
                     type="submit" 
                     disabled={loading}
                     className="bg-teal-600 hover:bg-teal-700 text-white"
-                    onClick={() => trackCTAClick('email_signup')}
+                    onClick={handleEmailSignupCTA}
                   >
                     {loading ? "Joining..." : "Get Notified"}
                   </Button>
@@ -526,17 +591,22 @@ export default function Home() {
               Join thousands of users who are taking control of their mental health with AI-powered music therapy.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/register" onClick={() => trackCTAClick('final_cta_signup')}>
-                <Button size="lg" className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-6 text-lg">
-                  Start Your Free Trial
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-              <Link href="/pricing" onClick={() => trackCTAClick('final_cta_pricing')}>
-                <Button size="lg" variant="outline" className="px-8 py-6 text-lg border-2">
-                  Compare Plans
-                </Button>
-              </Link>
+              <Button 
+                size="lg" 
+                className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-6 text-lg"
+                onClick={handleFinalCTASignupClick}
+              >
+                Start Your Free Trial
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="px-8 py-6 text-lg border-2"
+                onClick={handleFinalCTAPricingClick}
+              >
+                Compare Plans
+              </Button>
             </div>
           </div>
         </section>

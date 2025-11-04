@@ -244,40 +244,24 @@ export default function Dashboard() {
     return <div className="flex items-center justify-center min-h-screen text-white">Loading...</div>
   }
 
-  if (!userData) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Card className="w-full max-w-md bg-gray-800 border-gray-700">
-          <CardHeader>
-            <CardTitle className="text-white">Not Logged In</CardTitle>
-            <CardDescription className="text-gray-300">Please log in or create an account to continue</CardDescription>
-          </CardHeader>
-          <CardFooter>
-            <Link href="/login" className="w-full">
-              <Button className="w-full">Log In</Button>
-            </Link>
-          </CardFooter>
-        </Card>
-      </div>
-    )
-  }
-
-  const tabsConfig = [
-    { value: "mood", label: "Home" },
-    { value: "calendar", label: "Calendar" },
-    { value: "recommendations", label: "Recommendations" },
-    { value: "therapists", label: "Find Therapists" },
-  ]
-
-  // Add period tracking tab for female users
-  if (userData.gender === "female") {
-    tabsConfig.splice(3, 0, { value: "period", label: "Period Tracking" })
-  }
-
   return (
     <AuthGuard>
       <DashboardLayout>
-      {isMounted ? (
+      {!userData ? (
+        <div className="flex items-center justify-center min-h-screen">
+          <Card className="w-full max-w-md bg-gray-800 border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-white">Not Logged In</CardTitle>
+              <CardDescription className="text-gray-300">Please log in or create an account to continue</CardDescription>
+            </CardHeader>
+            <CardFooter>
+              <Link href="/login" className="w-full">
+                <Button className="w-full">Log In</Button>
+              </Link>
+            </CardFooter>
+          </Card>
+        </div>
+      ) : (
       <>
       <div className="flex min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
       <CalendarNotifications />

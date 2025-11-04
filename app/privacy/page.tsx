@@ -1,14 +1,8 @@
 "use client"
 
-import type { Metadata } from "next"
 import Link from "next/link"
 import { Heart, ArrowLeft, Shield, Lock, Eye, FileText } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-
-export const metadata: Metadata = {
-  title: "Privacy Policy | Melodica - Mental Wellness Companion",
-  description: "Learn how Melodica protects your privacy and handles your mental health data securely.",
-}
 
 export default function PrivacyPage() {
   return (

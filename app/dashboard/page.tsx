@@ -277,6 +277,8 @@ export default function Dashboard() {
   return (
     <AuthGuard>
       <DashboardLayout>
+      {isMounted ? (
+      <>
       <div className="flex min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
       <CalendarNotifications />
       <div className="hidden md:flex w-64 flex-col fixed inset-y-0 z-50 border-r bg-gray-900 border-gray-700">

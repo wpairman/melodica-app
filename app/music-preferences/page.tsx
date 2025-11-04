@@ -22,8 +22,10 @@ export default function MusicPreferences() {
   const [quizData, setQuizData] = useState({
     answers: {} as Record<string, string>,
   })
+  const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
+    setIsMounted(true)
     // Load user data if available (client-side only)
     if (typeof window !== 'undefined') {
       const storedData = localStorage.getItem("userData")

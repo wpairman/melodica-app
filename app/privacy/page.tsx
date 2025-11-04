@@ -1,4 +1,4 @@
-// Force dynamic rendering to avoid SSR issues with event handlers
+"use client"
 
 import type { Metadata } from "next"
 import Link from "next/link"

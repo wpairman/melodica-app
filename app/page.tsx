@@ -15,9 +15,11 @@ export default function Home() {
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
   const [showSplash, setShowSplash] = useState(true)
+  const [isMounted, setIsMounted] = useState(false)
 
   // Brief splash screen (1 second max)
   useEffect(() => {
+    setIsMounted(true)
     const timer = setTimeout(() => {
       setShowSplash(false)
     }, 800)
@@ -175,13 +177,15 @@ export default function Home() {
           <Link href="/login" className="text-sm font-medium hover:underline underline-offset-4 text-gray-700 hover:text-teal-600">
             Login
           </Link>
-          <Button 
-            size="sm" 
-            className="bg-teal-600 hover:bg-teal-700 text-white" 
-            onClick={handleHeaderSignup}
-          >
-            Sign Up
-          </Button>
+          {isMounted && (
+            <Button 
+              size="sm" 
+              className="bg-teal-600 hover:bg-teal-700 text-white" 
+              onClick={handleHeaderSignup}
+            >
+              Sign Up
+            </Button>
+          )}
         </nav>
       </header>
 
@@ -205,24 +209,26 @@ export default function Home() {
               </div>
 
               {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 items-center">
-                <Button 
-                  size="lg" 
-                  className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-6 text-lg"
-                  onClick={handleHeroStartFreeClick}
-                >
-                  Start Free Trial
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="px-8 py-6 text-lg border-2"
-                  onClick={handleHeroViewPricingClick}
-                >
-                  View Plans
-                </Button>
-              </div>
+              {isMounted && (
+                <div className="flex flex-col sm:flex-row gap-4 items-center">
+                  <Button 
+                    size="lg" 
+                    className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-6 text-lg"
+                    onClick={handleHeroStartFreeClick}
+                  >
+                    Start Free Trial
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                  <Button 
+                    size="lg" 
+                    variant="outline" 
+                    className="px-8 py-6 text-lg border-2"
+                    onClick={handleHeroViewPricingClick}
+                  >
+                    View Plans
+                  </Button>
+                </div>
+              )}
 
               {/* App Store Download Buttons */}
               <div className="pt-6">
@@ -470,13 +476,15 @@ export default function Home() {
                       <span className="text-sm text-gray-600">Ad-supported</span>
                     </li>
                   </ul>
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={handlePricingFreeClick}
-                  >
-                    Get Started
-                  </Button>
+                  {isMounted && (
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={handlePricingFreeClick}
+                    >
+                      Get Started
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
 
@@ -508,12 +516,14 @@ export default function Home() {
                       <span className="text-sm text-gray-600">Ad-free experience</span>
                     </li>
                   </ul>
-                  <Button 
-                    className="w-full bg-teal-600 hover:bg-teal-700 text-white"
-                    onClick={handlePricingPremiumClick}
-                  >
-                    Start Free Trial
-                  </Button>
+                  {isMounted && (
+                    <Button 
+                      className="w-full bg-teal-600 hover:bg-teal-700 text-white"
+                      onClick={handlePricingPremiumClick}
+                    >
+                      Start Free Trial
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
 
@@ -542,13 +552,15 @@ export default function Home() {
                       <span className="text-sm text-gray-600">Priority support</span>
                     </li>
                   </ul>
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={handlePricingUltimateClick}
-                  >
-                    Start Free Trial
-                  </Button>
+                  {isMounted && (
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={handlePricingUltimateClick}
+                    >
+                      Start Free Trial
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -603,24 +615,26 @@ export default function Home() {
             <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
               Join thousands of users who are taking control of their mental health with AI-powered music therapy.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                size="lg" 
-                className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-6 text-lg"
-                onClick={handleFinalCTASignupClick}
-              >
-                Start Your Free Trial
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="px-8 py-6 text-lg border-2"
-                onClick={handleFinalCTAPricingClick}
-              >
-                Compare Plans
-              </Button>
-            </div>
+            {isMounted && (
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button 
+                  size="lg" 
+                  className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-6 text-lg"
+                  onClick={handleFinalCTASignupClick}
+                >
+                  Start Your Free Trial
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="px-8 py-6 text-lg border-2"
+                  onClick={handleFinalCTAPricingClick}
+                >
+                  Compare Plans
+                </Button>
+              </div>
+            )}
           </div>
         </section>
       </main>

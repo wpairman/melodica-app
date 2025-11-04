@@ -77,6 +77,7 @@ export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [showAddEvent, setShowAddEvent] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
   const [newEvent, setNewEvent] = useState({
     title: "",
     date: "",
@@ -87,6 +88,7 @@ export default function CalendarPage() {
   })
 
   useEffect(() => {
+    setIsMounted(true)
     setCurrentDate(new Date())
     
     // Load events from localStorage (including synced events)
@@ -292,15 +294,17 @@ export default function CalendarPage() {
         <div className="p-4">
           <div className="max-w-7xl mx-auto space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-end">
-            <Button
-              onClick={handleAddEventClick}
-              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Event
-            </Button>
-          </div>
+            {isMounted && (
+              <div className="flex items-center justify-end">
+                <Button
+                  onClick={handleAddEventClick}
+                  className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Event
+                </Button>
+              </div>
+            )}
 
           <div className="grid gap-6 lg:grid-cols-4">
             {/* Calendar */}
@@ -367,7 +371,7 @@ export default function CalendarPage() {
                             isSelected && "bg-purple-50 border-purple-300",
                             !isCurrentMonth && "bg-gray-50"
                           )}
-                          onClick={handleDateClick.bind(null, date)}
+                          onClick={isMounted ? () => handleDateClick(date) : undefined}
                         >
                           <div className={cn(
                             "text-lg font-bold mb-1 flex items-center justify-between",

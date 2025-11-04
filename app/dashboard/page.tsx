@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 
 // Force dynamic rendering to avoid SSR issues with event handlers
 import Link from "next/link"
@@ -244,24 +244,31 @@ export default function Dashboard() {
     return <div className="flex items-center justify-center min-h-screen text-white">Loading...</div>
   }
 
+  if (!userData) {
+    return (
+      <AuthGuard>
+        <DashboardLayout>
+          <div className="flex items-center justify-center min-h-screen">
+            <Card className="w-full max-w-md bg-gray-800 border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white">Not Logged In</CardTitle>
+                <CardDescription className="text-gray-300">Please log in or create an account to continue</CardDescription>
+              </CardHeader>
+              <CardFooter>
+                <Link href="/login" className="w-full">
+                  <Button className="w-full">Log In</Button>
+                </Link>
+              </CardFooter>
+            </Card>
+          </div>
+        </DashboardLayout>
+      </AuthGuard>
+    )
+  }
+
   return (
     <AuthGuard>
       <DashboardLayout>
-      {!userData ? (
-        <div className="flex items-center justify-center min-h-screen">
-          <Card className="w-full max-w-md bg-gray-800 border-gray-700">
-            <CardHeader>
-              <CardTitle className="text-white">Not Logged In</CardTitle>
-              <CardDescription className="text-gray-300">Please log in or create an account to continue</CardDescription>
-            </CardHeader>
-            <CardFooter>
-              <Link href="/login" className="w-full">
-                <Button className="w-full">Log In</Button>
-              </Link>
-            </CardFooter>
-          </Card>
-        </div>
-      ) : (
       <>
       <div className="flex min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
       <CalendarNotifications />
@@ -492,9 +499,6 @@ export default function Dashboard() {
         </main>
       </div>
       </>
-      ) : (
-        <div className="flex items-center justify-center min-h-screen text-white">Loading...</div>
-      )}
     </DashboardLayout>
     </AuthGuard>
   )

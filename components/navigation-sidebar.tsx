@@ -159,7 +159,7 @@ export function MenuButton() {
       <Button
         variant="ghost"
         size="icon"
-        className="text-gray-900 dark:text-white bg-white/50 dark:bg-gray-800/50 hover:bg-white dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 shadow-sm"
+        className="relative z-[102] text-gray-900 dark:text-white bg-white/50 dark:bg-gray-800/50 hover:bg-white dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 shadow-sm pointer-events-auto"
         onClick={() => setIsOpen(true)}
         aria-label="Open navigation menu"
       >

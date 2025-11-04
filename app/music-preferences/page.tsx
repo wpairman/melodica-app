@@ -85,8 +85,10 @@ export default function MusicPreferences() {
     <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-b from-blue-50 to-green-50">
         {/* Fixed header with menu button */}
-        <div className="sticky top-0 z-50 bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
-          <MenuButton />
+        <div className="sticky top-0 z-[100] bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
+          <div className="relative z-[101]">
+            <MenuButton />
+          </div>
           <h1 className="text-2xl font-bold text-gray-900">Music Preferences</h1>
         </div>
         

@@ -11,6 +11,12 @@ export default function OfflinePage() {
   const [isOnline, setIsOnline] = useState(false)
   const [cachedFeatures, setCachedFeatures] = useState<string[]>([])
 
+  const handleReload = () => {
+    if (typeof window !== 'undefined') {
+      window.location.reload()
+    }
+  }
+
   useEffect(() => {
     // Check online status
     setIsOnline(navigator.onLine)
@@ -112,7 +118,7 @@ export default function OfflinePage() {
         </CardContent>
         <CardFooter className="flex justify-center">
           <Button 
-            onClick={() => window.location.reload()} 
+            onClick={handleReload} 
             className="bg-teal-600 hover:bg-teal-700"
             disabled={!isOnline}
           >

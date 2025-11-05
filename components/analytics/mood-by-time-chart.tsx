@@ -1,7 +1,7 @@
 "use client"
 
-import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer } from "recharts"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer, Tooltip } from "recharts"
+import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart"
 
 interface MoodByTimeChartProps {
   data: any[]
@@ -67,7 +67,7 @@ export default function MoodByTimeChart({ data }: MoodByTimeChartProps) {
             tick={{ fontSize: 12 }}
             label={{ value: "Mood Score", angle: -90, position: "insideLeft", style: { textAnchor: "middle" } }}
           />
-          <ChartTooltip content={<ChartTooltipContent />} />
+          <Tooltip content={<ChartTooltipContent />} />
           <Legend />
           <Bar dataKey="avgMood" fill="var(--color-avgMood)" name="Average Mood" radius={[4, 4, 0, 0]} />
         </BarChart>

@@ -154,7 +154,7 @@ export default function PricingTabs() {
               <PricingCard
                 key={`monthly-${plan.name}`}
                 plan={plan}
-                price={plan.monthlyPrice}
+                price={plan.monthlyPrice ?? "$0"}
                 billingCycle="monthly"
                 popular={plan.popular}
               />
@@ -182,7 +182,7 @@ export default function PricingTabs() {
               <PricingCard
                 key={`yearly-${plan.name}`}
                 plan={plan}
-                price={plan.yearlyPrice}
+                price={plan.yearlyPrice ?? "$0"}
                 billingCycle="yearly"
                 popular={plan.popular}
               />

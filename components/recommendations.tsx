@@ -186,7 +186,6 @@ function getDailyRecommendations(mood: "low" | "neutral" | "high") {
 export default function Recommendations({ userData }: RecommendationsProps) {
   const [currentMood, setCurrentMood] = useState<"low" | "neutral" | "high">("neutral")
   const [moodHistory, setMoodHistory] = useState<Array<{ mood: number; timestamp: Date }>>([])
-  const [hasMusicPreferences, setHasMusicPreferences] = useState(false)
   const { toast } = useToast()
   const [ratingOpen, setRatingOpen] = useState(false)
   const [ratingTarget, setRatingTarget] = useState<RatingTarget | null>(null)
@@ -229,10 +228,6 @@ export default function Recommendations({ userData }: RecommendationsProps) {
           setMoodHistory([])
         }
       }
-
-      // Check if user has completed music preferences quiz
-      const storedPreferences = localStorage.getItem("musicPreferences")
-      setHasMusicPreferences(!!storedPreferences)
     }
   }, [])
 
@@ -250,17 +245,17 @@ export default function Recommendations({ userData }: RecommendationsProps) {
     
     // Use user's favorite artists to personalize recommendations (Premium+ only)
     if (userData.favoriteArtists && userPlan !== 'free') {
-      const favoriteArtists = userData.favoriteArtists.split(',').map(a => a.trim())
-      const personalizedRecs = recommendations.map(rec => {
+      const favoriteArtists = userData.favoriteArtists.split(',').map((a: string) => a.trim())
+      const personalizedRecs = recommendations.map((rec: { title: string; artist: string; mood: string }) => {
         // Match artist names to user's favorites
-        const matchesArtist = favoriteArtists.some(artist => 
+        const matchesArtist = favoriteArtists.some((artist: string) => 
           rec.artist.toLowerCase().includes(artist.toLowerCase()) ||
           artist.toLowerCase().includes(rec.artist.toLowerCase())
         )
         return matchesArtist ? { ...rec, personalized: true } : rec
       })
       // Put personalized recommendations first
-      return personalizedRecs.sort((a, b) => (b as any).personalized ? 1 : -1)
+      return personalizedRecs.sort((a: { personalized?: boolean }, b: { personalized?: boolean }) => (b.personalized ? 1 : -1))
     }
     
     return recommendations
@@ -272,17 +267,17 @@ export default function Recommendations({ userData }: RecommendationsProps) {
     
     // Use user's favorite activities to personalize recommendations (Premium+ only)
     if (userData.favoriteActivities && userPlan !== 'free') {
-      const favoriteActivities = userData.favoriteActivities.split(',').map(a => a.trim())
-      const personalizedRecs = baseRecommendations.map(rec => {
+      const favoriteActivities = userData.favoriteActivities.split(',').map((a: string) => a.trim())
+      const personalizedRecs = baseRecommendations.map((rec: { name: string; description: string; duration: string }) => {
         // Match activity names to user's favorites
-        const matchesActivity = favoriteActivities.some(activity => 
+        const matchesActivity = favoriteActivities.some((activity: string) => 
           rec.name.toLowerCase().includes(activity.toLowerCase()) ||
           activity.toLowerCase().includes(rec.name.toLowerCase())
         )
         return matchesActivity ? { ...rec, personalized: true } : rec
       })
       // Put personalized recommendations first
-      return personalizedRecs.sort((a, b) => (b as any).personalized ? 1 : -1)
+      return personalizedRecs.sort((a: { personalized?: boolean }, b: { personalized?: boolean }) => (b.personalized ? 1 : -1))
     }
     
     return baseRecommendations
@@ -300,25 +295,6 @@ export default function Recommendations({ userData }: RecommendationsProps) {
 
   return (
     <div className="space-y-6">
-      {!hasMusicPreferences && (
-        <Card className="bg-teal-50 border-teal-200">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Music className="h-5 w-5 mr-2 text-teal-600" />
-              Enhance Your Music Recommendations
-            </CardTitle>
-            <CardDescription className="text-black">
-              Take our detailed music preference quiz to get more personalized song recommendations based on your taste
-            </CardDescription>
-          </CardHeader>
-          <CardFooter>
-            <Link href="/music-preferences" className="w-full">
-              <Button className="w-full bg-teal-600 hover:bg-teal-700">Take Music Quiz</Button>
-            </Link>
-          </CardFooter>
-        </Card>
-      )}
-
       <Card>
         <CardHeader>
           <CardTitle>Your Personalized Recommendations</CardTitle>
@@ -351,7 +327,7 @@ export default function Recommendations({ userData }: RecommendationsProps) {
             </TabsList>
             <TabsContent value="music" className="mt-4">
               <div className="space-y-4">
-                {getPersonalizedMusic().map((item, index) => {
+                {getPersonalizedMusic().map((item: { title: string; artist: string; mood: string; personalized?: boolean }, index: number) => {
                   const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(item.artist + " " + item.title)}`
                   return (
                     <Card key={index}>
@@ -384,7 +360,7 @@ export default function Recommendations({ userData }: RecommendationsProps) {
             </TabsContent>
             <TabsContent value="activities" className="mt-4">
               <div className="space-y-4">
-                {getPersonalizedActivities().map((item, index) => (
+                {getPersonalizedActivities().map((item: { name: string; description: string; duration: string; personalized?: boolean }, index: number) => (
                   <Card key={index}>
                     <CardHeader className="p-4">
                       <CardTitle className="text-base">{item.name}</CardTitle>

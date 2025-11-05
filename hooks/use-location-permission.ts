@@ -36,22 +36,24 @@ export function useLocationPermission() {
         }
       } else {
         // Fallback for older browsers
-        navigator.geolocation.getCurrentPosition(
-          () => {
-            setPermission("granted")
-            setIsLocationEnabled(true)
-          },
-          (error) => {
-            if (error.code === error.PERMISSION_DENIED) {
-              setPermission("denied")
-              setIsLocationEnabled(false)
-            } else {
-              setPermission("prompt")
-              setIsLocationEnabled(false)
-            }
-          },
-          { maximumAge: 60000 }
-        )
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            () => {
+              setPermission("granted")
+              setIsLocationEnabled(true)
+            },
+            (error: GeolocationPositionError) => {
+              if (error.code === error.PERMISSION_DENIED) {
+                setPermission("denied")
+                setIsLocationEnabled(false)
+              } else {
+                setPermission("prompt")
+                setIsLocationEnabled(false)
+              }
+            },
+            { maximumAge: 60000 }
+          )
+        }
       }
     } catch (error) {
       console.error("Error checking location permission:", error)
@@ -68,7 +70,7 @@ export function useLocationPermission() {
           setIsLocationEnabled(true)
           resolve(true)
         },
-        (error) => {
+        (error: GeolocationPositionError) => {
           if (error.code === error.PERMISSION_DENIED) {
             setPermission("denied")
             setIsLocationEnabled(false)

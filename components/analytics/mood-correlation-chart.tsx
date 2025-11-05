@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer } from "recharts"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer, Tooltip } from "recharts"
+import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface MoodCorrelationChartProps {
@@ -90,7 +90,7 @@ export default function MoodCorrelationChart({ data }: MoodCorrelationChartProps
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis type="number" domain={[0, 10]} ticks={[0, 2, 4, 6, 8, 10]} />
             <YAxis type="category" dataKey="name" tick={{ fontSize: 12 }} width={100} />
-            <ChartTooltip content={<ChartTooltipContent />} />
+            <Tooltip content={<ChartTooltipContent />} />
             <Legend />
             <Bar dataKey="avgMood" fill="var(--color-avgMood)" name="Average Mood" radius={[0, 4, 4, 0]} />
           </BarChart>

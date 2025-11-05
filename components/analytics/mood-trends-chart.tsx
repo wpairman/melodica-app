@@ -1,7 +1,7 @@
 "use client"
 
-import { Line, LineChart, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer } from "recharts"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { Line, LineChart, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer, Tooltip } from "recharts"
+import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart"
 
 interface MoodTrendsChartProps {
   data: any[]
@@ -77,7 +77,7 @@ export default function MoodTrendsChart({ data, timeRange }: MoodTrendsChartProp
             tick={{ fontSize: 12 }}
             label={{ value: "Mood Score", angle: -90, position: "insideLeft", style: { textAnchor: "middle" } }}
           />
-          <ChartTooltip content={<ChartTooltipContent />} />
+          <Tooltip content={<ChartTooltipContent />} />
           <Legend />
           <Line
             type="monotone"

@@ -29,7 +29,6 @@ export default function Dashboard() {
   const router = useRouter()
   const [userData, setUserData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [hasMusicPreferences, setHasMusicPreferences] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
 
   // Load initial data
@@ -45,10 +44,6 @@ export default function Dashboard() {
           console.error("Error parsing user data:", error)
         }
       }
-
-      // Check if user has completed music preferences quiz
-      const storedPreferences = localStorage.getItem("musicPreferences")
-      setHasMusicPreferences(!!storedPreferences)
     }
 
     setLoading(false)
@@ -344,7 +339,7 @@ export default function Dashboard() {
                     <Link href="/music-preferences">
                       <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
                         <Music className="mr-2 h-4 w-4" />
-                        Music Preferences
+                        Your Artist's Songs
                       </Button>
                     </Link>
                     <Link href="/dashboard/playlists">
@@ -440,25 +435,6 @@ export default function Dashboard() {
                     <h1 className="text-3xl font-bold tracking-tight text-white">Welcome, {userData.name}</h1>
                     <p className="text-gray-300">Track your mood and get personalized recommendations</p>
                   </div>
-
-                  {!hasMusicPreferences && (
-                    <Card className="bg-teal-900/20 border-teal-800 mb-4">
-                      <CardHeader>
-                        <CardTitle className="flex items-center text-white">
-                          <Music className="h-5 w-5 mr-2 text-teal-400" />
-                          Complete Your Music Profile
-                        </CardTitle>
-                        <CardDescription className="text-gray-300">
-                          Take our detailed music preference quiz to get more personalized recommendations
-                        </CardDescription>
-                      </CardHeader>
-                      <CardFooter>
-                        <Link href="/music-preferences" className="w-full">
-                          <Button className="w-full bg-teal-600 hover:bg-teal-700">Take Music Quiz</Button>
-                        </Link>
-                      </CardFooter>
-                    </Card>
-                  )}
 
                   <Tabs defaultValue="mood" className="w-full">
                     <TabsList className="flex w-full flex-wrap bg-gray-800 gap-1">

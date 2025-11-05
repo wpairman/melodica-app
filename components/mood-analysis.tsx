@@ -108,7 +108,7 @@ export default function MoodAnalysis({ userData }: MoodAnalysisProps) {
       "Yoga",
     ]
     const count = Math.floor(Math.random() * 2) + 1
-    const selected = []
+    const selected: string[] = []
 
     for (let i = 0; i < count; i++) {
       const activity = activities[Math.floor(Math.random() * activities.length)]
@@ -557,7 +557,7 @@ export default function MoodAnalysis({ userData }: MoodAnalysisProps) {
                         }
                       `}
                       >
-                        {rec.items.map((item, i) => (
+                        {rec.items.map((item: string, i: number) => (
                           <li key={i} className="flex items-center gap-2">
                             <CheckCircle
                               className={`h-4 w-4 

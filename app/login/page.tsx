@@ -190,33 +190,48 @@ export default function Login() {
                 console.log("⚠️ Using old password format for user:", user.email)
                 if (storedPassword === normalizedPassword) {
                   foundUser = user
-                  // Migrate password to new format
-                  try {
-                    const hashedPassword = await migratePassword(user.email, normalizedPassword)
+                  console.log("✅ Password match (old format)")
+                  // Migrate password to new format (don't await - do it in background)
+                  migratePassword(user.email, normalizedPassword).then((hashedPassword) => {
                     user.password = hashedPassword
-                    // Update in localStorage
                     const updatedUsers = allUsers.map((u: any) => 
                       u.email === user.email ? { ...u, password: hashedPassword } : u
                     )
-                    localStorage.setItem("allUsers", JSON.stringify(updatedUsers))
-                    localStorage.setItem("userData", JSON.stringify({ ...user, password: hashedPassword }))
-                    console.log("✅ Migrated password to new format")
-                  } catch (error) {
+                    try {
+                      localStorage.setItem("allUsers", JSON.stringify(updatedUsers))
+                      localStorage.setItem("userData", JSON.stringify({ ...user, password: hashedPassword }))
+                      console.log("✅ Migrated password to new format")
+                    } catch (error) {
+                      console.error("Error saving migrated password:", error)
+                    }
+                  }).catch((error) => {
                     console.error("Error migrating password:", error)
-                  }
+                  })
                   break
+                } else {
+                  console.log("❌ Password mismatch (old format)")
                 }
               } else {
-                // New format: verify password hash
+                // New format: verify password hash with timeout
+                console.log("🔐 Verifying password hash...")
                 try {
-                  const passwordMatch = await verifyPassword(normalizedPassword, storedPassword)
+                  // Add timeout to password verification (5 seconds max)
+                  const passwordVerificationPromise = verifyPassword(normalizedPassword, storedPassword)
+                  const timeoutPromise = new Promise<boolean>((_, reject) => 
+                    setTimeout(() => reject(new Error("Password verification timeout")), 5000)
+                  )
+                  
+                  const passwordMatch = await Promise.race([passwordVerificationPromise, timeoutPromise])
                   if (passwordMatch) {
                     foundUser = user
                     console.log("✅ User found with password verification:", user.email)
                     break
+                  } else {
+                    console.log("❌ Password mismatch (hash verification)")
                   }
                 } catch (error) {
                   console.error("Error verifying password:", error)
+                  // If verification fails or times out, continue to next user
                 }
               }
             }
@@ -261,12 +276,21 @@ export default function Login() {
                   }
                 }
               } else {
-                // New format: verify password hash
+                // New format: verify password hash with timeout
+                console.log("🔐 Verifying password hash in userData...")
                 try {
-                  const passwordMatch = await verifyPassword(normalizedPassword, storedPassword)
+                  // Add timeout to password verification (5 seconds max)
+                  const passwordVerificationPromise = verifyPassword(normalizedPassword, storedPassword)
+                  const timeoutPromise = new Promise<boolean>((_, reject) => 
+                    setTimeout(() => reject(new Error("Password verification timeout")), 5000)
+                  )
+                  
+                  const passwordMatch = await Promise.race([passwordVerificationPromise, timeoutPromise])
                   if (passwordMatch) {
                     foundUser = userData
                     console.log("✅ User found in userData with password verification")
+                  } else {
+                    console.log("❌ Password mismatch (hash verification in userData)")
                   }
                 } catch (error) {
                   console.error("Error verifying password:", error)
@@ -280,10 +304,9 @@ export default function Login() {
       }
 
       if (foundUser) {
-        console.log("✅ LOGIN SUCCESS")
+        console.log("✅ LOGIN SUCCESS - Proceeding with login")
         
         // IMPORTANT: Add user to this device's allUsers array if not already present
-        // This allows users to sign in on any device after registering on any other device
         const allUsersStr = localStorage.getItem("allUsers")
         let allUsers: any[] = []
         
@@ -313,7 +336,6 @@ export default function Login() {
         }
         
         // Save credentials if "Remember me" is checked
-        // NOTE: Users can sign in on multiple devices - each device maintains its own session
         if (formData.rememberMe) {
           try {
             localStorage.setItem("savedCredentials", JSON.stringify({
@@ -324,7 +346,6 @@ export default function Login() {
             console.error("Error saving credentials:", error)
           }
         } else {
-          // Remove saved credentials if "Remember me" is unchecked
           try {
             localStorage.removeItem("savedCredentials")
           } catch (error) {
@@ -340,11 +361,13 @@ export default function Login() {
         }
 
         // Use the auth context to log in the user
-        // This login is device-specific - other devices remain unaffected
+        console.log("🔐 Calling login function...")
         login(foundUser)
+        console.log("✅ Login function called, navigating to dashboard...")
         
         // Use setTimeout to ensure state updates before navigation (helps on mobile/iPad)
         setTimeout(() => {
+          console.log("🚀 Navigating to dashboard...")
           router.push("/dashboard")
         }, 100)
       } else {
@@ -360,12 +383,32 @@ export default function Login() {
       }
     } catch (error: any) {
       console.error("❌ LOGIN ERROR:", error)
+      console.error("Error stack:", error.stack)
       toast({
         title: "Login error",
         description: error.message || "An error occurred during login. Please try again.",
         variant: "destructive",
       })
       setIsSubmitting(false)
+    }
+  }
+
+  // Add direct onClick handler as fallback for mobile devices
+  const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    console.log("🔘 Button clicked directly - isSubmitting:", isSubmitting)
+    
+    if (!isSubmitting && formData.email && formData.password) {
+      console.log("✅ Triggering form submission...")
+      // Create a synthetic form event
+      const syntheticEvent = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+      } as React.FormEvent
+      handleSubmit(syntheticEvent)
+    } else {
+      console.log("⏸️ Button click ignored - already submitting or missing credentials")
     }
   }
 
@@ -438,6 +481,7 @@ export default function Login() {
                 type="submit" 
                 className="w-full bg-teal-600 hover:bg-teal-700"
                 disabled={isSubmitting}
+                onClick={handleButtonClick}
               >
                 {isSubmitting ? "Signing in..." : "Sign In"}
               </Button>

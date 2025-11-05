@@ -115,21 +115,56 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    e.stopPropagation()
     
     // Prevent duplicate submissions
-    if (isSubmitting) return
+    if (isSubmitting) {
+      console.log("⏸️ Already submitting, ignoring duplicate submission")
+      return
+    }
     
     setIsSubmitting(true)
 
-    // Normalize email and password (trim whitespace, lowercase email)
-    const normalizedEmail = formData.email.trim().toLowerCase()
-    const normalizedPassword = formData.password.trim()
+    try {
+      // Normalize email and password (trim whitespace, lowercase email)
+      const normalizedEmail = formData.email.trim().toLowerCase()
+      const normalizedPassword = formData.password.trim()
 
-    console.log("=== LOGIN DEBUG START ===")
-    console.log("Input - Email:", normalizedEmail, "Password length:", normalizedPassword.length)
+      if (!normalizedEmail || !normalizedPassword) {
+        toast({
+          title: "Invalid input",
+          description: "Please enter both email and password",
+          variant: "destructive",
+        })
+        setIsSubmitting(false)
+        return
+      }
 
-    // Check credentials against all users in localStorage (client-side only)
-    if (typeof window !== 'undefined') {
+      console.log("=== LOGIN DEBUG START ===")
+      console.log("Input - Email:", normalizedEmail, "Password length:", normalizedPassword.length)
+
+      // Check credentials against all users in localStorage (client-side only)
+      if (typeof window === 'undefined') {
+        console.error("❌ window is undefined - cannot access localStorage")
+        setIsSubmitting(false)
+        return
+      }
+
+      // Check if localStorage is available (Safari private browsing mode disables it)
+      try {
+        const testKey = '__localStorage_test__'
+        localStorage.setItem(testKey, 'test')
+        localStorage.removeItem(testKey)
+      } catch (error) {
+        console.error("❌ localStorage is not available (possibly private browsing mode)")
+        toast({
+          title: "Storage unavailable",
+          description: "Please disable private browsing mode to use this app",
+          variant: "destructive",
+        })
+        setIsSubmitting(false)
+        return
+      }
       // First check allUsers array (new system)
       const allUsersStr = localStorage.getItem("allUsers")
       let foundUser = null
@@ -156,24 +191,32 @@ export default function Login() {
                 if (storedPassword === normalizedPassword) {
                   foundUser = user
                   // Migrate password to new format
-                  const hashedPassword = await migratePassword(user.email, normalizedPassword)
-                  user.password = hashedPassword
-                  // Update in localStorage
-                  const updatedUsers = allUsers.map((u: any) => 
-                    u.email === user.email ? { ...u, password: hashedPassword } : u
-                  )
-                  localStorage.setItem("allUsers", JSON.stringify(updatedUsers))
-                  localStorage.setItem("userData", JSON.stringify({ ...user, password: hashedPassword }))
-                  console.log("✅ Migrated password to new format")
+                  try {
+                    const hashedPassword = await migratePassword(user.email, normalizedPassword)
+                    user.password = hashedPassword
+                    // Update in localStorage
+                    const updatedUsers = allUsers.map((u: any) => 
+                      u.email === user.email ? { ...u, password: hashedPassword } : u
+                    )
+                    localStorage.setItem("allUsers", JSON.stringify(updatedUsers))
+                    localStorage.setItem("userData", JSON.stringify({ ...user, password: hashedPassword }))
+                    console.log("✅ Migrated password to new format")
+                  } catch (error) {
+                    console.error("Error migrating password:", error)
+                  }
                   break
                 }
               } else {
                 // New format: verify password hash
-                const passwordMatch = await verifyPassword(normalizedPassword, storedPassword)
-                if (passwordMatch) {
-                  foundUser = user
-                  console.log("✅ User found with password verification:", user.email)
-                  break
+                try {
+                  const passwordMatch = await verifyPassword(normalizedPassword, storedPassword)
+                  if (passwordMatch) {
+                    foundUser = user
+                    console.log("✅ User found with password verification:", user.email)
+                    break
+                  }
+                } catch (error) {
+                  console.error("Error verifying password:", error)
                 }
               }
             }
@@ -208,17 +251,25 @@ export default function Login() {
                 if (storedPassword === normalizedPassword) {
                   foundUser = userData
                   // Migrate password
-                  const hashedPassword = await migratePassword(userData.email, normalizedPassword)
-                  userData.password = hashedPassword
-                  localStorage.setItem("userData", JSON.stringify(userData))
-                  console.log("✅ Migrated password in userData to new format")
+                  try {
+                    const hashedPassword = await migratePassword(userData.email, normalizedPassword)
+                    userData.password = hashedPassword
+                    localStorage.setItem("userData", JSON.stringify(userData))
+                    console.log("✅ Migrated password in userData to new format")
+                  } catch (error) {
+                    console.error("Error migrating password:", error)
+                  }
                 }
               } else {
                 // New format: verify password hash
-                const passwordMatch = await verifyPassword(normalizedPassword, storedPassword)
-                if (passwordMatch) {
-                  foundUser = userData
-                  console.log("✅ User found in userData with password verification")
+                try {
+                  const passwordMatch = await verifyPassword(normalizedPassword, storedPassword)
+                  if (passwordMatch) {
+                    foundUser = userData
+                    console.log("✅ User found in userData with password verification")
+                  }
+                } catch (error) {
+                  console.error("Error verifying password:", error)
                 }
               }
             }
@@ -253,40 +304,68 @@ export default function Login() {
         // If user doesn't exist on this device, add them to enable future logins
         if (!userExists) {
           allUsers.push(foundUser)
-          localStorage.setItem("allUsers", JSON.stringify(allUsers))
-          console.log("✅ Added user to this device's allUsers array for multi-device support")
+          try {
+            localStorage.setItem("allUsers", JSON.stringify(allUsers))
+            console.log("✅ Added user to this device's allUsers array for multi-device support")
+          } catch (error) {
+            console.error("Error saving allUsers:", error)
+          }
         }
         
         // Save credentials if "Remember me" is checked
         // NOTE: Users can sign in on multiple devices - each device maintains its own session
         if (formData.rememberMe) {
-          localStorage.setItem("savedCredentials", JSON.stringify({
-            email: normalizedEmail,
-            password: normalizedPassword,
-          }))
+          try {
+            localStorage.setItem("savedCredentials", JSON.stringify({
+              email: normalizedEmail,
+              password: normalizedPassword,
+            }))
+          } catch (error) {
+            console.error("Error saving credentials:", error)
+          }
         } else {
           // Remove saved credentials if "Remember me" is unchecked
-          localStorage.removeItem("savedCredentials")
+          try {
+            localStorage.removeItem("savedCredentials")
+          } catch (error) {
+            console.error("Error removing saved credentials:", error)
+          }
         }
 
         // Update current userData for backward compatibility
-        localStorage.setItem("userData", JSON.stringify(foundUser))
+        try {
+          localStorage.setItem("userData", JSON.stringify(foundUser))
+        } catch (error) {
+          console.error("Error saving userData:", error)
+        }
 
         // Use the auth context to log in the user
         // This login is device-specific - other devices remain unaffected
         login(foundUser)
-        router.push("/dashboard")
+        
+        // Use setTimeout to ensure state updates before navigation (helps on mobile/iPad)
+        setTimeout(() => {
+          router.push("/dashboard")
+        }, 100)
       } else {
         console.log("❌ LOGIN FAILED - No matching user found")
         console.log("=== LOGIN DEBUG END ===")
         
         toast({
           title: "Login failed",
-          description: "Invalid email or password. Check browser console (F12) for details.",
+          description: "Invalid email or password. Please check your credentials and try again.",
           variant: "destructive",
         })
         setIsSubmitting(false)
       }
+    } catch (error: any) {
+      console.error("❌ LOGIN ERROR:", error)
+      toast({
+        title: "Login error",
+        description: error.message || "An error occurred during login. Please try again.",
+        variant: "destructive",
+      })
+      setIsSubmitting(false)
     }
   }
 
@@ -355,8 +434,12 @@ export default function Login() {
                   Remember me
                 </Label>
               </div>
-              <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700">
-                Sign In
+              <Button 
+                type="submit" 
+                className="w-full bg-teal-600 hover:bg-teal-700"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Signing in..." : "Sign In"}
               </Button>
             </form>
           </CardContent>

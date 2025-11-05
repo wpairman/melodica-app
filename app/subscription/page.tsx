@@ -10,7 +10,7 @@ import { Heart, CheckCircle2, XCircle } from "lucide-react"
 export default function SubscriptionPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const status = searchParams.get("status")
+  const status = searchParams?.get("status") ?? null
 
   useEffect(() => {
     // If status is success, redirect after 3 seconds

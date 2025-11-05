@@ -23,7 +23,7 @@ export async function GET(req: Request) {
     }
 
     const stripe = new Stripe(stripeKey, {
-      apiVersion: "2023-10-16",
+      apiVersion: "2025-08-27.basil",
     })
 
     // Retrieve the checkout session from Stripe

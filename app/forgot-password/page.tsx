@@ -15,6 +15,11 @@ export default function ForgotPassword() {
   const { toast } = useToast()
   const [email, setEmail] = useState("")
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   const handleResetClick = () => {
     setIsSubmitted(false)

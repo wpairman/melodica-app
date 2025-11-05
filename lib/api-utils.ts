@@ -57,11 +57,15 @@ export async function apiRequest<T = any>(
 /**
  * Stripe Checkout API
  */
-export async function createStripeCheckoutSession(tier: string): Promise<{ url: string }> {
-  return apiRequest<{ url: string }>('/stripe/checkout', {
-    method: 'POST',
-    body: JSON.stringify({ tier }),
-  })
+export async function createStripeCheckoutSession(tier: string): Promise<{ url: string; error?: string }> {
+  try {
+    return await apiRequest<{ url: string; error?: string }>('/stripe/checkout', {
+      method: 'POST',
+      body: JSON.stringify({ tier }),
+    })
+  } catch (error: any) {
+    return { url: '', error: error.message || 'Failed to create checkout session' }
+  }
 }
 
 /**

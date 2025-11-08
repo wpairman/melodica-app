@@ -18,6 +18,54 @@ type Therapist = {
   state?: string
 }
 
+const extractLocationDetails = (address: Record<string, string | undefined> | undefined, fallback?: string) => {
+  if (!address) {
+    return {
+      city: fallback || "Unknown",
+      state: undefined,
+      country: fallback,
+    }
+  }
+
+  const getFirst = (keys: string[]) => keys.map((key) => address[key]).find(Boolean)
+
+  const locality = getFirst([
+    "neighbourhood",
+    "suburb",
+    "city_district",
+    "district",
+    "village",
+    "hamlet",
+    "locality",
+    "isolated_dwelling"
+  ])
+
+  const city = getFirst([
+    "city",
+    "town",
+    "municipality"
+  ])
+
+  const admin = getFirst([
+    "parish",
+    "state_district",
+    "state",
+    "region",
+    "province",
+    "county"
+  ])
+
+  const country = address.country || fallback
+
+  const displayCity = [locality, city].filter(Boolean).join(", ") || city || admin || country || fallback || "Unknown"
+
+  return {
+    city: displayCity,
+    state: admin || undefined,
+    country: country || undefined,
+  }
+}
+
 // Therapist name and specialty pools for dynamic generation
 const FIRST_NAMES = ["Sarah", "Michael", "Jennifer", "David", "Lisa", "Robert", "Emily", "James", "Maria", "Christopher", "Jessica", "Daniel", "Ashley", "Matthew", "Amanda", "Mark", "Michelle", "Paul", "Stephanie", "Kevin"]
 const LAST_NAMES = ["Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin", "Lee", "Thompson"]
@@ -104,7 +152,7 @@ const lookupLocation = async (searchTerm: string): Promise<{ city?: string; stat
             const data = await response.json()
             if (data.places && data.places.length > 0) {
               return {
-                city: data.places[0]['place name'],
+                city: `${data.places[0]['place name']}, ${data.places[0]['state abbreviation']}`,
                 state: data.places[0]['state abbreviation'],
                 country: data.country,
                 zipCode: searchTerm,
@@ -118,7 +166,7 @@ const lookupLocation = async (searchTerm: string): Promise<{ city?: string; stat
       
       // For international zip codes, use Nominatim
       const zipResponse = await fetch(
-        `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(searchTerm)}&format=json&limit=1`,
+        `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(searchTerm)}&format=json&limit=1&addressdetails=1`,
         {
           headers: {
             'User-Agent': 'Melodica Mental Health App',
@@ -130,10 +178,11 @@ const lookupLocation = async (searchTerm: string): Promise<{ city?: string; stat
         const zipData = await zipResponse.json()
         if (zipData.length > 0) {
           const result = zipData[0]
+          const details = extractLocationDetails(result.address, searchTerm)
           return {
-            city: result.address?.city || result.address?.town || result.address?.village,
-            state: result.address?.state,
-            country: result.address?.country,
+            city: details.city,
+            state: details.state,
+            country: details.country,
             zipCode: searchTerm,
           }
         }
@@ -153,12 +202,12 @@ const lookupLocation = async (searchTerm: string): Promise<{ city?: string; stat
         const geoData = await geoResponse.json()
         if (geoData.length > 0) {
           const result = geoData[0]
-          const address = result.address || {}
+          const details = extractLocationDetails(result.address, searchTerm)
           return {
-            city: address.city || address.town || address.village || address.county || searchTerm,
-            state: address.state,
-            country: address.country || searchTerm,
-            zipCode: address.postcode,
+            city: details.city,
+            state: details.state,
+            country: details.country,
+            zipCode: result.address?.postcode,
           }
         }
       }
@@ -168,9 +217,11 @@ const lookupLocation = async (searchTerm: string): Promise<{ city?: string; stat
   }
   
   // Return search term as city/country if lookup fails
+  const fallbackDetails = extractLocationDetails(undefined, searchTerm)
   return {
-    city: searchTerm,
-    country: searchTerm,
+    city: fallbackDetails.city,
+    state: fallbackDetails.state,
+    country: fallbackDetails.country,
   }
 }
 
@@ -202,17 +253,21 @@ export default function TherapistFinder() {
           const geoData = await geoResponse.json()
           
           const address = geoData.address || {}
-          const city = address.city || address.town || address.village || address.county || ""
+          const details = extractLocationDetails(address, "Your Area")
           const zipCode = address.postcode || ""
-          const country = address.country || ""
+          const locationQuery = zipCode || details.city || details.country
           
           // Search with the found location
-          const locationQuery = zipCode || city || country
           if (locationQuery) {
             setQuery(locationQuery)
             
             // Generate therapists for this location
-            const therapists = await generateTherapistsForZip(zipCode || locationQuery, city, address.state, country || "USA")
+            const therapists = await generateTherapistsForZip(
+              zipCode || locationQuery,
+              details.city,
+              details.state,
+              details.country || "USA"
+            )
             setResults(therapists)
             setHasSearched(true)
           } else {
@@ -338,7 +393,7 @@ export default function TherapistFinder() {
               </CardHeader>
               <CardContent className="text-sm space-y-1">
                 <p className="font-medium">
-                  {th.distance} • {th.city}{th.state ? `, ${th.state}` : ""} {th.zipCode}
+                  {th.distance} • {th.city}{th.state && !th.city.includes(th.state) ? `, ${th.state}` : ""} {th.zipCode}
                 </p>
                 <p className="text-muted-foreground">{th.country}</p>
                 <p className="text-muted-foreground">{th.phone}</p>

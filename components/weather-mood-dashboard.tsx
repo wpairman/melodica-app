@@ -80,6 +80,22 @@ const getWeatherMoodImpact = (condition: string, temperature: number): {
   }
 }
 
+const formatLocation = (address: Record<string, string | undefined> | undefined): string => {
+  if (!address) return "your area"
+
+  const locality =
+    address.city ||
+    address.town ||
+    address.village ||
+    address.hamlet ||
+    address.suburb ||
+    address.neighbourhood
+
+  const region = address.state || address.region || address.country
+
+  return [locality, region].filter(Boolean).join(", ") || address.country || "your area"
+}
+
 export default function WeatherMoodDashboard() {
   const [state, setState] = useState<WeatherState>({ loading: true })
   const [currentDate, setCurrentDate] = useState<string>("")
@@ -116,14 +132,14 @@ export default function WeatherMoodDashboard() {
           const windSpeed = data.current.windspeed_10m
 
           const geo = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&addressdetails=1`
           ).then((r) => r.json())
 
           setState({
             loading: false,
             temperature: temp,
             condition: codeToCondition(code).label,
-            city: geo.address?.city || geo.address?.town || geo.address?.village || "your area",
+            city: formatLocation(geo.address),
             weatherCode: code,
             humidity,
             windSpeed
@@ -132,7 +148,12 @@ export default function WeatherMoodDashboard() {
           setState({ loading: false, error: "Unable to retrieve weather." })
         }
       },
-      () => setState({ loading: false, error: "Location permission denied." })
+      () => setState({ loading: false, error: "Location permission denied." }),
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0
+      }
     )
   }, [])
 

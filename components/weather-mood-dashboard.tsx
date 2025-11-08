@@ -83,17 +83,51 @@ const getWeatherMoodImpact = (condition: string, temperature: number): {
 const formatLocation = (address: Record<string, string | undefined> | undefined): string => {
   if (!address) return "your area"
 
-  const locality =
-    address.city ||
-    address.town ||
-    address.village ||
-    address.hamlet ||
-    address.suburb ||
-    address.neighbourhood
+  const getFirst = (keys: string[]) => keys.map((key) => address[key]).find(Boolean)
 
-  const region = address.state || address.region || address.country
+  const country = address.country
+  const parishOrState = getFirst([
+    "parish",
+    "state_district",
+    "state",
+    "region",
+    "province",
+    "county"
+  ])
+  const cityOrTown = getFirst([
+    "city",
+    "town",
+    "municipality"
+  ])
+  const locality = getFirst([
+    "city_district",
+    "suburb",
+    "village",
+    "hamlet",
+    "locality",
+    "isolated_dwelling"
+  ])
 
-  return [locality, region].filter(Boolean).join(", ") || address.country || "your area"
+  const segments: string[] = []
+
+  if (cityOrTown) {
+    if (locality && locality !== cityOrTown) {
+      segments.push(locality)
+    }
+    segments.push(cityOrTown)
+  } else if (locality) {
+    segments.push(locality)
+  }
+
+  if (parishOrState && !segments.includes(parishOrState)) {
+    segments.push(parishOrState)
+  }
+
+  if (country && !segments.includes(country)) {
+    segments.push(country)
+  }
+
+  return segments.join(", ") || "your area"
 }
 
 export default function WeatherMoodDashboard() {

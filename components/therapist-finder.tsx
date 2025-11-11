@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { MapPin, RefreshCw } from "lucide-react"
@@ -66,6 +66,74 @@ const extractLocationDetails = (address: Record<string, string | undefined> | un
   }
 }
 
+const THERAPIST_CACHE_STORAGE_KEY = "melodica-therapist-cache-v1"
+const THERAPIST_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 24
+
+type TherapistCacheEntry = {
+  timestamp: number
+  data: Therapist[]
+}
+
+type TherapistCache = Record<string, TherapistCacheEntry>
+
+const readTherapistCache = (): TherapistCache => {
+  if (typeof window === "undefined") return {}
+  try {
+    const raw = window.localStorage.getItem(THERAPIST_CACHE_STORAGE_KEY)
+    if (!raw) return {}
+    const parsed = JSON.parse(raw)
+    return typeof parsed === "object" && parsed ? parsed : {}
+  } catch (error) {
+    console.warn("Unable to read therapist cache:", error)
+    return {}
+  }
+}
+
+const writeTherapistCache = (cache: TherapistCache) => {
+  if (typeof window === "undefined") return
+  try {
+    window.localStorage.setItem(THERAPIST_CACHE_STORAGE_KEY, JSON.stringify(cache))
+  } catch (error) {
+    console.warn("Unable to write therapist cache:", error)
+  }
+}
+
+const cacheKeyFromLocation = (zipCode?: string, city?: string, state?: string, country?: string) => {
+  return [zipCode, city, state, country].filter(Boolean).map((segment) => segment?.toLowerCase().trim()).join("|")
+}
+
+const getTherapistsFromCache = (cacheKey: string): Therapist[] | null => {
+  if (!cacheKey) return null
+  const cache = readTherapistCache()
+  const entry = cache[cacheKey]
+  if (!entry) return null
+
+  const isFresh = Date.now() - entry.timestamp < THERAPIST_CACHE_MAX_AGE_MS
+  if (!isFresh) return null
+
+  return entry.data.map((therapist) => ({ ...therapist }))
+}
+
+const saveTherapistsToCache = (cacheKey: string, therapists: Therapist[]) => {
+  if (!cacheKey || typeof window === "undefined") return
+  const cache = readTherapistCache()
+  cache[cacheKey] = {
+    timestamp: Date.now(),
+    data: therapists,
+  }
+  writeTherapistCache(cache)
+}
+
+const generateStableId = (cacheKey: string, index: number) => {
+  let hash = 0
+  const seed = `${cacheKey}-${index}`
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash << 5) - hash + seed.charCodeAt(i)
+    hash |= 0
+  }
+  return Math.abs(hash)
+}
+
 // Therapist name and specialty pools for dynamic generation
 const FIRST_NAMES = ["Sarah", "Michael", "Jennifer", "David", "Lisa", "Robert", "Emily", "James", "Maria", "Christopher", "Jessica", "Daniel", "Ashley", "Matthew", "Amanda", "Mark", "Michelle", "Paul", "Stephanie", "Kevin"]
 const LAST_NAMES = ["Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin", "Lee", "Thompson"]
@@ -92,6 +160,12 @@ const SPECIALTIES = [
 
 // Generate therapists dynamically for any zip code
 const generateTherapistsForZip = async (zipCode: string, city?: string, state?: string, country?: string): Promise<Therapist[]> => {
+  const cacheKey = cacheKeyFromLocation(zipCode, city, state, country)
+  const cached = getTherapistsFromCache(cacheKey)
+  if (cached) {
+    return cached
+  }
+
   const therapists: Therapist[] = []
   const count = 5 + Math.floor(Math.random() * 5) // 5-10 therapists per location
   
@@ -122,7 +196,7 @@ const generateTherapistsForZip = async (zipCode: string, city?: string, state?: 
     }
     
     therapists.push({
-      id: Date.now() + i,
+      id: generateStableId(cacheKey, i),
       name,
       specialty,
       distance: distanceStr,
@@ -134,6 +208,7 @@ const generateTherapistsForZip = async (zipCode: string, city?: string, state?: 
     })
   }
   
+  saveTherapistsToCache(cacheKey, therapists)
   return therapists
 }
 
@@ -231,6 +306,9 @@ export default function TherapistFinder() {
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<Therapist[]>([])
   const [hasSearched, setHasSearched] = useState(false)
+  const [showManualLocation, setShowManualLocation] = useState(false)
+  const [manualLocation, setManualLocation] = useState({ city: "", state: "", country: "", zipCode: "" })
+  const [manualError, setManualError] = useState("")
 
   // Ask for location and (in real app) fetch therapists by coords
   const handleLocate = () => {
@@ -255,7 +333,23 @@ export default function TherapistFinder() {
           const address = geoData.address || {}
           const details = extractLocationDetails(address, "Your Area")
           const zipCode = address.postcode || ""
-          const locationQuery = zipCode || details.city || details.country
+          const normalizedCity = (details.city || "").replace(/unknown|your area/gi, "").trim()
+          const needsManualLocation = !details.country || !details.state || !normalizedCity
+
+          if (needsManualLocation) {
+            setManualLocation({
+              city: normalizedCity,
+              state: details.state || "",
+              country: details.country || "",
+              zipCode,
+            })
+            setManualError("")
+            setShowManualLocation(true)
+            setLoadingGeo(false)
+            return
+          }
+
+          const locationQuery = zipCode || normalizedCity || details.country
           
           // Search with the found location
           if (locationQuery) {
@@ -264,7 +358,7 @@ export default function TherapistFinder() {
             // Generate therapists for this location
             const therapists = await generateTherapistsForZip(
               zipCode || locationQuery,
-              details.city,
+              normalizedCity || details.city,
               details.state,
               details.country || "USA"
             )
@@ -278,10 +372,10 @@ export default function TherapistFinder() {
           }
         } catch (error) {
           console.error("Error getting location:", error)
-          // Fallback: generate therapists
-          const therapists = await generateTherapistsForZip("00000", "Your Area", undefined, "USA")
-          setResults(therapists)
-          setHasSearched(true)
+          setManualLocation({ city: "", state: "", country: "", zipCode: "" })
+          setManualError("We couldn't determine your exact location. Please confirm it below.")
+          setShowManualLocation(true)
+
         }
         
         setLoadingGeo(false)
@@ -354,6 +448,37 @@ export default function TherapistFinder() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query])
 
+  const handleManualSubmit = async () => {
+    const city = manualLocation.city.trim()
+    const country = manualLocation.country.trim()
+    const state = manualLocation.state.trim()
+    const zipCode = manualLocation.zipCode.trim()
+
+    if (!city || !country) {
+      setManualError("Please provide at least a city/town and country.")
+      return
+    }
+
+    setManualError("")
+
+    const therapists = await generateTherapistsForZip(
+      zipCode || city,
+      city,
+      state || undefined,
+      country
+    )
+
+    setResults(therapists)
+    setQuery(zipCode || city)
+    setHasSearched(true)
+    setShowManualLocation(false)
+  }
+
+  const handleManualCancel = () => {
+    setShowManualLocation(false)
+    setManualError("")
+  }
+
   return (
     <section className="space-y-6">
       <Card>
@@ -422,6 +547,61 @@ export default function TherapistFinder() {
           )}
         </CardContent>
       </Card>
+      {showManualLocation && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <Card className="w-full max-w-lg">
+            <CardHeader>
+              <CardTitle>Confirm your location</CardTitle>
+              <CardDescription>
+                We weren't able to pinpoint your exact city. Please confirm the details below so we can show nearby therapists.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <label className="text-sm font-medium">City / Town</label>
+                  <Input
+                    value={manualLocation.city}
+                    onChange={(e) => setManualLocation((prev) => ({ ...prev, city: e.target.value }))}
+                    placeholder="e.g., Kingston"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Parish / State</label>
+                  <Input
+                    value={manualLocation.state}
+                    onChange={(e) => setManualLocation((prev) => ({ ...prev, state: e.target.value }))}
+                    placeholder="e.g., Saint Andrew Parish"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Country</label>
+                  <Input
+                    value={manualLocation.country}
+                    onChange={(e) => setManualLocation((prev) => ({ ...prev, country: e.target.value }))}
+                    placeholder="e.g., Jamaica"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="text-sm font-medium">Postal code (optional)</label>
+                  <Input
+                    value={manualLocation.zipCode}
+                    onChange={(e) => setManualLocation((prev) => ({ ...prev, zipCode: e.target.value }))}
+                    placeholder="e.g., 00000"
+                  />
+                </div>
+              </div>
+              {manualError && <p className="text-sm text-destructive">{manualError}</p>}
+            </CardContent>
+            <CardFooter className="flex justify-end gap-2">
+              <Button variant="ghost" onClick={handleManualCancel}>
+                Cancel
+              </Button>
+              <Button onClick={handleManualSubmit}>Use this location</Button>
+            </CardFooter>
+          </Card>
+        </div>
+      )}
     </section>
   )
 }

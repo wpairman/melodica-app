@@ -36,8 +36,9 @@ export function useLocationPermission() {
         }
       } else {
         // Fallback for older browsers
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
+        const nav = typeof window !== 'undefined' ? window.navigator : null
+        if (nav && 'geolocation' in nav) {
+          nav.geolocation.getCurrentPosition(
             () => {
               setPermission("granted")
               setIsLocationEnabled(true)
@@ -64,6 +65,13 @@ export function useLocationPermission() {
 
   const requestPermission = (): Promise<boolean> => {
     return new Promise((resolve) => {
+      if (typeof navigator === 'undefined' || !('geolocation' in navigator)) {
+        setPermission("not-supported")
+        setIsLocationEnabled(false)
+        resolve(false)
+        return
+      }
+
       navigator.geolocation.getCurrentPosition(
         () => {
           setPermission("granted")

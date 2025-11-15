@@ -184,7 +184,7 @@ export function parseICalData(icalData: string): SyncedCalendarEvent[] {
       }
 
       // Extract DESCRIPTION
-      const descMatch = block.match(/DESCRIPTION[^:]*:(.+)/s)
+      const descMatch = block.match(/DESCRIPTION[^:]*:([\s\S]+)/)
       if (descMatch) {
         event.description = unescapeICal(descMatch[1].trim())
       }

@@ -13,7 +13,12 @@ const THEMES = { light: "", dark: ".dark" } as const
 export interface ChartConfig {
   [key: string]: {
     label: string
-    color: string
+    color?: string
+    theme?: {
+      light?: string
+      dark?: string
+    }
+    icon?: React.ComponentType<{ className?: string }>
   }
 }
 
@@ -111,15 +116,21 @@ const ChartLegend = RechartsPrimitive.Legend
 
 const ChartLegendContent = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<"div"> &
-    Pick<RechartsPrimitive.LegendProps, "payload" | "verticalAlign"> & {
-      hideIcon?: boolean
-      nameKey?: string
-    }
+  React.ComponentProps<"div"> & {
+    payload?: Array<{
+      value?: string
+      dataKey?: string
+      color?: string
+      [key: string]: unknown
+    }>
+    verticalAlign?: "top" | "bottom"
+    hideIcon?: boolean
+    nameKey?: string
+  }
 >(({ className, hideIcon = false, payload, verticalAlign = "bottom", nameKey }, ref) => {
   const { config } = useChart()
 
-  if (!payload?.length) {
+  if (!payload || !Array.isArray(payload) || payload.length === 0) {
     return null
   }
 

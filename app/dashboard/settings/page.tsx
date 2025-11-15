@@ -10,6 +10,7 @@ import { Slider } from "@/components/ui/slider"
 import { Bell, Clock, Moon, Volume2, Palette, Eye, MapPin, Shield, Calendar, Music, Info } from "lucide-react"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
 import { ColorCustomizationPanel } from "@/components/settings/color-customization-panel"
+import { AccountSync } from "@/components/account-sync"
 import { useToast } from "@/hooks/use-toast"
 import { useTheme } from "next-themes"
 import { MenuButton } from "@/components/navigation-sidebar"
@@ -1112,6 +1113,9 @@ export default function SettingsPage() {
               </Button>
             </CardContent>
           </Card>
+
+          {/* Account Sync */}
+          <AccountSync />
 
           {/* About & Version */}
           <Card className="bg-gray-800 border-gray-700">

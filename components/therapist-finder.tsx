@@ -134,32 +134,15 @@ const generateStableId = (cacheKey: string, index: number) => {
   return Math.abs(hash)
 }
 
-// Therapist name and specialty pools for dynamic generation
-const FIRST_NAMES = ["Sarah", "Michael", "Jennifer", "David", "Lisa", "Robert", "Emily", "James", "Maria", "Christopher", "Jessica", "Daniel", "Ashley", "Matthew", "Amanda", "Mark", "Michelle", "Paul", "Stephanie", "Kevin"]
-const LAST_NAMES = ["Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin", "Lee", "Thompson"]
-const TITLES = ["Dr.", "Dr.", "Dr.", "", "", ""] // Mix of titles
-const DEGREES = ["PsyD", "PhD", "LCSW", "LMFT", "LMHC", "LPC", "EdD", ""]
-const SPECIALTIES = [
-  "Anxiety • CBT",
-  "Depression • Mood Disorders",
-  "Trauma • PTSD",
-  "Couples Therapy",
-  "Family Systems",
-  "LGBTQ+ Support",
-  "Substance Use",
-  "ADHD • Executive Functioning",
-  "Eating Disorders",
-  "OCD",
-  "Bipolar Disorder",
-  "Grief Counseling",
-  "Stress Management",
-  "Mindfulness-Based Therapy",
-  "Dialectical Behavior Therapy",
-  "Cognitive Behavioral Therapy",
-]
-
-// Generate therapists dynamically for any zip code
-const generateTherapistsForZip = async (zipCode: string, city?: string, state?: string, country?: string): Promise<Therapist[]> => {
+// Fetch real registered therapists from NPI Registry (US) and other sources
+const fetchRealTherapists = async (
+  zipCode: string,
+  city?: string,
+  state?: string,
+  country?: string,
+  latitude?: number,
+  longitude?: number
+): Promise<Therapist[]> => {
   const cacheKey = cacheKeyFromLocation(zipCode, city, state, country)
   const cached = getTherapistsFromCache(cacheKey)
   if (cached) {
@@ -167,49 +150,295 @@ const generateTherapistsForZip = async (zipCode: string, city?: string, state?: 
   }
 
   const therapists: Therapist[] = []
-  const count = 5 + Math.floor(Math.random() * 5) // 5-10 therapists per location
-  
-  for (let i = 0; i < count; i++) {
-    const firstName = FIRST_NAMES[Math.floor(Math.random() * FIRST_NAMES.length)]
-    const lastName = LAST_NAMES[Math.floor(Math.random() * LAST_NAMES.length)]
-    const title = TITLES[Math.floor(Math.random() * TITLES.length)]
-    const degree = DEGREES[Math.floor(Math.random() * DEGREES.length)]
-    const specialty = SPECIALTIES[Math.floor(Math.random() * SPECIALTIES.length)]
-    
-    const name = title ? `${title} ${firstName} ${lastName}${degree ? `, ${degree}` : ""}` : `${firstName} ${lastName}${degree ? `, ${degree}` : ""}`
-    
-    const distance = (i + 1) * 0.5 + Math.random() * 2
-    const distanceStr = country === "USA" || !country ? `${distance.toFixed(1)} mi` : `${(distance * 1.6).toFixed(1)} km`
-    
-    // Generate phone based on location
-    let phone = ""
-    if (country === "Jamaica") {
-      phone = `876-555-${Math.floor(1000 + Math.random() * 9000)}`
-    } else if (country === "Canada") {
-      phone = `${Math.floor(200 + Math.random() * 800)}-555-${Math.floor(1000 + Math.random() * 9000)}`
-    } else if (country === "United Kingdom") {
-      phone = `+44-20-5555-${Math.floor(1000 + Math.random() * 9000)}`
-    } else {
-      // USA format
-      const areaCode = Math.floor(200 + Math.random() * 800)
-      phone = `${areaCode}-555-${Math.floor(1000 + Math.random() * 9000)}`
+
+  try {
+    // For US locations, use NPI Registry API to find registered mental health providers
+    if (country === "USA" || country === "United States" || !country || country === "US") {
+      const npiTherapists = await fetchNPIRegistryTherapists(zipCode, city, state, latitude, longitude)
+      therapists.push(...npiTherapists)
     }
-    
-    therapists.push({
-      id: generateStableId(cacheKey, i),
-      name,
-      specialty,
-      distance: distanceStr,
-      city: city || "Unknown",
-      zipCode,
-      state: state || undefined,
-      country: country || "USA",
-      phone,
-    })
+
+    // If we don't have enough results, try Psychology Today search (web-based)
+    if (therapists.length < 5 && (country === "USA" || country === "United States" || !country)) {
+      const psychologyTodayTherapists = await fetchPsychologyTodayTherapists(zipCode, city, state)
+      // Merge without duplicates
+      const existingNames = new Set(therapists.map(t => t.name.toLowerCase()))
+      psychologyTodayTherapists.forEach(t => {
+        if (!existingNames.has(t.name.toLowerCase())) {
+          therapists.push(t)
+        }
+      })
+    }
+
+    // For non-US locations, provide helpful information
+    if (therapists.length === 0 && country && country !== "USA" && country !== "United States") {
+      // Return empty array - we'll show a message to the user
+      return []
+    }
+  } catch (error) {
+    console.error("Error fetching real therapists:", error)
+    // Fall through to show helpful message
   }
-  
-  saveTherapistsToCache(cacheKey, therapists)
+
+  // Cache results if we found any
+  if (therapists.length > 0) {
+    saveTherapistsToCache(cacheKey, therapists)
+  }
+
   return therapists
+}
+
+// Fetch therapists from NPI Registry (official US government database)
+const fetchNPIRegistryTherapists = async (
+  zipCode: string,
+  city?: string,
+  state?: string,
+  latitude?: number,
+  longitude?: number
+): Promise<Therapist[]> => {
+  const therapists: Therapist[] = []
+
+  try {
+    // NPI Registry API endpoint - build search parameters
+    const params = new URLSearchParams({
+      version: "2.1",
+      enumeration_type: "NPI-1",
+      limit: "50", // Get more results to filter
+    })
+
+    // Add location filters - prioritize zip code, then city/state
+    if (zipCode) {
+      params.append("postal_code", zipCode.split("-")[0]) // Use first 5 digits if extended zip
+    } else if (city && state) {
+      params.append("city", city)
+      params.append("state", state)
+    } else if (city) {
+      params.append("city", city)
+    } else if (state) {
+      params.append("state", state)
+    }
+
+    // Search for different mental health provider taxonomy codes
+    // Using taxonomy codes is more reliable than descriptions
+    const taxonomyCodes = [
+      "103T00000X", // Psychologist
+      "1041C0700X", // Clinical Psychologist
+      "1041S0200X", // School Psychologist
+      "2084P0800X", // Psychiatry & Neurology - Psychiatry
+      "2084P0802X", // Psychiatry & Neurology - Addiction Psychiatry
+      "2084P0804X", // Psychiatry & Neurology - Child & Adolescent Psychiatry
+      "2084P0805X", // Psychiatry & Neurology - Geriatric Psychiatry
+    ]
+
+    // Also search by taxonomy description as fallback
+    const providerTypes = [
+      "Psychologist",
+      "Clinical Social Worker",
+      "Marriage & Family Therapist",
+      "Professional Counselor",
+      "Mental Health Counselor",
+    ]
+
+    const seenNPIs = new Set<string>()
+
+    // First, try searching by taxonomy codes
+    for (const taxonomyCode of taxonomyCodes) {
+      try {
+        const searchParams = new URLSearchParams(params)
+        searchParams.set("taxonomy_description", taxonomyCode)
+        
+        const response = await fetch(
+          `https://npiregistry.cms.hhs.gov/api/?${searchParams.toString()}`,
+          {
+            headers: {
+              'Accept': 'application/json',
+            },
+          }
+        )
+
+        if (response.ok) {
+          const data = await response.json()
+          
+          if (data.results && Array.isArray(data.results)) {
+            data.results.forEach((provider: any, index: number) => {
+              const npi = provider.number
+              if (seenNPIs.has(npi)) return // Skip duplicates
+              seenNPIs.add(npi)
+
+              const addresses = provider.addresses || []
+              const practiceAddress = addresses.find((addr: any) => addr.address_purpose === "LOCATION") || addresses[0]
+              
+              if (practiceAddress) {
+                const providerName = provider.basic?.organization_name || 
+                  `${provider.basic?.first_name || ""} ${provider.basic?.last_name || ""}`.trim() ||
+                  "Provider"
+                
+                if (!providerName || providerName === "Provider") return // Skip invalid entries
+                
+                const specialties = provider.taxonomies || []
+                const specialty = specialties.length > 0 
+                  ? specialties[0].desc || "Mental Health Provider"
+                  : "Mental Health Provider"
+
+                const phone = practiceAddress.telephone_number || ""
+                const providerCity = practiceAddress.city || city || "Unknown"
+                const providerState = practiceAddress.state || state
+                const providerZip = practiceAddress.postal_code || zipCode
+                const providerCountry = practiceAddress.country_code === "US" ? "USA" : practiceAddress.country_name || "USA"
+
+                // Calculate distance if we have coordinates
+                let distance = ""
+                if (latitude && longitude) {
+                  // Try to geocode the address if we don't have coordinates
+                  // For now, estimate based on zip code match
+                  if (zipCode && providerZip && zipCode.split("-")[0] === providerZip.split("-")[0]) {
+                    distance = "0.5-5.0 mi" // Same zip code area
+                  } else {
+                    distance = "5-15 mi" // Different zip code
+                  }
+                } else {
+                  distance = zipCode && providerZip && zipCode.split("-")[0] === providerZip.split("-")[0] 
+                    ? "0.5-5.0 mi" 
+                    : "5-15 mi"
+                }
+
+                therapists.push({
+                  id: npi || generateStableId(`${providerCity}-${providerZip}`, therapists.length),
+                  name: providerName,
+                  specialty: specialty,
+                  distance: distance,
+                  city: providerCity,
+                  zipCode: providerZip,
+                  state: providerState,
+                  country: providerCountry,
+                  phone: phone,
+                })
+              }
+            })
+          }
+        }
+      } catch (error) {
+        console.warn(`Error fetching taxonomy ${taxonomyCode} from NPI Registry:`, error)
+        // Continue to next taxonomy
+      }
+    }
+
+    // If we don't have enough results, try searching by description
+    if (therapists.length < 5) {
+      for (const providerType of providerTypes) {
+        try {
+          const searchParams = new URLSearchParams(params)
+          searchParams.set("taxonomy_description", providerType)
+          
+          const response = await fetch(
+            `https://npiregistry.cms.hhs.gov/api/?${searchParams.toString()}`,
+            {
+              headers: {
+                'Accept': 'application/json',
+              },
+            }
+          )
+
+          if (response.ok) {
+            const data = await response.json()
+            
+            if (data.results && Array.isArray(data.results)) {
+              data.results.forEach((provider: any) => {
+                const npi = provider.number
+                if (seenNPIs.has(npi)) return // Skip duplicates
+                seenNPIs.add(npi)
+
+                const addresses = provider.addresses || []
+                const practiceAddress = addresses.find((addr: any) => addr.address_purpose === "LOCATION") || addresses[0]
+                
+                if (practiceAddress) {
+                  const providerName = provider.basic?.organization_name || 
+                    `${provider.basic?.first_name || ""} ${provider.basic?.last_name || ""}`.trim() ||
+                    "Provider"
+                  
+                  if (!providerName || providerName === "Provider") return
+                  
+                  const specialties = provider.taxonomies || []
+                  const specialty = specialties.length > 0 
+                    ? specialties[0].desc || providerType
+                    : providerType
+
+                  const phone = practiceAddress.telephone_number || ""
+                  const providerCity = practiceAddress.city || city || "Unknown"
+                  const providerState = practiceAddress.state || state
+                  const providerZip = practiceAddress.postal_code || zipCode
+                  const providerCountry = practiceAddress.country_code === "US" ? "USA" : practiceAddress.country_name || "USA"
+
+                  let distance = ""
+                  if (zipCode && providerZip && zipCode.split("-")[0] === providerZip.split("-")[0]) {
+                    distance = "0.5-5.0 mi"
+                  } else {
+                    distance = "5-15 mi"
+                  }
+
+                  therapists.push({
+                    id: npi || generateStableId(`${providerCity}-${providerZip}`, therapists.length),
+                    name: providerName,
+                    specialty: specialty,
+                    distance: distance,
+                    city: providerCity,
+                    zipCode: providerZip,
+                    state: providerState,
+                    country: providerCountry,
+                    phone: phone,
+                  })
+                }
+              })
+            }
+          }
+        } catch (error) {
+          console.warn(`Error fetching ${providerType} from NPI Registry:`, error)
+          // Continue to next provider type
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching from NPI Registry:", error)
+  }
+
+  return therapists.slice(0, 20) // Limit to 20 results
+}
+
+// Fetch therapists from Psychology Today (using their public search)
+const fetchPsychologyTodayTherapists = async (
+  zipCode: string,
+  city?: string,
+  state?: string
+): Promise<Therapist[]> => {
+  const therapists: Therapist[] = []
+
+  try {
+    // Psychology Today doesn't have a public API, but we can provide a link
+    // For now, we'll return an empty array and show users how to search
+    // In a production app, you would need to:
+    // 1. Get an API key from Psychology Today (if available)
+    // 2. Or use a web scraping service (with proper permissions)
+    // 3. Or redirect users to Psychology Today's website
+    
+    // This is a placeholder - in production, integrate with Psychology Today's API if available
+  } catch (error) {
+    console.error("Error fetching from Psychology Today:", error)
+  }
+
+  return therapists
+}
+
+// Calculate distance between two coordinates (Haversine formula)
+const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+  const R = 3959 // Earth's radius in miles
+  const dLat = (lat2 - lat1) * Math.PI / 180
+  const dLon = (lon2 - lon1) * Math.PI / 180
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return R * c
 }
 
 // Lookup location by zip code, city, or country name
@@ -303,6 +532,7 @@ const lookupLocation = async (searchTerm: string): Promise<{ city?: string; stat
 export default function TherapistFinder() {
   const [locationGranted, setLocationGranted] = useState(false)
   const [loadingGeo, setLoadingGeo] = useState(false)
+  const [loadingTherapists, setLoadingTherapists] = useState(false)
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<Therapist[]>([])
   const [hasSearched, setHasSearched] = useState(false)
@@ -355,20 +585,39 @@ export default function TherapistFinder() {
           if (locationQuery) {
             setQuery(locationQuery)
             
-            // Generate therapists for this location
-            const therapists = await generateTherapistsForZip(
-              zipCode || locationQuery,
-              normalizedCity || details.city,
-              details.state,
-              details.country || "USA"
-            )
-            setResults(therapists)
-            setHasSearched(true)
+            // Fetch real registered therapists for this location
+            setLoadingTherapists(true)
+            try {
+              const therapists = await fetchRealTherapists(
+                zipCode || locationQuery,
+                normalizedCity || details.city,
+                details.state,
+                details.country || "USA",
+                lat,
+                lon
+              )
+              setResults(therapists)
+              setHasSearched(true)
+            } finally {
+              setLoadingTherapists(false)
+            }
           } else {
-            // If can't determine location, generate generic therapists
-            const therapists = await generateTherapistsForZip("00000", "Your Area", undefined, "USA")
-            setResults(therapists)
-            setHasSearched(true)
+            // If can't determine location, try to fetch with coordinates
+            setLoadingTherapists(true)
+            try {
+              const therapists = await fetchRealTherapists(
+                "",
+                "Your Area",
+                undefined,
+                "USA",
+                lat,
+                lon
+              )
+              setResults(therapists)
+              setHasSearched(true)
+            } finally {
+              setLoadingTherapists(false)
+            }
           }
         } catch (error) {
           console.error("Error getting location:", error)
@@ -396,6 +645,7 @@ export default function TherapistFinder() {
 
     const searchTerm = query.trim()
     setHasSearched(true)
+    setLoadingTherapists(true)
     
     try {
       // Lookup the location (works for zip codes, cities, or countries)
@@ -407,8 +657,8 @@ export default function TherapistFinder() {
       const country = locationInfo.country || searchTerm
       const zipCode = locationInfo.zipCode || (locationInfo.city ? "" : searchTerm) || searchTerm
 
-      // Generate therapists for this location
-      const therapists = await generateTherapistsForZip(
+      // Fetch real registered therapists for this location
+      const therapists = await fetchRealTherapists(
         zipCode,
         city,
         state,
@@ -418,9 +668,11 @@ export default function TherapistFinder() {
       setResults(therapists)
     } catch (error) {
       console.error("Error searching therapists:", error)
-      // Fallback: generate therapists with the search term as location
-      const therapists = await generateTherapistsForZip(searchTerm, searchTerm, undefined, searchTerm)
+      // Try to fetch real therapists with the search term as location
+      const therapists = await fetchRealTherapists(searchTerm, searchTerm, undefined, searchTerm)
       setResults(therapists)
+    } finally {
+      setLoadingTherapists(false)
     }
   }
 
@@ -460,18 +712,23 @@ export default function TherapistFinder() {
     }
 
     setManualError("")
+    setLoadingTherapists(true)
 
-    const therapists = await generateTherapistsForZip(
-      zipCode || city,
-      city,
-      state || undefined,
-      country
-    )
+    try {
+      const therapists = await fetchRealTherapists(
+        zipCode || city,
+        city,
+        state || undefined,
+        country
+      )
 
-    setResults(therapists)
-    setQuery(zipCode || city)
-    setHasSearched(true)
-    setShowManualLocation(false)
+      setResults(therapists)
+      setQuery(zipCode || city)
+      setHasSearched(true)
+      setShowManualLocation(false)
+    } finally {
+      setLoadingTherapists(false)
+    }
   }
 
   const handleManualCancel = () => {
@@ -501,8 +758,15 @@ export default function TherapistFinder() {
               }}
               className="w-40 sm:w-52"
             />
-            <Button onClick={handleSearch} variant="default" size="sm">
-              Search
+            <Button onClick={handleSearch} variant="default" size="sm" disabled={loadingTherapists}>
+              {loadingTherapists ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                  Searching...
+                </>
+              ) : (
+                "Search"
+              )}
             </Button>
             <Button variant="secondary" size="icon" onClick={handleLocate} disabled={loadingGeo} aria-label="Locate me">
               {loadingGeo ? <RefreshCw className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
@@ -510,7 +774,14 @@ export default function TherapistFinder() {
           </div>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {results.map((th) => (
+          {loadingTherapists && (
+            <div className="col-span-full text-center py-8">
+              <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2 text-muted-foreground" />
+              <p className="text-muted-foreground">Searching for registered therapists...</p>
+              <p className="text-sm text-muted-foreground mt-1">This may take a few moments</p>
+            </div>
+          )}
+          {!loadingTherapists && results.map((th) => (
             <Card key={th.id} className="border shadow-sm hover:shadow-md transition-shadow">
               <CardHeader>
                 <CardTitle className="text-base">{th.name}</CardTitle>
@@ -528,18 +799,80 @@ export default function TherapistFinder() {
               </CardContent>
             </Card>
           ))}
-          {results.length === 0 && hasSearched && (
+          {!loadingTherapists && results.length === 0 && hasSearched && (
             <div className="col-span-full text-center py-8">
-              <p className="text-muted-foreground mb-2">No therapists found for "{query}"</p>
-              <p className="text-sm text-muted-foreground">Try searching by:</p>
-              <ul className="text-sm text-muted-foreground mt-2 space-y-1">
-                <li>• Zip code (e.g., 90001, 10001)</li>
-                <li>• City name (e.g., Los Angeles, New York, Kingston)</li>
-                <li>• Country (e.g., USA, Jamaica, Canada)</li>
-              </ul>
+              <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+                <CardHeader>
+                  <CardTitle className="text-lg">No Registered Therapists Found</CardTitle>
+                  <CardDescription>
+                    We couldn't find registered therapists in our database for "{query}".
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="text-left space-y-4">
+                  <div>
+                    <p className="font-medium mb-2">To find registered therapists near you:</p>
+                    <ul className="text-sm space-y-2 list-disc list-inside">
+                      <li>
+                        <strong>For US locations:</strong> Visit{" "}
+                        <a 
+                          href={`https://www.psychologytoday.com/us/therapists/${query.replace(/\s+/g, "-").toLowerCase()}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 dark:text-blue-400 hover:underline"
+                        >
+                          Psychology Today's directory
+                        </a>
+                        {" "}or search the{" "}
+                        <a 
+                          href="https://npiregistry.cms.hhs.gov/"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 dark:text-blue-400 hover:underline"
+                        >
+                          NPI Registry
+                        </a>
+                      </li>
+                      <li>
+                        <strong>Check your insurance provider:</strong> Most insurance companies have directories of in-network mental health providers
+                      </li>
+                      <li>
+                        <strong>Contact local mental health organizations:</strong> They often maintain directories of licensed therapists
+                      </li>
+                      <li>
+                        <strong>State licensing boards:</strong> Each state has a licensing board website where you can verify credentials and find licensed professionals
+                      </li>
+                    </ul>
+                  </div>
+                  <div className="pt-2">
+                    <p className="text-sm text-muted-foreground">
+                      <strong>Note:</strong> This app searches the official NPI Registry for registered mental health providers in the US. 
+                      For locations outside the US or if no results are found, please use the resources above.
+                    </p>
+                  </div>
+                </CardContent>
+                <CardFooter className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      const searchUrl = `https://www.psychologytoday.com/us/therapists/${query.replace(/\s+/g, "-").toLowerCase()}`
+                      window.open(searchUrl, '_blank')
+                    }}
+                  >
+                    Search Psychology Today
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      window.open("https://npiregistry.cms.hhs.gov/", '_blank')
+                    }}
+                  >
+                    Open NPI Registry
+                  </Button>
+                </CardFooter>
+              </Card>
             </div>
           )}
-          {!hasSearched && (
+          {!loadingTherapists && !hasSearched && (
             <div className="col-span-full text-center py-8">
               <p className="text-muted-foreground">Enter a zip code, city, or country to search for therapists</p>
               <p className="text-sm text-muted-foreground mt-2">Or click the location button to find therapists near you</p>

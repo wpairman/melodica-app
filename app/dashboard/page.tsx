@@ -5,7 +5,7 @@ import { useState, useEffect } from "react"
 // Force dynamic rendering to avoid SSR issues with event handlers
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Heart, Activity, User, Settings, LogOut, Music, CreditCard, Calendar, Menu, TrendingUp, Cloud, ListMusic } from "lucide-react"
 import MoodTracker from "@/components/mood-tracker"

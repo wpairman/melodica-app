@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Heart, Activity, User, Settings, LogOut, Music, CreditCard, Calendar, Menu, TrendingUp, Cloud, ListMusic } from "lucide-react"
+import { Heart, Activity, User, Settings, LogOut, Music, CreditCard, Calendar, Menu, TrendingUp, Cloud, ListMusic, Sparkles } from "lucide-react"
 import { DarkModeToggle } from "@/components/dark-mode-toggle"
 import { useAuth } from "@/contexts/auth-context"
 import { useToast } from "@/hooks/use-toast"
@@ -116,6 +116,12 @@ export function NavigationSidebar({ isOpen, onOpenChange }: NavigationSidebarPro
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                     Journaling
+                  </Button>
+                </Link>
+                <Link href="/dashboard/jamaica-wellness">
+                  <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Jamaica Wellness Toolkit
                   </Button>
                 </Link>
                 <Link href="/pricing">

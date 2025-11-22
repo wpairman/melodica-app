@@ -12,10 +12,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Heart, ArrowLeft } from "lucide-react"
+import { Heart, ArrowLeft, AlertCircle, Info } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/auth-context"
 import { verifyPassword, isOldHashFormat, migratePassword } from "@/lib/password-utils"
+import { AccountImportButton } from "@/components/account-import-button"
 
 export default function Login() {
   const router = useRouter()
@@ -374,9 +375,26 @@ export default function Login() {
         console.log("❌ LOGIN FAILED - No matching user found")
         console.log("=== LOGIN DEBUG END ===")
         
+        // Check if this might be a multi-device issue
+        let hasNoUsers = false
+        try {
+          const allUsersStr = localStorage.getItem("allUsers")
+          if (!allUsersStr) {
+            hasNoUsers = true
+          } else {
+            const allUsers = JSON.parse(allUsersStr)
+            hasNoUsers = !Array.isArray(allUsers) || allUsers.length === 0
+          }
+        } catch (error) {
+          // If parsing fails, assume no users
+          hasNoUsers = true
+        }
+        
         toast({
           title: "Login failed",
-          description: "Invalid email or password. Please check your credentials and try again.",
+          description: hasNoUsers 
+            ? "Account not found on this device. If you registered on another device, use the 'Import Account' button above to import your account file."
+            : "Invalid email or password. Please check your credentials and try again.",
           variant: "destructive",
         })
         setIsSubmitting(false)
@@ -431,6 +449,19 @@ export default function Login() {
             <CardDescription className="text-gray-300">Enter your credentials to access your account</CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Multi-device notice */}
+            <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+              <div className="flex items-start gap-2">
+                <Info className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                <div className="text-xs text-blue-200 flex-1">
+                  <p className="font-medium mb-1">Using a new device?</p>
+                  <p className="text-blue-300/80 mb-2">
+                    If you registered on another device, import your account file below to log in.
+                  </p>
+                  <AccountImportButton />
+                </div>
+              </div>
+            </div>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-white">Email</Label>

@@ -7,7 +7,7 @@
  * This email must match exactly the email you use to log into the app
  */
 
-export const ADMIN_EMAIL = "your-email@example.com" // ⚠️ CHANGE THIS TO YOUR ACTUAL EMAIL
+export const ADMIN_EMAIL = "will7ovo@gmail.com"
 
 export const ADMIN_EMAILS = [ADMIN_EMAIL.toLowerCase().trim()]
 

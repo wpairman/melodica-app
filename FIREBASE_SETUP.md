@@ -94,12 +94,11 @@ npm run dev
 1. Register a new user account
 2. Check Firebase Console → Firestore Database → `users` collection
 3. You should see the new user document
-4. Go to Admin Panel in your app
-5. You should see all users from Firebase (not just localStorage)
+4. Users are now stored in Firebase and can be viewed in the Firebase Console
 
 ## Troubleshooting
 
-### Users not appearing in admin panel
+### Users not appearing in Firebase
 - Check browser console for Firebase errors
 - Verify environment variables are set correctly
 - Make sure Firestore is enabled and rules allow read access

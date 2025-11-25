@@ -1,15 +1,14 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Heart, Activity, User, Settings, LogOut, Music, CreditCard, Calendar, Menu, TrendingUp, Cloud, ListMusic, Sparkles, Shield } from "lucide-react"
+import { Heart, Activity, User, Settings, LogOut, Music, CreditCard, Calendar, Menu, TrendingUp, Cloud, ListMusic, Sparkles } from "lucide-react"
 import { DarkModeToggle } from "@/components/dark-mode-toggle"
 import { useAuth } from "@/contexts/auth-context"
 import { useToast } from "@/hooks/use-toast"
-import { isAdminEmail } from "@/lib/admin-config"
 
 interface NavigationSidebarProps {
   isOpen: boolean
@@ -20,21 +19,6 @@ export function NavigationSidebar({ isOpen, onOpenChange }: NavigationSidebarPro
   const { logout } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
-  const [isAdmin, setIsAdmin] = useState(false)
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const userData = localStorage.getItem("userData")
-      if (userData) {
-        try {
-          const parsed = JSON.parse(userData)
-          setIsAdmin(isAdminEmail(parsed.email || ""))
-        } catch (error) {
-          console.error("Error parsing user data:", error)
-        }
-      }
-    }
-  }, [])
 
   const handleLogout = () => {
     console.log("🚪 LOGOUT - Button clicked")
@@ -152,14 +136,6 @@ export function NavigationSidebar({ isOpen, onOpenChange }: NavigationSidebarPro
                     Settings
                   </Button>
                 </Link>
-                {isAdmin && (
-                  <Link href="/dashboard/admin">
-                    <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
-                      <Shield className="mr-2 h-4 w-4 text-yellow-500" />
-                      Admin Panel
-                    </Button>
-                  </Link>
-                )}
               </div>
             </div>
           </nav>

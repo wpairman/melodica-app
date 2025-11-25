@@ -7,7 +7,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Heart, Activity, User, Settings, LogOut, Music, CreditCard, Calendar, Menu, TrendingUp, Cloud, ListMusic, Sparkles, Shield } from "lucide-react"
+import { Heart, Activity, User, Settings, LogOut, Music, CreditCard, Calendar, Menu, TrendingUp, Cloud, ListMusic, Sparkles } from "lucide-react"
 import MoodTracker from "@/components/mood-tracker"
 import Recommendations from "@/components/recommendations"
 import MoodAnalysis from "@/components/mood-analysis"
@@ -23,7 +23,6 @@ import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
 import { AuthGuard } from "@/components/auth-guard"
 import JamaicaWellnessToolkit from "@/components/jamaica-wellness-toolkit"
-import { isAdminEmail } from "@/lib/admin-config"
 
 export default function Dashboard() {
   const { toast } = useToast()
@@ -32,7 +31,6 @@ export default function Dashboard() {
   const [userData, setUserData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [isMounted, setIsMounted] = useState(false)
-  const [isAdmin, setIsAdmin] = useState(false)
 
   // Load initial data
   useEffect(() => {
@@ -44,12 +42,6 @@ export default function Dashboard() {
         try {
           const parsed = JSON.parse(storedData)
           setUserData(parsed)
-          // Check if user is admin
-          const userEmail = parsed.email || ""
-          const adminCheck = isAdminEmail(userEmail)
-          setIsAdmin(adminCheck)
-          // Debug log (remove in production)
-          console.log("Admin check:", { email: userEmail, isAdmin: adminCheck })
         } catch (error) {
           console.error("Error parsing user data:", error)
         }
@@ -390,23 +382,6 @@ export default function Dashboard() {
                         Settings
                       </Button>
                     </Link>
-                    {/* Admin Panel - Always visible for now to test */}
-                    <Link href="/dashboard/admin">
-                      <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800 border-yellow-500/50">
-                        <Shield className="mr-2 h-4 w-4 text-yellow-500" />
-                        Admin Panel {isAdmin ? "✓" : "?"}
-                      </Button>
-                    </Link>
-                    {/* Original conditional version - uncomment after testing
-                    {isAdmin && (
-                      <Link href="/dashboard/admin">
-                        <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
-                          <Shield className="mr-2 h-4 w-4 text-yellow-500" />
-                          Admin Panel
-                        </Button>
-                      </Link>
-                    )}
-                    */}
                     {userData.gender === "female" && (
                       <Link href="/period-tracker">
                         <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">

@@ -289,19 +289,42 @@ export default function AdminPage() {
                 </Button>
               </div>
 
+              {/* Important Notice */}
+              <Card className="bg-yellow-900/20 border-yellow-700">
+                <CardContent className="pt-6">
+                  <div className="flex items-start gap-3">
+                    <Shield className="h-5 w-5 text-yellow-500 mt-0.5" />
+                    <div>
+                      <p className="text-yellow-200 font-medium mb-1">⚠️ Important: localStorage Limitation</p>
+                      <p className="text-yellow-300/80 text-sm">
+                        This admin panel only shows users who have signed up on <strong>this device/browser</strong>. 
+                        localStorage is per-device, so users signing up on other devices won't appear here.
+                      </p>
+                      <p className="text-yellow-300/80 text-sm mt-2">
+                        <strong>To track all users:</strong> You need a backend database (Firebase, Supabase, MongoDB, etc.) 
+                        to store user data centrally. This is a client-side demo limitation.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Users Table */}
               <Card className="bg-gray-800 border-gray-700">
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
                     <Users className="h-5 w-5" />
-                    All Users ({users.length})
+                    All Users ({users.length}) - This Device Only
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {users.length === 0 ? (
                     <div className="text-center py-8 text-gray-400">
                       <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>No users found</p>
+                      <p>No users found on this device</p>
+                      <p className="text-sm text-gray-500 mt-2">
+                        Users who sign up on other devices won't appear here
+                      </p>
                     </div>
                   ) : (
                     <div className="overflow-x-auto">

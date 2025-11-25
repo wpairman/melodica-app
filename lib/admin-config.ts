@@ -1,15 +1,16 @@
 /**
  * Admin Configuration
  * 
- * ⚠️ IMPORTANT: Replace "your-email@example.com" with YOUR actual email address
- * Only this email will have access to the admin dashboard
+ * ⚠️ IMPORTANT: Add admin email addresses here
+ * Only emails in this list will have access to the admin dashboard
  * 
- * This email must match exactly the email you use to log into the app
+ * These emails must match exactly the emails used to log into the app
  */
 
-export const ADMIN_EMAIL = "will7ovo@gmail.com"
-
-export const ADMIN_EMAILS = [ADMIN_EMAIL.toLowerCase().trim()]
+export const ADMIN_EMAILS = [
+  "will7ovo@gmail.com",
+  "willp2000@icloud.com",
+].map(email => email.toLowerCase().trim())
 
 /**
  * Check if an email is an admin email

@@ -9,18 +9,12 @@ import { Heart, Activity, User, Settings, LogOut, Music, CreditCard, Calendar, M
 import { DarkModeToggle } from "@/components/dark-mode-toggle"
 import { useAuth } from "@/contexts/auth-context"
 import { useToast } from "@/hooks/use-toast"
+import { isAdminEmail } from "@/lib/admin-config"
 
 interface NavigationSidebarProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
 }
-
-// Admin email addresses - add your admin emails here
-const ADMIN_EMAILS = [
-  "admin@melodica.com",
-  "williampairman@example.com", // Add your email here
-  // Add more admin emails as needed
-]
 
 export function NavigationSidebar({ isOpen, onOpenChange }: NavigationSidebarProps) {
   const { logout } = useAuth()
@@ -34,8 +28,7 @@ export function NavigationSidebar({ isOpen, onOpenChange }: NavigationSidebarPro
       if (userData) {
         try {
           const parsed = JSON.parse(userData)
-          const userEmail = (parsed.email || "").toLowerCase().trim()
-          setIsAdmin(ADMIN_EMAILS.some(adminEmail => adminEmail.toLowerCase() === userEmail))
+          setIsAdmin(isAdminEmail(parsed.email || ""))
         } catch (error) {
           console.error("Error parsing user data:", error)
         }

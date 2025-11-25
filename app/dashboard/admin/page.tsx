@@ -10,13 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Users, Shield, Download, RefreshCw, Mail, Calendar, CreditCard } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-
-// Admin email addresses - add your admin emails here
-const ADMIN_EMAILS = [
-  "admin@melodica.com",
-  "williampairman@example.com", // Add your email here
-  // Add more admin emails as needed
-]
+import { ADMIN_EMAILS, isAdminEmail } from "@/lib/admin-config"
 
 interface User {
   name: string
@@ -50,8 +44,7 @@ export default function AdminPage() {
       try {
         const parsed = JSON.parse(userData)
         setCurrentUser(parsed)
-        const userEmail = (parsed.email || "").toLowerCase().trim()
-        setIsAdmin(ADMIN_EMAILS.some(adminEmail => adminEmail.toLowerCase() === userEmail))
+        setIsAdmin(isAdminEmail(parsed.email || ""))
       } catch (error) {
         console.error("Error parsing user data:", error)
       }

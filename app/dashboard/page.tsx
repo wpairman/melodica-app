@@ -23,13 +23,13 @@ import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
 import { AuthGuard } from "@/components/auth-guard"
 import JamaicaWellnessToolkit from "@/components/jamaica-wellness-toolkit"
+import { isAdminEmail } from "@/lib/admin-config"
 
-// Admin email addresses - add your admin emails here
-const ADMIN_EMAILS = [
-  "admin@melodica.com",
-  "williampairman@example.com", // Add your email here
-  // Add more admin emails as needed
-]
+// ADMIN EMAIL - Replace with YOUR email address to access admin panel
+// Only this email will have access to the admin dashboard
+const ADMIN_EMAIL = "your-email@example.com" // ⚠️ CHANGE THIS TO YOUR ACTUAL EMAIL
+
+const ADMIN_EMAILS = [ADMIN_EMAIL.toLowerCase().trim()]
 
 export default function Dashboard() {
   const { toast } = useToast()
@@ -51,8 +51,7 @@ export default function Dashboard() {
           const parsed = JSON.parse(storedData)
           setUserData(parsed)
           // Check if user is admin
-          const userEmail = (parsed.email || "").toLowerCase().trim()
-          setIsAdmin(ADMIN_EMAILS.some(adminEmail => adminEmail.toLowerCase() === userEmail))
+          setIsAdmin(isAdminEmail(parsed.email || ""))
         } catch (error) {
           console.error("Error parsing user data:", error)
         }

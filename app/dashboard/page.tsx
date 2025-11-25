@@ -45,7 +45,11 @@ export default function Dashboard() {
           const parsed = JSON.parse(storedData)
           setUserData(parsed)
           // Check if user is admin
-          setIsAdmin(isAdminEmail(parsed.email || ""))
+          const userEmail = parsed.email || ""
+          const adminCheck = isAdminEmail(userEmail)
+          setIsAdmin(adminCheck)
+          // Debug log (remove in production)
+          console.log("Admin check:", { email: userEmail, isAdmin: adminCheck })
         } catch (error) {
           console.error("Error parsing user data:", error)
         }

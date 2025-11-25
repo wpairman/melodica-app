@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Users, Shield, Download, RefreshCw, Mail, Calendar, CreditCard } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { getAllUsersFromFirebase, type FirebaseUser } from "@/lib/firebase-users"
 import { ADMIN_EMAILS, isAdminEmail } from "@/lib/admin-config"
 
 interface User {
@@ -50,15 +51,50 @@ export default function AdminPage() {
       }
     }
 
-    // Load all users
-    loadUsers()
-    setLoading(false)
+    // Load all users (async)
+    loadUsers().finally(() => {
+      setLoading(false)
+    })
   }, [])
 
-  const loadUsers = () => {
+  const loadUsers = async () => {
     if (typeof window === 'undefined') return
 
     try {
+      // Try to load from Firebase first (if configured)
+      const firebaseUsers = await getAllUsersFromFirebase()
+      
+      if (firebaseUsers.length > 0) {
+        // Use Firebase users
+        const enrichedUsers = firebaseUsers.map((user: FirebaseUser) => {
+          const subscription = user.subscription || {
+            plan: user.selectedPlan ? user.selectedPlan.charAt(0).toUpperCase() + user.selectedPlan.slice(1) : "Free",
+            status: "active",
+            currentPeriodEnd: null,
+            isLifetime: false,
+          }
+
+          return {
+            name: user.name || "Unknown",
+            email: user.email || "No email",
+            gender: user.gender,
+            favoriteArtists: user.favoriteArtists,
+            favoriteActivities: user.favoriteActivities,
+            subscription: subscription,
+            createdAt: user.createdAt ? (user.createdAt instanceof Date ? user.createdAt.toISOString() : user.createdAt.toString()) : "Unknown",
+          }
+        })
+
+        // Sort by email for easier viewing
+        enrichedUsers.sort((a: User, b: User) => a.email.localeCompare(b.email))
+        
+        setUsers(enrichedUsers)
+        console.log(`✅ Loaded ${enrichedUsers.length} users from Firebase`)
+        return
+      }
+
+      // Fallback to localStorage if Firebase is not configured or returns no users
+      console.log("⚠️ Firebase not configured or empty, falling back to localStorage")
       const allUsersStr = localStorage.getItem("allUsers")
       if (allUsersStr) {
         const allUsers = JSON.parse(allUsersStr)
@@ -111,6 +147,7 @@ export default function AdminPage() {
         enrichedUsers.sort((a: User, b: User) => a.email.localeCompare(b.email))
         
         setUsers(enrichedUsers)
+        console.log(`✅ Loaded ${enrichedUsers.length} users from localStorage`)
       } else {
         setUsers([])
       }

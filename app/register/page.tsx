@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/auth-context"
 import { hashPassword } from "@/lib/password-utils"
 import { createStripeCheckoutSession } from "@/lib/api-utils"
+import { saveUserToFirebase } from "@/lib/firebase-users"
 
 const MENTAL_HEALTH_CONDITIONS = [
   "Depression",
@@ -294,7 +295,31 @@ Remember: This is general information only. Always consult with your healthcare 
         createdAt: new Date().toISOString(),
       }
       
-      // Add to all users array
+      // Save to Firebase (if configured) - this allows admin to see all users
+      try {
+        const firebaseUserId = await saveUserToFirebase({
+          name: userData.name,
+          email: userData.email,
+          password: userData.password, // Already hashed
+          gender: userData.gender,
+          favoriteArtists: userData.favoriteArtists,
+          favoriteActivities: userData.favoriteActivities,
+          selectedPlan: userData.selectedPlan,
+          subscription: {
+            plan: userData.selectedPlan === "free" ? "Free" : userData.selectedPlan.charAt(0).toUpperCase() + userData.selectedPlan.slice(1),
+            status: "active",
+            currentPeriodEnd: null,
+            isLifetime: false,
+          },
+        })
+        if (firebaseUserId) {
+          console.log("✅ Saved to Firebase. User ID:", firebaseUserId)
+        }
+      } catch (error) {
+        console.warn("⚠️ Firebase save failed (will use localStorage):", error)
+      }
+      
+      // Also save to localStorage (for backward compatibility and offline support)
       // NOTE: allUsers is stored per-device in localStorage
       // Users can sign in on multiple devices - each device maintains its own session
       // When logging in on a new device, users can use their credentials to access their account

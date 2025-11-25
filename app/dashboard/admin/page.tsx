@@ -316,8 +316,16 @@ export default function AdminPage() {
 
               {/* Actions */}
               <div className="flex gap-2">
-                <Button onClick={loadUsers} variant="outline" className="border-gray-600 text-white hover:bg-gray-800">
-                  <RefreshCw className="h-4 w-4 mr-2" />
+                <Button 
+                  onClick={() => {
+                    setLoading(true)
+                    loadUsers().finally(() => setLoading(false))
+                  }} 
+                  variant="outline" 
+                  className="border-gray-600 text-white hover:bg-gray-800"
+                  disabled={loading}
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
                   Refresh
                 </Button>
                 <Button onClick={exportUsers} variant="outline" className="border-gray-600 text-white hover:bg-gray-800">

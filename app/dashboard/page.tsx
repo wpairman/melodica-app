@@ -386,6 +386,14 @@ export default function Dashboard() {
                         Settings
                       </Button>
                     </Link>
+                    {isAdmin && (
+                      <Link href="/dashboard/admin">
+                        <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
+                          <Shield className="mr-2 h-4 w-4 text-yellow-500" />
+                          Admin Panel
+                        </Button>
+                      </Link>
+                    )}
                     {userData.gender === "female" && (
                       <Link href="/period-tracker">
                         <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">

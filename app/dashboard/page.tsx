@@ -7,7 +7,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Heart, Activity, User, Settings, LogOut, Music, CreditCard, Calendar, Menu, TrendingUp, Cloud, ListMusic, Sparkles } from "lucide-react"
+import { Heart, Activity, User, Settings, LogOut, Music, CreditCard, Calendar, Menu, TrendingUp, Cloud, ListMusic, Sparkles, Shield } from "lucide-react"
 import MoodTracker from "@/components/mood-tracker"
 import Recommendations from "@/components/recommendations"
 import MoodAnalysis from "@/components/mood-analysis"
@@ -24,6 +24,13 @@ import { useRouter } from "next/navigation"
 import { AuthGuard } from "@/components/auth-guard"
 import JamaicaWellnessToolkit from "@/components/jamaica-wellness-toolkit"
 
+// Admin email addresses - add your admin emails here
+const ADMIN_EMAILS = [
+  "admin@melodica.com",
+  "williampairman@example.com", // Add your email here
+  // Add more admin emails as needed
+]
+
 export default function Dashboard() {
   const { toast } = useToast()
   const { logout } = useAuth()
@@ -31,6 +38,7 @@ export default function Dashboard() {
   const [userData, setUserData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [isMounted, setIsMounted] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   // Load initial data
   useEffect(() => {
@@ -40,7 +48,11 @@ export default function Dashboard() {
       const storedData = localStorage.getItem("userData")
       if (storedData) {
         try {
-          setUserData(JSON.parse(storedData))
+          const parsed = JSON.parse(storedData)
+          setUserData(parsed)
+          // Check if user is admin
+          const userEmail = (parsed.email || "").toLowerCase().trim()
+          setIsAdmin(ADMIN_EMAILS.some(adminEmail => adminEmail.toLowerCase() === userEmail))
         } catch (error) {
           console.error("Error parsing user data:", error)
         }

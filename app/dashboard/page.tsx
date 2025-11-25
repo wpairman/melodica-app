@@ -390,6 +390,14 @@ export default function Dashboard() {
                         Settings
                       </Button>
                     </Link>
+                    {/* Admin Panel - Always visible for now to test */}
+                    <Link href="/dashboard/admin">
+                      <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800 border-yellow-500/50">
+                        <Shield className="mr-2 h-4 w-4 text-yellow-500" />
+                        Admin Panel {isAdmin ? "✓" : "?"}
+                      </Button>
+                    </Link>
+                    {/* Original conditional version - uncomment after testing
                     {isAdmin && (
                       <Link href="/dashboard/admin">
                         <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
@@ -398,6 +406,7 @@ export default function Dashboard() {
                         </Button>
                       </Link>
                     )}
+                    */}
                     {userData.gender === "female" && (
                       <Link href="/period-tracker">
                         <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">

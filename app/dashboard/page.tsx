@@ -25,12 +25,6 @@ import { AuthGuard } from "@/components/auth-guard"
 import JamaicaWellnessToolkit from "@/components/jamaica-wellness-toolkit"
 import { isAdminEmail } from "@/lib/admin-config"
 
-// ADMIN EMAIL - Replace with YOUR email address to access admin panel
-// Only this email will have access to the admin dashboard
-const ADMIN_EMAIL = "your-email@example.com" // ⚠️ CHANGE THIS TO YOUR ACTUAL EMAIL
-
-const ADMIN_EMAILS = [ADMIN_EMAIL.toLowerCase().trim()]
-
 export default function Dashboard() {
   const { toast } = useToast()
   const { logout } = useAuth()

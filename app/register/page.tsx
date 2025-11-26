@@ -297,6 +297,7 @@ Remember: This is general information only. Always consult with your healthcare 
       
       // Save to Firebase (if configured) - this allows admin to see all users
       try {
+        console.log("🔥 Attempting to save user to Firebase...")
         const firebaseUserId = await saveUserToFirebase({
           name: userData.name,
           email: userData.email,
@@ -313,10 +314,28 @@ Remember: This is general information only. Always consult with your healthcare 
           },
         })
         if (firebaseUserId) {
-          console.log("✅ Saved to Firebase. User ID:", firebaseUserId)
+          console.log("✅ Successfully saved to Firebase! User ID:", firebaseUserId)
+          toast({
+            title: "Saved to Firebase",
+            description: "Your account has been saved to Firebase successfully.",
+          })
+        } else {
+          console.error("❌ Firebase save returned null - check console for errors above")
+          toast({
+            title: "Firebase Save Failed",
+            description: "User saved locally but not to Firebase. Check console for details.",
+            variant: "destructive",
+          })
         }
-      } catch (error) {
-        console.warn("⚠️ Firebase save failed (will use localStorage):", error)
+      } catch (error: any) {
+        console.error("❌ Firebase save error:", error)
+        console.error("Error code:", error?.code)
+        console.error("Error message:", error?.message)
+        toast({
+          title: "Firebase Error",
+          description: `Failed to save to Firebase: ${error?.message || "Unknown error"}`,
+          variant: "destructive",
+        })
       }
       
       // Also save to localStorage (for backward compatibility and offline support)

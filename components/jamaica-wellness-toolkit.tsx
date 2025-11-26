@@ -7,31 +7,84 @@ import { Button } from "@/components/ui/button"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Play, ChevronRight } from "lucide-react"
 
-// Coping skills with explanations
+// Coping skills with detailed explanations
 const copingSkills = [
   {
-    title: "Check Yuh Self",
-    description: "Take a moment to pause and reflect on how you're feeling. Ask yourself: 'Wha really a guh on wid mi?' This self-awareness helps you understand your emotions before reacting."
+    title: "CHECK YUHSelf",
+    subtitle: "Touch Base",
+    goal: "Notice what's happening inside.",
+    steps: [
+      "What yuh feeling right now?",
+      "Body check: tight? tired? jumpy? heavy?",
+      "Rate stress 0–10."
+    ],
+    phrase: "Name it so we can tame it."
   },
   {
-    title: "Use Weh Yuh Have and Tun It Up",
-    description: "Work with what you have available right now. Whether it's music, movement, or talking to someone, use your resources to improve your mood. Turn up the positive energy!"
+    title: "HOL' A MEDZ",
+    subtitle: "Ground & Settle",
+    goal: "Bring down the overwhelm.",
+    steps: [
+      "Choose ONE:",
+      "• Breathe 3 in / 5 out (5 rounds)",
+      "• 5–4–3–2–1 senses",
+      "• Feel feet + seat",
+      "Re-rate stress 0–10."
+    ],
+    phrase: "Nuh force it—just notice."
   },
   {
-    title: "Hol A Medz",
-    description: "Take your medication as prescribed and stay consistent with your treatment plan. Your mental health medication is important for your wellbeing - don't skip doses."
+    title: "USE WEH YUH HAVE",
+    subtitle: "Resourcing",
+    goal: "Find strength/support you ALREADY have.",
+    steps: [
+      "Identify 3 resources:",
+      "• a person",
+      "• a skill/strength",
+      "• a place/practice"
+    ],
+    phrase: "What help yuh get through hard times before?"
   },
   {
-    title: "Move Wid Di Vibez",
-    description: "Get your body moving! Dance, walk, exercise - any physical activity helps release endorphins and improve your mood. Move with the positive vibes and let your body release stress."
+    title: "MOVE WID DI VIBEZ",
+    subtitle: "Release Tension",
+    goal: "Shift stuck energy in the body.",
+    steps: [
+      "• Shake hands/arms",
+      "• Stretch neck/shoulders",
+      "• Gentle rocking",
+      "• Slow walk + breath"
+    ],
+    phrase: "Give the body a chance fi drop di pressure."
   },
   {
-    title: "Duh Suppm",
-    description: "Do something - anything positive! Even small actions like cleaning, cooking, or calling a friend can help shift your mood. Action creates momentum and breaks negative thought patterns."
+    title: "DUH SUPPM!",
+    subtitle: "Immediate Coping Action",
+    goal: "Choose ONE small, doable action for today.",
+    steps: [
+      "Examples:",
+      "• call someone",
+      "• eat/drink",
+      "• rest",
+      "• tidy one small area",
+      "• write a 5-min plan"
+    ],
+    phrase: "One step at a time."
   },
   {
-    title: "Switch It Up",
-    description: "Change your environment or routine. If you're stuck in a negative pattern, try something different - go outside, listen to different music, or try a new activity. Sometimes a change of scenery helps reset your mind."
+    title: "SWITCH IT UP!",
+    subtitle: "Shift the Mind",
+    goal: "Don't get stuck in one painful loop.",
+    steps: [
+      "Build a personal switch list:",
+      "• music",
+      "• prayer",
+      "• walk",
+      "• comedy",
+      "• games",
+      "• grounding"
+    ],
+    phrase: "Yuh nuh haffi fight di feeling—just move through it."
   }
 ]
 
@@ -111,10 +164,31 @@ export default function JamaicaWellnessToolkit({ showTitle = true, compact = fal
               {copingSkills.map((skill, index) => (
                 <AccordionItem key={index} value={`item-${index}`} className="border-gray-600/30">
                   <AccordionTrigger className="text-white hover:text-yellow-200 py-3">
-                    <span className="font-medium text-left">{skill.title}</span>
+                    <div className="text-left">
+                      <span className="font-medium">{skill.title}</span>
+                      {skill.subtitle && (
+                        <span className="text-sm text-gray-300 ml-2">— {skill.subtitle}</span>
+                      )}
+                    </div>
                   </AccordionTrigger>
                   <AccordionContent className="text-gray-200 pt-2 pb-4">
-                    <p className="text-sm leading-relaxed">{skill.description}</p>
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-sm font-semibold text-yellow-300 mb-2">Goal: {skill.goal}</p>
+                      </div>
+                      <div>
+                        <ul className="text-sm leading-relaxed space-y-1">
+                          {skill.steps.map((step, stepIndex) => (
+                            <li key={stepIndex} className={step.startsWith("•") ? "ml-4" : ""}>
+                              {step}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="pt-2 border-t border-gray-600/30">
+                        <p className="text-sm italic text-yellow-200 font-medium">"{skill.phrase}"</p>
+                      </div>
+                    </div>
                   </AccordionContent>
                 </AccordionItem>
               ))}

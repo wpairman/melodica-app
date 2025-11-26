@@ -41,51 +41,63 @@ const USERS_COLLECTION = "users"
  * Save a new user to Firebase
  */
 export async function saveUserToFirebase(userData: FirebaseUser): Promise<string | null> {
-  console.log("🔥 saveUserToFirebase called with:", { email: userData.email, name: userData.name })
+  if (process.env.NODE_ENV === 'development') {
+    console.log("🔥 saveUserToFirebase called with:", { email: userData.email, name: userData.name })
+  }
   
   if (!db) {
-    console.error("❌ Firebase db is not initialized! Check your .env.local file and Firebase config.")
-    console.error("Current config check:", {
-      apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ? "✅ Set" : "❌ Missing",
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ? "✅ Set" : "❌ Missing",
-    })
+    console.error("❌ Firebase db is not initialized!")
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Check your .env.local file and Firebase config.")
+    }
     return null
   }
 
   try {
-    console.log("✅ Firebase db is initialized, checking for existing user...")
+    if (process.env.NODE_ENV === 'development') {
+      console.log("✅ Firebase db is initialized, checking for existing user...")
+    }
     // Check if user already exists
     const q = query(collection(db, USERS_COLLECTION), where("email", "==", userData.email))
     const querySnapshot = await getDocs(q)
     
     if (!querySnapshot.empty) {
       // User exists, update instead
-      console.log("⚠️ User already exists, updating...")
+      if (process.env.NODE_ENV === 'development') {
+        console.log("⚠️ User already exists, updating...")
+      }
       const existingUser = querySnapshot.docs[0]
       await updateDoc(doc(db, USERS_COLLECTION, existingUser.id), {
         ...userData,
         updatedAt: serverTimestamp(),
       })
-      console.log("✅ User updated in Firebase:", existingUser.id)
+      if (process.env.NODE_ENV === 'development') {
+        console.log("✅ User updated in Firebase:", existingUser.id)
+      }
       return existingUser.id
     } else {
       // New user, add to collection
-      console.log("➕ Adding new user to Firebase...")
+      if (process.env.NODE_ENV === 'development') {
+        console.log("➕ Adding new user to Firebase...")
+      }
       const docRef = await addDoc(collection(db, USERS_COLLECTION), {
         ...userData,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       })
-      console.log("✅ User saved to Firebase successfully! ID:", docRef.id)
+      if (process.env.NODE_ENV === 'development') {
+        console.log("✅ User saved to Firebase successfully! ID:", docRef.id)
+      }
       return docRef.id
     }
   } catch (error: any) {
     console.error("❌ Error saving user to Firebase:", error)
-    console.error("Error details:", {
-      code: error?.code,
-      message: error?.message,
-      stack: error?.stack,
-    })
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Error details:", {
+        code: error?.code,
+        message: error?.message,
+      })
+    }
     return null
   }
 }

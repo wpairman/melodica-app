@@ -54,49 +54,53 @@ let db: Firestore | undefined
 let auth: Auth | undefined
 
 if (typeof window !== 'undefined') {
-  // Debug: Log what we have
-  console.log("🔍 Firebase Config Check:", {
-    hasApiKey: !!firebaseConfig.apiKey,
-    hasProjectId: !!firebaseConfig.projectId,
-    apiKeyPreview: firebaseConfig.apiKey ? `${firebaseConfig.apiKey.substring(0, 10)}...` : "MISSING",
-    projectId: firebaseConfig.projectId || "MISSING",
-  })
+  // Only log in development to avoid exposing secrets in production builds
+  if (process.env.NODE_ENV === 'development') {
+    console.log("🔍 Firebase Config Check:", {
+      hasApiKey: !!firebaseConfig.apiKey,
+      hasProjectId: !!firebaseConfig.projectId,
+      projectId: firebaseConfig.projectId || "MISSING",
+    })
+  }
   
   if (firebaseConfig.apiKey) {
     // Only initialize if we have config and we're on the client side
     try {
       if (getApps().length === 0) {
-        console.log("🔥 Initializing Firebase app...")
+        if (process.env.NODE_ENV === 'development') {
+          console.log("🔥 Initializing Firebase app...")
+        }
         app = initializeApp(firebaseConfig)
-        console.log("✅ Firebase app initialized:", app.name)
+        if (process.env.NODE_ENV === 'development') {
+          console.log("✅ Firebase app initialized:", app.name)
+        }
       } else {
         app = getApps()[0]
-        console.log("✅ Using existing Firebase app:", app.name)
+        if (process.env.NODE_ENV === 'development') {
+          console.log("✅ Using existing Firebase app:", app.name)
+        }
       }
       db = getFirestore(app)
       auth = getAuth(app)
-      console.log("✅ Firebase Firestore initialized:", db ? "YES" : "NO")
-      console.log("✅ Firebase Auth initialized:", auth ? "YES" : "NO")
-      
-      // Test connection
-      if (db) {
-        console.log("🧪 Testing Firestore connection...")
-        // Just log that db exists - actual test will happen on first write
+      if (process.env.NODE_ENV === 'development') {
+        console.log("✅ Firebase Firestore initialized:", db ? "YES" : "NO")
+        console.log("✅ Firebase Auth initialized:", auth ? "YES" : "NO")
       }
     } catch (error: any) {
       console.error("❌ Firebase initialization error:", error)
-      console.error("Error details:", {
-        code: error?.code,
-        message: error?.message,
-        stack: error?.stack,
-      })
+      if (process.env.NODE_ENV === 'development') {
+        console.error("Error details:", {
+          code: error?.code,
+          message: error?.message,
+        })
+      }
     }
   } else {
     console.error("❌ Firebase API key is missing!")
-    console.error("Make sure .env.local has NEXT_PUBLIC_FIREBASE_API_KEY")
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Make sure .env.local has NEXT_PUBLIC_FIREBASE_API_KEY")
+    }
   }
-} else {
-  console.log("ℹ️ Server-side render - Firebase will initialize on client")
 }
 
 export { app, db, auth }

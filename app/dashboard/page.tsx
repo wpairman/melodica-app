@@ -22,7 +22,6 @@ import WeatherMoodDashboard from "@/components/weather-mood-dashboard"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
 import { AuthGuard } from "@/components/auth-guard"
-import JamaicaWellnessToolkit from "@/components/jamaica-wellness-toolkit"
 
 export default function Dashboard() {
   const { toast } = useToast()
@@ -500,9 +499,6 @@ export default function Dashboard() {
                       </TabsContent>
                     )}
                   </Tabs>
-
-                  {/* Jamaica Wellness Toolkit Section */}
-                  <JamaicaWellnessToolkit />
                 </div>
               </main>
             </div>

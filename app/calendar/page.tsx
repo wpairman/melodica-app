@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 
 // Force dynamic rendering to avoid SSR issues with event handlers
-import { ChevronLeft, ChevronRight, Plus, CalendarIcon, Clock, MapPin } from "lucide-react"
+import { ChevronLeft, ChevronRight, Plus, CalendarIcon, Clock, MapPin, Trash2 } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -79,6 +79,8 @@ export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [showAddEvent, setShowAddEvent] = useState(false)
+  const [showEditEvent, setShowEditEvent] = useState(false)
+  const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null)
   const [isMounted, setIsMounted] = useState(false)
   const [newEvent, setNewEvent] = useState({
     title: "",
@@ -165,6 +167,82 @@ export default function CalendarPage() {
 
   const handleAddEventClick = () => {
     setShowAddEvent(true)
+  }
+
+  const handleEventClick = (event: CalendarEvent, e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent triggering date click
+    setEditingEvent(event)
+    // Format date and time for the form
+    const eventDate = new Date(event.start)
+    const dateStr = eventDate.toISOString().split('T')[0]
+    const timeStr = eventDate.toTimeString().slice(0, 5)
+    
+    setNewEvent({
+      title: event.title,
+      date: dateStr,
+      time: timeStr,
+      location: event.location || "",
+      description: event.description || "",
+      type: event.type,
+      color: event.color || "#3b82f6",
+      reminderBefore: event.reminderBefore || 0,
+    })
+    setShowEditEvent(true)
+  }
+
+  const handleCancelEditEvent = () => {
+    setShowEditEvent(false)
+    setEditingEvent(null)
+    setNewEvent({
+      title: "",
+      date: "",
+      time: "",
+      location: "",
+      description: "",
+      type: "event",
+      color: "#3b82f6",
+      reminderBefore: 0,
+    })
+  }
+
+  const handleUpdateEvent = () => {
+    if (!editingEvent || !newEvent.title || !newEvent.date) return
+
+    const startDate = new Date(`${newEvent.date}T${newEvent.time || "09:00"}`)
+    const updatedEvent: CalendarEvent = {
+      ...editingEvent,
+      title: newEvent.title,
+      start: startDate,
+      location: newEvent.location || undefined,
+      description: newEvent.description || undefined,
+      type: newEvent.type,
+      color: newEvent.color,
+      reminderBefore: newEvent.reminderBefore || undefined,
+    }
+
+    const updatedEvents = events.map(e => e.id === editingEvent.id ? updatedEvent : e)
+    setEvents(updatedEvents)
+    
+    // Save to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem("calendarEvents", JSON.stringify(updatedEvents))
+    }
+    
+    handleCancelEditEvent()
+  }
+
+  const handleDeleteEvent = () => {
+    if (!editingEvent) return
+
+    const updatedEvents = events.filter(e => e.id !== editingEvent.id)
+    setEvents(updatedEvents)
+    
+    // Save to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem("calendarEvents", JSON.stringify(updatedEvents))
+    }
+    
+    handleCancelEditEvent()
   }
 
   const handlePreviousMonth = () => {
@@ -435,7 +513,8 @@ export default function CalendarPage() {
                               return (
                                 <div
                                   key={event.id}
-                                  className="text-xs p-1 rounded border"
+                                  onClick={(e) => handleEventClick(event, e)}
+                                  className="text-xs p-1 rounded border cursor-pointer hover:opacity-80 transition-opacity"
                                   style={{
                                     backgroundColor: eventColors.backgroundColor,
                                     color: eventColors.color,
@@ -479,7 +558,11 @@ export default function CalendarPage() {
                       {getEventsForDate(today).map((event) => {
                         const eventColors = getEventTypeColor(event)
                         return (
-                          <div key={event.id} className="flex items-start space-x-3">
+                          <div 
+                            key={event.id} 
+                            className="flex items-start space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
+                            onClick={(e) => handleEventClick(event, e)}
+                          >
                             <div 
                               className="w-3 h-3 rounded-full mt-1"
                               style={{ backgroundColor: eventColors.color }}
@@ -677,6 +760,160 @@ export default function CalendarPage() {
                 <Button onClick={handleAddEventSubmit} disabled={!newEvent.title || !newEvent.date}>
                   Add Event
                 </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Edit Event Dialog */}
+          <Dialog open={showEditEvent} onOpenChange={(open) => {
+            setShowEditEvent(open)
+            if (!open) {
+              handleCancelEditEvent()
+            }
+          }}>
+            <DialogContent className="sm:max-w-md bg-white">
+              <DialogHeader>
+                <DialogTitle className="text-gray-900">Edit Event</DialogTitle>
+                <DialogDescription className="text-gray-600">
+                  Update or delete your event.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="edit-title" className="text-gray-900">Title</Label>
+                  <Input
+                    id="edit-title"
+                    value={newEvent.title}
+                    onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+                    placeholder="Event title"
+                    className="text-gray-900"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="edit-date" className="text-gray-900">Date</Label>
+                    <Input
+                      id="edit-date"
+                      type="date"
+                      value={newEvent.date}
+                      onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
+                      className="text-gray-900"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-time" className="text-gray-900">Time</Label>
+                    <Input
+                      id="edit-time"
+                      type="time"
+                      value={newEvent.time}
+                      onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
+                      className="text-gray-900"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="edit-location" className="text-gray-900">Location (Optional)</Label>
+                  <Input
+                    id="edit-location"
+                    value={newEvent.location}
+                    onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
+                    placeholder="Event location"
+                    className="text-gray-900"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-type" className="text-gray-900">Type</Label>
+                  <select
+                    id="edit-type"
+                    value={newEvent.type}
+                    onChange={(e) => setNewEvent({ ...newEvent, type: e.target.value as CalendarEvent["type"] })}
+                    className="w-full p-2 border border-gray-300 rounded-md text-gray-900 bg-white"
+                  >
+                    <option value="event">Event</option>
+                    <option value="appointment">Appointment</option>
+                    <option value="meeting">Meeting</option>
+                    <option value="assignments">Assignments</option>
+                    <option value="work">Work</option>
+                    <option value="test">Test</option>
+                    <option value="activity">Activity</option>
+                    <option value="match">Match</option>
+                    <option value="game">Game</option>
+                    <option value="tournament">Tournament</option>
+                    <option value="reminder">Reminder</option>
+                    <option value="mood">Mood Check-in</option>
+                  </select>
+                </div>
+                <div>
+                  <Label htmlFor="edit-reminderBefore" className="text-gray-900">Reminder Before Event</Label>
+                  <select
+                    id="edit-reminderBefore"
+                    value={newEvent.reminderBefore}
+                    onChange={(e) => setNewEvent({ ...newEvent, reminderBefore: parseInt(e.target.value) })}
+                    className="w-full p-2 border border-gray-300 rounded-md text-gray-900 bg-white"
+                  >
+                    <option value="0">No reminder</option>
+                    <option value="5">5 minutes before</option>
+                    <option value="15">15 minutes before</option>
+                    <option value="30">30 minutes before</option>
+                    <option value="60">1 hour before</option>
+                    <option value="120">2 hours before</option>
+                    <option value="1440">1 day before</option>
+                    <option value="2880">2 days before</option>
+                  </select>
+                </div>
+                <div>
+                  <Label htmlFor="edit-color" className="text-gray-900">Event Color</Label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      id="edit-color"
+                      type="color"
+                      value={newEvent.color}
+                      onChange={(e) => setNewEvent({ ...newEvent, color: e.target.value })}
+                      className="h-10 w-20 border border-gray-300 rounded-md cursor-pointer"
+                    />
+                    <div className="flex gap-2 flex-wrap">
+                      {["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"].map((color) => (
+                        <button
+                          key={color}
+                          type="button"
+                          onClick={() => setNewEvent({ ...newEvent, color })}
+                          className="w-8 h-8 rounded-md border-2 border-gray-300 hover:border-gray-500 transition-colors"
+                          style={{ backgroundColor: color }}
+                          title={color}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="edit-description" className="text-gray-900">Description (Optional)</Label>
+                  <Textarea
+                    id="edit-description"
+                    value={newEvent.description}
+                    onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+                    placeholder="Event description"
+                    rows={3}
+                    className="text-gray-900"
+                  />
+                </div>
+              </div>
+              <DialogFooter className="flex justify-between">
+                <Button 
+                  variant="destructive" 
+                  onClick={handleDeleteEvent}
+                  className="mr-auto"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={handleCancelEditEvent}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleUpdateEvent} disabled={!newEvent.title || !newEvent.date}>
+                    Update Event
+                  </Button>
+                </div>
               </DialogFooter>
             </DialogContent>
           </Dialog>

@@ -397,82 +397,84 @@ export default function CalendarPage() {
       <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
         {/* Fixed header with menu button */}
-        <div className="sticky top-0 z-50 bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
+        <div className="sticky top-0 z-50 bg-white border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4 flex items-center gap-2 sm:gap-4">
           <MenuButton />
           <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Calendar
             </h1>
-            <p className="text-gray-600 text-sm">Manage your events, appointments, and mood tracking</p>
+            <p className="text-gray-600 text-xs sm:text-sm hidden sm:block">Manage your events, appointments, and mood tracking</p>
           </div>
         </div>
         
-        <div className="p-4">
-          <div className="max-w-7xl mx-auto space-y-6">
+        <div className="p-2 sm:p-4">
+          <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
             {/* Header */}
             {isMounted && (
               <div className="flex items-center justify-end">
                 <Button
                   onClick={handleAddEventClick}
-                  className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+                  className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-sm sm:text-base px-3 sm:px-4 py-2 sm:py-2"
                 >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Event
+                  <Plus className="h-4 w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Add Event</span>
+                  <span className="sm:hidden">Add</span>
                 </Button>
               </div>
             )}
 
-          <div className="grid gap-6 lg:grid-cols-4">
+          <div className="grid gap-4 sm:gap-6 lg:grid-cols-4">
             {/* Calendar */}
             <div className="lg:col-span-3">
               <Card className="border-none shadow-lg bg-white">
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between">
+                <CardHeader className="pb-3 sm:pb-4 px-2 sm:px-6">
+                  <div className="flex items-center justify-between gap-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={handlePreviousMonth}
-                      className="p-2 hover:bg-gray-100 transition-colors"
+                      className="p-1.5 sm:p-2 hover:bg-gray-100 transition-colors min-w-[40px] sm:min-w-[44px]"
                       title="Previous Month"
                     >
-                      <ChevronLeft className="h-5 w-5" />
+                      <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
                     </Button>
-                    <div className="flex flex-col items-center">
-                      <CardTitle className="text-2xl font-bold text-gray-800">
+                    <div className="flex flex-col items-center flex-1">
+                      <CardTitle className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 text-center">
                         {monthNames[month]} {year}
                       </CardTitle>
                       <Button 
                         variant="outline" 
                         size="sm" 
                         onClick={handleGoToToday}
-                        className="mt-2 text-xs"
+                        className="mt-1 sm:mt-2 text-xs px-2 sm:px-3 py-1 sm:py-1.5"
                       >
-                        Go to Today
+                        <span className="hidden sm:inline">Go to Today</span>
+                        <span className="sm:hidden">Today</span>
                       </Button>
                     </div>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={handleNextMonth}
-                      className="p-2 hover:bg-gray-100 transition-colors"
+                      className="p-1.5 sm:p-2 hover:bg-gray-100 transition-colors min-w-[40px] sm:min-w-[44px]"
                       title="Next Month"
                     >
-                      <ChevronRight className="h-5 w-5" />
+                      <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="px-2 sm:px-6">
                   {/* Days of week header */}
-                  <div className="grid grid-cols-7 gap-1 mb-2">
+                  <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-1 sm:mb-2">
                     {daysOfWeek.map((day) => (
-                      <div key={day} className="p-2 text-center text-sm font-medium text-gray-500">
+                      <div key={day} className="p-1 sm:p-2 text-center text-xs sm:text-sm font-medium text-gray-500">
                         {day}
                       </div>
                     ))}
                   </div>
 
                   {/* Calendar grid */}
-                  <div className="grid grid-cols-7 gap-1">
+                  <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
                     {calendarDays.map(({ date, isCurrentMonth }, index) => {
                       const dayEvents = getEventsForDate(date)
                       const isTodayDate = isToday(date)
@@ -482,7 +484,7 @@ export default function CalendarPage() {
                         <div
                           key={index}
                           className={cn(
-                            "min-h-[120px] p-2 border border-gray-200 rounded-lg cursor-pointer transition-colors hover:bg-gray-50 bg-white",
+                            "min-h-[80px] sm:min-h-[100px] md:min-h-[120px] lg:min-h-[140px] p-1 sm:p-1.5 md:p-2 border border-gray-200 rounded-md sm:rounded-lg cursor-pointer transition-colors hover:bg-gray-50 bg-white",
                             isTodayDate && "bg-blue-50 border-blue-300",
                             isSelected && "bg-purple-50 border-purple-300",
                             !isCurrentMonth && "bg-white"
@@ -490,50 +492,50 @@ export default function CalendarPage() {
                           onClick={isMounted ? () => handleDateClick(date) : undefined}
                         >
                           <div className={cn(
-                            "text-lg font-bold mb-1 flex items-center justify-between",
+                            "text-sm sm:text-base font-bold mb-0.5 sm:mb-1 flex items-center justify-between",
                             isCurrentMonth && "text-blue-600",
                             !isCurrentMonth && "text-gray-400"
                           )}>
                             <span className={cn(
-                              "text-2xl font-bold",
+                              "text-lg sm:text-xl md:text-2xl font-bold",
                               isCurrentMonth && "text-blue-600",
                               !isCurrentMonth && "text-gray-400"
                             )}>{date.getDate()}</span>
                             {!isCurrentMonth && (
-                              <span className="text-xs text-gray-300">
+                              <span className="text-[10px] sm:text-xs text-gray-300">
                                 {date.getMonth() < month ? '◀' : '▶'}
                               </span>
                             )}
                           </div>
 
                           {/* Events for this day */}
-                          <div className="space-y-1">
-                            {dayEvents.slice(0, 3).map((event) => {
+                          <div className="space-y-0.5 sm:space-y-1">
+                            {dayEvents.slice(0, 2).map((event) => {
                               const eventColors = getEventTypeColor(event)
                               return (
                                 <div
                                   key={event.id}
                                   onClick={(e) => handleEventClick(event, e)}
-                                  className="text-xs p-1 rounded border cursor-pointer hover:opacity-80 transition-opacity"
+                                  className="text-[10px] sm:text-xs p-0.5 sm:p-1 rounded border cursor-pointer hover:opacity-80 transition-opacity min-h-[16px] sm:min-h-[20px]"
                                   style={{
                                     backgroundColor: eventColors.backgroundColor,
                                     color: eventColors.color,
                                     borderColor: eventColors.borderColor,
                                   }}
                                 >
-                                  <div className="font-medium truncate">{event.title}</div>
+                                  <div className="font-medium truncate leading-tight">{event.title}</div>
                                   {event.location && (
-                                    <div className="flex items-center text-xs opacity-75">
-                                      <MapPin className="h-3 w-3 mr-1" />
-                                      {event.location}
+                                    <div className="flex items-center text-[9px] sm:text-xs opacity-75 hidden sm:flex">
+                                      <MapPin className="h-2 w-2 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
+                                      <span className="truncate">{event.location}</span>
                                     </div>
                                   )}
                                 </div>
                               )
                             })}
-                            {dayEvents.length > 3 && (
-                              <div className="text-xs text-gray-500 text-center">
-                                +{dayEvents.length - 3} more
+                            {dayEvents.length > 2 && (
+                              <div className="text-[10px] sm:text-xs text-gray-500 text-center">
+                                +{dayEvents.length - 2} more
                               </div>
                             )}
                           </div>
@@ -546,40 +548,40 @@ export default function CalendarPage() {
             </div>
 
             {/* Sidebar */}
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6 lg:col-span-1">
               {/* Today's Events */}
               <Card className="border-none shadow-lg">
-                <CardHeader>
-                  <CardTitle className="text-xl font-bold text-gray-800">Today's Events</CardTitle>
+                <CardHeader className="px-3 sm:px-6 py-3 sm:py-6">
+                  <CardTitle className="text-lg sm:text-xl font-bold text-gray-800">Today's Events</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
                   {getEventsForDate(today).length > 0 ? (
-                    <div className="space-y-3">
+                    <div className="space-y-2 sm:space-y-3">
                       {getEventsForDate(today).map((event) => {
                         const eventColors = getEventTypeColor(event)
                         return (
                           <div 
                             key={event.id} 
-                            className="flex items-start space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
+                            className="flex items-start space-x-2 sm:space-x-3 cursor-pointer hover:bg-gray-50 p-2 sm:p-3 rounded-lg transition-colors min-h-[44px]"
                             onClick={(e) => handleEventClick(event, e)}
                           >
                             <div 
-                              className="w-3 h-3 rounded-full mt-1"
+                              className="w-3 h-3 sm:w-4 sm:h-4 rounded-full mt-1 flex-shrink-0"
                               style={{ backgroundColor: eventColors.color }}
                             />
-                            <div className="flex-1">
-                              <div className="font-medium text-sm">{event.title}</div>
-                              <div className="text-xs text-gray-500 flex items-center">
-                                <Clock className="h-3 w-3 mr-1" />
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-sm sm:text-base">{event.title}</div>
+                              <div className="text-xs sm:text-sm text-gray-500 flex items-center mt-0.5">
+                                <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
                                 {event.start.toLocaleTimeString([], { 
                                   hour: '2-digit', 
                                   minute: '2-digit' 
                                 })}
                               </div>
                               {event.location && (
-                                <div className="text-xs text-gray-500 flex items-center">
-                                  <MapPin className="h-3 w-3 mr-1" />
-                                  {event.location}
+                                <div className="text-xs sm:text-sm text-gray-500 flex items-center mt-0.5">
+                                  <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
+                                  <span className="truncate">{event.location}</span>
                                 </div>
                               )}
                             </div>
@@ -588,9 +590,9 @@ export default function CalendarPage() {
                       })}
                     </div>
                   ) : (
-                    <div className="text-center py-4">
-                      <CalendarIcon className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-500">No events today</p>
+                    <div className="text-center py-4 sm:py-6">
+                      <CalendarIcon className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-xs sm:text-sm text-gray-500">No events today</p>
                     </div>
                   )}
                 </CardContent>
@@ -598,24 +600,24 @@ export default function CalendarPage() {
 
               {/* Quick Stats */}
               <Card className="border-none shadow-lg">
-                <CardHeader>
-                  <CardTitle className="text-xl font-bold text-gray-800">Quick Stats</CardTitle>
+                <CardHeader className="px-3 sm:px-6 py-3 sm:py-6">
+                  <CardTitle className="text-lg sm:text-xl font-bold text-gray-800">Quick Stats</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">This Month</span>
-                      <Badge variant="secondary">{events.length} events</Badge>
+                <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+                  <div className="space-y-2 sm:space-y-3">
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-sm sm:text-base text-gray-600">This Month</span>
+                      <Badge variant="secondary" className="text-xs sm:text-sm">{events.length} events</Badge>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Mood Check-ins</span>
-                      <Badge variant="outline">
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-sm sm:text-base text-gray-600">Mood Check-ins</span>
+                      <Badge variant="outline" className="text-xs sm:text-sm">
                         {events.filter(e => e.type === "mood").length}
                       </Badge>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Appointments</span>
-                      <Badge variant="outline">
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-sm sm:text-base text-gray-600">Appointments</span>
+                      <Badge variant="outline" className="text-xs sm:text-sm">
                         {events.filter(e => e.type === "appointment").length}
                       </Badge>
                     </div>
@@ -627,7 +629,7 @@ export default function CalendarPage() {
 
           {/* Add Event Dialog */}
           <Dialog open={showAddEvent} onOpenChange={setShowAddEvent}>
-            <DialogContent className="sm:max-w-md bg-white">
+            <DialogContent className="w-[95vw] max-w-md bg-white max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="text-gray-900">Add New Event</DialogTitle>
                 <DialogDescription className="text-gray-600">
@@ -771,7 +773,7 @@ export default function CalendarPage() {
               handleCancelEditEvent()
             }
           }}>
-            <DialogContent className="sm:max-w-md bg-white">
+            <DialogContent className="w-[95vw] max-w-md bg-white max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="text-gray-900">Edit Event</DialogTitle>
                 <DialogDescription className="text-gray-600">

@@ -30,7 +30,9 @@ type CalendarEvent = {
   end?: Date
   location?: string
   description?: string
-  type: "event" | "mood" | "reminder" | "appointment"
+  type: "event" | "mood" | "reminder" | "appointment" | "assignments" | "work" | "test" | "activity" | "match" | "game" | "tournament" | "meeting"
+  color?: string
+  reminderBefore?: number // minutes before event
 }
 
 const MOCK_EVENTS: CalendarEvent[] = [
@@ -85,6 +87,8 @@ export default function CalendarPage() {
     location: "",
     description: "",
     type: "event" as CalendarEvent["type"],
+    color: "#3b82f6", // default blue color
+    reminderBefore: 0,
   })
 
   useEffect(() => {
@@ -202,18 +206,48 @@ export default function CalendarPage() {
     return date.getMonth() === month && date.getFullYear() === year
   }
 
-  const getEventTypeColor = (type: CalendarEvent["type"]) => {
-    switch (type) {
+  const getEventTypeColor = (event: CalendarEvent) => {
+    // If event has a custom color, use it
+    if (event.color) {
+      return {
+        backgroundColor: event.color + "20", // 20% opacity
+        color: event.color,
+        borderColor: event.color + "40", // 40% opacity
+      }
+    }
+    
+    // Otherwise use default colors based on type
+    switch (event.type) {
       case "mood":
-        return "bg-green-100 text-green-800 border-green-200"
+        return {
+          backgroundColor: "#dcfce7",
+          color: "#166534",
+          borderColor: "#86efac",
+        }
       case "event":
-        return "bg-blue-100 text-blue-800 border-blue-200"
+        return {
+          backgroundColor: "#dbeafe",
+          color: "#1e40af",
+          borderColor: "#93c5fd",
+        }
       case "reminder":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200"
+        return {
+          backgroundColor: "#fef3c7",
+          color: "#92400e",
+          borderColor: "#fde047",
+        }
       case "appointment":
-        return "bg-purple-100 text-purple-800 border-purple-200"
+        return {
+          backgroundColor: "#e9d5ff",
+          color: "#6b21a8",
+          borderColor: "#c084fc",
+        }
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200"
+        return {
+          backgroundColor: "#f3f4f6",
+          color: "#374151",
+          borderColor: "#d1d5db",
+        }
     }
   }
 
@@ -228,6 +262,8 @@ export default function CalendarPage() {
       location: newEvent.location || undefined,
       description: newEvent.description || undefined,
       type: newEvent.type,
+      color: newEvent.color,
+      reminderBefore: newEvent.reminderBefore || undefined,
     }
 
     const updatedEvents = [...events, event]
@@ -245,6 +281,8 @@ export default function CalendarPage() {
       location: "",
       description: "",
       type: "event",
+      color: "#3b82f6",
+      reminderBefore: 0,
     })
     setShowAddEvent(false)
   }
@@ -309,7 +347,7 @@ export default function CalendarPage() {
           <div className="grid gap-6 lg:grid-cols-4">
             {/* Calendar */}
             <div className="lg:col-span-3">
-              <Card className="border-none shadow-lg">
+              <Card className="border-none shadow-lg bg-white">
                 <CardHeader className="pb-4">
                   <div className="flex items-center justify-between">
                     <Button
@@ -366,19 +404,23 @@ export default function CalendarPage() {
                         <div
                           key={index}
                           className={cn(
-                            "min-h-[120px] p-2 border border-gray-200 rounded-lg cursor-pointer transition-colors hover:bg-gray-50",
+                            "min-h-[120px] p-2 border border-gray-200 rounded-lg cursor-pointer transition-colors hover:bg-gray-50 bg-white",
                             isTodayDate && "bg-blue-50 border-blue-300",
                             isSelected && "bg-purple-50 border-purple-300",
-                            !isCurrentMonth && "bg-gray-50"
+                            !isCurrentMonth && "bg-white"
                           )}
                           onClick={isMounted ? () => handleDateClick(date) : undefined}
                         >
                           <div className={cn(
                             "text-lg font-bold mb-1 flex items-center justify-between",
-                            isTodayDate && "text-blue-600 font-bold",
-                            !isCurrentMonth && "text-gray-500"
+                            isCurrentMonth && "text-blue-600",
+                            !isCurrentMonth && "text-gray-400"
                           )}>
-                            <span className="text-2xl font-bold">{date.getDate()}</span>
+                            <span className={cn(
+                              "text-2xl font-bold",
+                              isCurrentMonth && "text-blue-600",
+                              !isCurrentMonth && "text-gray-400"
+                            )}>{date.getDate()}</span>
                             {!isCurrentMonth && (
                               <span className="text-xs text-gray-300">
                                 {date.getMonth() < month ? '◀' : '▶'}
@@ -388,23 +430,28 @@ export default function CalendarPage() {
 
                           {/* Events for this day */}
                           <div className="space-y-1">
-                            {dayEvents.slice(0, 3).map((event) => (
-                              <div
-                                key={event.id}
-                                className={cn(
-                                  "text-xs p-1 rounded border",
-                                  getEventTypeColor(event.type)
-                                )}
-                              >
-                                <div className="font-medium truncate">{event.title}</div>
-                                {event.location && (
-                                  <div className="flex items-center text-xs opacity-75">
-                                    <MapPin className="h-3 w-3 mr-1" />
-                                    {event.location}
-                                  </div>
-                                )}
-                              </div>
-                            ))}
+                            {dayEvents.slice(0, 3).map((event) => {
+                              const eventColors = getEventTypeColor(event)
+                              return (
+                                <div
+                                  key={event.id}
+                                  className="text-xs p-1 rounded border"
+                                  style={{
+                                    backgroundColor: eventColors.backgroundColor,
+                                    color: eventColors.color,
+                                    borderColor: eventColors.borderColor,
+                                  }}
+                                >
+                                  <div className="font-medium truncate">{event.title}</div>
+                                  {event.location && (
+                                    <div className="flex items-center text-xs opacity-75">
+                                      <MapPin className="h-3 w-3 mr-1" />
+                                      {event.location}
+                                    </div>
+                                  )}
+                                </div>
+                              )
+                            })}
                             {dayEvents.length > 3 && (
                               <div className="text-xs text-gray-500 text-center">
                                 +{dayEvents.length - 3} more
@@ -429,33 +476,33 @@ export default function CalendarPage() {
                 <CardContent>
                   {getEventsForDate(today).length > 0 ? (
                     <div className="space-y-3">
-                      {getEventsForDate(today).map((event) => (
-                        <div key={event.id} className="flex items-start space-x-3">
-                          <div className={cn(
-                            "w-3 h-3 rounded-full mt-1",
-                            event.type === "mood" && "bg-green-500",
-                            event.type === "event" && "bg-blue-500",
-                            event.type === "reminder" && "bg-yellow-500",
-                            event.type === "appointment" && "bg-purple-500"
-                          )} />
-                          <div className="flex-1">
-                            <div className="font-medium text-sm">{event.title}</div>
-                            <div className="text-xs text-gray-500 flex items-center">
-                              <Clock className="h-3 w-3 mr-1" />
-                              {event.start.toLocaleTimeString([], { 
-                                hour: '2-digit', 
-                                minute: '2-digit' 
-                              })}
-                            </div>
-                            {event.location && (
+                      {getEventsForDate(today).map((event) => {
+                        const eventColors = getEventTypeColor(event)
+                        return (
+                          <div key={event.id} className="flex items-start space-x-3">
+                            <div 
+                              className="w-3 h-3 rounded-full mt-1"
+                              style={{ backgroundColor: eventColors.color }}
+                            />
+                            <div className="flex-1">
+                              <div className="font-medium text-sm">{event.title}</div>
                               <div className="text-xs text-gray-500 flex items-center">
-                                <MapPin className="h-3 w-3 mr-1" />
-                                {event.location}
+                                <Clock className="h-3 w-3 mr-1" />
+                                {event.start.toLocaleTimeString([], { 
+                                  hour: '2-digit', 
+                                  minute: '2-digit' 
+                                })}
                               </div>
-                            )}
+                              {event.location && (
+                                <div className="text-xs text-gray-500 flex items-center">
+                                  <MapPin className="h-3 w-3 mr-1" />
+                                  {event.location}
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   ) : (
                     <div className="text-center py-4">
@@ -497,74 +544,129 @@ export default function CalendarPage() {
 
           {/* Add Event Dialog */}
           <Dialog open={showAddEvent} onOpenChange={setShowAddEvent}>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-md bg-white">
               <DialogHeader>
-                <DialogTitle>Add New Event</DialogTitle>
-                <DialogDescription>
+                <DialogTitle className="text-gray-900">Add New Event</DialogTitle>
+                <DialogDescription className="text-gray-600">
                   Create a new event, appointment, or reminder.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="title">Title</Label>
+                  <Label htmlFor="title" className="text-gray-900">Title</Label>
                   <Input
                     id="title"
                     value={newEvent.title}
                     onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
                     placeholder="Event title"
+                    className="text-gray-900"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="date">Date</Label>
+                    <Label htmlFor="date" className="text-gray-900">Date</Label>
                     <Input
                       id="date"
                       type="date"
                       value={newEvent.date}
                       onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
+                      className="text-gray-900"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="time">Time</Label>
+                    <Label htmlFor="time" className="text-gray-900">Time</Label>
                     <Input
                       id="time"
                       type="time"
                       value={newEvent.time}
                       onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
+                      className="text-gray-900"
                     />
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="location">Location (Optional)</Label>
+                  <Label htmlFor="location" className="text-gray-900">Location (Optional)</Label>
                   <Input
                     id="location"
                     value={newEvent.location}
                     onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
                     placeholder="Event location"
+                    className="text-gray-900"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="type">Type</Label>
+                  <Label htmlFor="type" className="text-gray-900">Type</Label>
                   <select
                     id="type"
                     value={newEvent.type}
                     onChange={(e) => setNewEvent({ ...newEvent, type: e.target.value as CalendarEvent["type"] })}
-                    className="w-full p-2 border border-gray-300 rounded-md"
+                    className="w-full p-2 border border-gray-300 rounded-md text-gray-900 bg-white"
                   >
                     <option value="event">Event</option>
                     <option value="appointment">Appointment</option>
+                    <option value="meeting">Meeting</option>
+                    <option value="assignments">Assignments</option>
+                    <option value="work">Work</option>
+                    <option value="test">Test</option>
+                    <option value="activity">Activity</option>
+                    <option value="match">Match</option>
+                    <option value="game">Game</option>
+                    <option value="tournament">Tournament</option>
                     <option value="reminder">Reminder</option>
                     <option value="mood">Mood Check-in</option>
                   </select>
                 </div>
                 <div>
-                  <Label htmlFor="description">Description (Optional)</Label>
+                  <Label htmlFor="reminderBefore" className="text-gray-900">Reminder Before Event</Label>
+                  <select
+                    id="reminderBefore"
+                    value={newEvent.reminderBefore}
+                    onChange={(e) => setNewEvent({ ...newEvent, reminderBefore: parseInt(e.target.value) })}
+                    className="w-full p-2 border border-gray-300 rounded-md text-gray-900 bg-white"
+                  >
+                    <option value="0">No reminder</option>
+                    <option value="5">5 minutes before</option>
+                    <option value="15">15 minutes before</option>
+                    <option value="30">30 minutes before</option>
+                    <option value="60">1 hour before</option>
+                    <option value="120">2 hours before</option>
+                    <option value="1440">1 day before</option>
+                    <option value="2880">2 days before</option>
+                  </select>
+                </div>
+                <div>
+                  <Label htmlFor="color" className="text-gray-900">Event Color</Label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      id="color"
+                      type="color"
+                      value={newEvent.color}
+                      onChange={(e) => setNewEvent({ ...newEvent, color: e.target.value })}
+                      className="h-10 w-20 border border-gray-300 rounded-md cursor-pointer"
+                    />
+                    <div className="flex gap-2 flex-wrap">
+                      {["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"].map((color) => (
+                        <button
+                          key={color}
+                          type="button"
+                          onClick={() => setNewEvent({ ...newEvent, color })}
+                          className="w-8 h-8 rounded-md border-2 border-gray-300 hover:border-gray-500 transition-colors"
+                          style={{ backgroundColor: color }}
+                          title={color}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="description" className="text-gray-900">Description (Optional)</Label>
                   <Textarea
                     id="description"
                     value={newEvent.description}
                     onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
                     placeholder="Event description"
                     rows={3}
+                    className="text-gray-900"
                   />
                 </div>
               </div>

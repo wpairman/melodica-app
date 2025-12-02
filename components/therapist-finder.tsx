@@ -218,9 +218,23 @@ const fetchNPIRegistryTherapists = async (
       params.append("state", state)
     }
 
-    // Search for different mental health provider taxonomy codes
-    // Using taxonomy codes is more reliable than descriptions
-    const taxonomyCodes = [
+    // Search by taxonomy description (NPI Registry API uses text descriptions, not codes)
+    const providerTypes = [
+      "Psychologist",
+      "Clinical Psychologist",
+      "School Psychologist",
+      "Clinical Social Worker",
+      "Marriage & Family Therapist",
+      "Professional Counselor",
+      "Mental Health Counselor",
+      "Psychiatry",
+      "Addiction Psychiatry",
+      "Child & Adolescent Psychiatry",
+      "Geriatric Psychiatry",
+    ]
+
+    // Taxonomy codes to filter results (for validation)
+    const validTaxonomyCodes = new Set([
       "103T00000X", // Psychologist
       "1041C0700X", // Clinical Psychologist
       "1041S0200X", // School Psychologist
@@ -228,24 +242,19 @@ const fetchNPIRegistryTherapists = async (
       "2084P0802X", // Psychiatry & Neurology - Addiction Psychiatry
       "2084P0804X", // Psychiatry & Neurology - Child & Adolescent Psychiatry
       "2084P0805X", // Psychiatry & Neurology - Geriatric Psychiatry
-    ]
-
-    // Also search by taxonomy description as fallback
-    const providerTypes = [
-      "Psychologist",
-      "Clinical Social Worker",
-      "Marriage & Family Therapist",
-      "Professional Counselor",
-      "Mental Health Counselor",
-    ]
+      "1041C0700X", // Clinical Social Worker
+      "106H00000X", // Marriage & Family Therapist
+      "101YM0800X", // Professional Counselor
+      "101YM0800X", // Mental Health Counselor
+    ])
 
     const seenNPIs = new Set<string>()
 
-    // First, try searching by taxonomy codes
-    for (const taxonomyCode of taxonomyCodes) {
+    // Search by provider type descriptions
+    for (const providerType of providerTypes) {
       try {
         const searchParams = new URLSearchParams(params)
-        searchParams.set("taxonomy_description", taxonomyCode)
+        searchParams.set("taxonomy_description", providerType)
         
         const response = await fetch(
           `https://npiregistry.cms.hhs.gov/api/?${searchParams.toString()}`,
@@ -260,9 +269,17 @@ const fetchNPIRegistryTherapists = async (
           const data = await response.json()
           
           if (data.results && Array.isArray(data.results)) {
-            data.results.forEach((provider: any, index: number) => {
+            data.results.forEach((provider: any) => {
               const npi = provider.number
               if (seenNPIs.has(npi)) return // Skip duplicates
+              
+              // Optional: Filter by valid taxonomy codes if needed
+              const specialties = provider.taxonomies || []
+              const hasValidTaxonomy = specialties.some((tax: any) => 
+                validTaxonomyCodes.has(tax.code)
+              )
+              
+              // Include all results for now, but we could filter by hasValidTaxonomy if needed
               seenNPIs.add(npi)
 
               const addresses = provider.addresses || []
@@ -273,12 +290,11 @@ const fetchNPIRegistryTherapists = async (
                   `${provider.basic?.first_name || ""} ${provider.basic?.last_name || ""}`.trim() ||
                   "Provider"
                 
-                if (!providerName || providerName === "Provider") return // Skip invalid entries
+                if (!providerName || providerName === "Provider") return
                 
-                const specialties = provider.taxonomies || []
                 const specialty = specialties.length > 0 
-                  ? specialties[0].desc || "Mental Health Provider"
-                  : "Mental Health Provider"
+                  ? specialties[0].desc || providerType
+                  : providerType
 
                 const phone = practiceAddress.telephone_number || ""
                 const providerCity = practiceAddress.city || city || "Unknown"
@@ -289,8 +305,7 @@ const fetchNPIRegistryTherapists = async (
                 // Calculate distance if we have coordinates
                 let distance = ""
                 if (latitude && longitude) {
-                  // Try to geocode the address if we don't have coordinates
-                  // For now, estimate based on zip code match
+                  // Estimate based on zip code match
                   if (zipCode && providerZip && zipCode.split("-")[0] === providerZip.split("-")[0]) {
                     distance = "0.5-5.0 mi" // Same zip code area
                   } else {
@@ -318,84 +333,12 @@ const fetchNPIRegistryTherapists = async (
           }
         }
       } catch (error) {
-        console.warn(`Error fetching taxonomy ${taxonomyCode} from NPI Registry:`, error)
-        // Continue to next taxonomy
+        console.warn(`Error fetching ${providerType} from NPI Registry:`, error)
+        // Continue to next provider type
       }
-    }
-
-    // If we don't have enough results, try searching by description
-    if (therapists.length < 5) {
-      for (const providerType of providerTypes) {
-        try {
-          const searchParams = new URLSearchParams(params)
-          searchParams.set("taxonomy_description", providerType)
-          
-          const response = await fetch(
-            `https://npiregistry.cms.hhs.gov/api/?${searchParams.toString()}`,
-            {
-              headers: {
-                'Accept': 'application/json',
-              },
-            }
-          )
-
-          if (response.ok) {
-            const data = await response.json()
-            
-            if (data.results && Array.isArray(data.results)) {
-              data.results.forEach((provider: any) => {
-                const npi = provider.number
-                if (seenNPIs.has(npi)) return // Skip duplicates
-                seenNPIs.add(npi)
-
-                const addresses = provider.addresses || []
-                const practiceAddress = addresses.find((addr: any) => addr.address_purpose === "LOCATION") || addresses[0]
-                
-                if (practiceAddress) {
-                  const providerName = provider.basic?.organization_name || 
-                    `${provider.basic?.first_name || ""} ${provider.basic?.last_name || ""}`.trim() ||
-                    "Provider"
-                  
-                  if (!providerName || providerName === "Provider") return
-                  
-                  const specialties = provider.taxonomies || []
-                  const specialty = specialties.length > 0 
-                    ? specialties[0].desc || providerType
-                    : providerType
-
-                  const phone = practiceAddress.telephone_number || ""
-                  const providerCity = practiceAddress.city || city || "Unknown"
-                  const providerState = practiceAddress.state || state
-                  const providerZip = practiceAddress.postal_code || zipCode
-                  const providerCountry = practiceAddress.country_code === "US" ? "USA" : practiceAddress.country_name || "USA"
-
-                  let distance = ""
-                  if (zipCode && providerZip && zipCode.split("-")[0] === providerZip.split("-")[0]) {
-                    distance = "0.5-5.0 mi"
-                  } else {
-                    distance = "5-15 mi"
-                  }
-
-                  therapists.push({
-                    id: npi || generateStableId(`${providerCity}-${providerZip}`, therapists.length),
-                    name: providerName,
-                    specialty: specialty,
-                    distance: distance,
-                    city: providerCity,
-                    zipCode: providerZip,
-                    state: providerState,
-                    country: providerCountry,
-                    phone: phone,
-                  })
-                }
-              })
-            }
-          }
-        } catch (error) {
-          console.warn(`Error fetching ${providerType} from NPI Registry:`, error)
-          // Continue to next provider type
-        }
-      }
+      
+      // Stop if we have enough results
+      if (therapists.length >= 20) break
     }
   } catch (error) {
     console.error("Error fetching from NPI Registry:", error)

@@ -18,6 +18,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { hashPassword } from "@/lib/password-utils"
 import { createStripeCheckoutSession } from "@/lib/api-utils"
 import { saveUserToFirebase } from "@/lib/firebase-users"
+import { generateVerificationToken } from "@/lib/email-utils"
 
 const MENTAL_HEALTH_CONDITIONS = [
   "Depression",
@@ -282,6 +283,11 @@ Remember: This is general information only. Always consult with your healthcare 
       // Hash password before storing (security: never store plain text passwords)
       const hashedPassword = await hashPassword(normalizedPassword)
       
+      // Generate verification token
+      const verificationToken = generateVerificationToken()
+      const tokenExpiry = new Date()
+      tokenExpiry.setHours(tokenExpiry.getHours() + 24) // Token expires in 24 hours
+      
       // Store user data with normalized email and hashed password
       const userData = {
         ...formData,
@@ -293,6 +299,9 @@ Remember: This is general information only. Always consult with your healthcare 
         selectedPlan: selectedPlan,
         selectedInterval: selectedInterval,
         createdAt: new Date().toISOString(),
+        emailVerified: false, // Email not verified yet
+        verificationToken: verificationToken,
+        verificationTokenExpiry: tokenExpiry.toISOString(),
       }
       
       // Save to Firebase (if configured) - this allows admin to see all users
@@ -350,13 +359,51 @@ Remember: This is general information only. Always consult with your healthcare 
       localStorage.setItem("userData", JSON.stringify(userData))
       console.log("💾 Saved to userData")
       
-      // Save credentials for easy login (with "Remember me" enabled by default)
-      // This enables auto-login on this device only - other devices remain independent
-      // Note: We store the plain password temporarily for auto-login, but the user data stores the hash
-      localStorage.setItem("savedCredentials", JSON.stringify({
+      // Store verification token separately for easy lookup
+      localStorage.setItem(`verificationToken_${normalizedEmail}`, JSON.stringify({
+        token: verificationToken,
+        expiry: tokenExpiry.toISOString(),
         email: normalizedEmail,
-        password: normalizedPassword, // Temporary plain password for auto-login (not stored in userData)
       }))
+
+      // Send verification email
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api'
+        const response = await fetch(`${apiUrl}/auth/send-verification`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: normalizedEmail,
+            name: formData.name,
+            token: verificationToken,
+          }),
+        })
+
+        const result = await response.json()
+        
+        if (!result.success) {
+          console.error('Failed to send verification email:', result.error)
+          toast({
+            title: "Email verification pending",
+            description: "Account created but verification email failed to send. You can request a new one from the verify email page.",
+            variant: "destructive",
+          })
+        } else {
+          toast({
+            title: "Verification email sent!",
+            description: "Please check your email to verify your account.",
+          })
+        }
+      } catch (error: any) {
+        console.error('Error sending verification email:', error)
+        toast({
+          title: "Verification email pending",
+          description: "Account created but verification email failed to send. You can request a new one from the verify email page.",
+          variant: "destructive",
+        })
+      }
 
       // Store plan and interval for later processing
       localStorage.setItem("pendingSubscription", JSON.stringify({
@@ -364,46 +411,9 @@ Remember: This is general information only. Always consult with your healthcare 
         interval: selectedInterval,
       }))
 
-      // Use the auth context to log in the user
-      console.log("🔐 Calling login() with userData")
-      login(userData)
-      console.log("✅ login() called")
-
-      // If paid plan selected, redirect to Stripe checkout
-      if (selectedPlan === 'premium' || selectedPlan === 'ultimate') {
-        try {
-          toast({
-            title: "Redirecting to payment...",
-            description: "Please complete payment to activate your subscription",
-          })
-
-          const data = await createStripeCheckoutSession(`${selectedPlan}_${selectedInterval}`)
-
-          if (data?.url) {
-            // Redirect to Stripe checkout
-            window.location.href = data.url
-          } else {
-            throw new Error(data.error || "No checkout URL returned from server")
-          }
-        } catch (err: any) {
-          console.error("Checkout error:", err)
-          toast({
-            title: "Payment Error",
-            description: err.message || "Failed to create checkout session. Please try again.",
-            variant: "destructive",
-          })
-        }
-        return
-      }
-
-      // Free plan - go directly to dashboard
-      toast({
-        title: "Account created successfully!",
-        description: "Welcome to Melodica - your personalized recommendations are ready!",
-      })
-
-      // Redirect to dashboard
-      router.push("/dashboard")
+      // Redirect to verification page instead of logging in
+      // User must verify email before accessing dashboard
+      router.push(`/verify-email?email=${encodeURIComponent(normalizedEmail)}`)
     }
   }
 

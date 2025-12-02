@@ -307,6 +307,42 @@ export default function Login() {
       if (foundUser) {
         console.log("✅ LOGIN SUCCESS - Proceeding with login")
         
+        // Check if email is verified (only for new users - existing users are grandfathered in)
+        // If emailVerified is explicitly false, require verification
+        // If emailVerified is undefined (old users), allow login for backward compatibility
+        if (foundUser.emailVerified === false) {
+          toast({
+            title: "Email not verified",
+            description: "Please verify your email address before logging in. Check your email for the verification link.",
+            variant: "destructive",
+          })
+          // Redirect to verification page
+          router.push(`/verify-email?email=${encodeURIComponent(foundUser.email)}`)
+          setIsSubmitting(false)
+          return
+        }
+        
+        // For backward compatibility: if emailVerified is undefined, mark as verified
+        if (foundUser.emailVerified === undefined) {
+          // Update user to mark as verified (grandfather existing users)
+          const allUsersStr = localStorage.getItem("allUsers")
+          if (allUsersStr) {
+            try {
+              const allUsers = JSON.parse(allUsersStr)
+              const updatedUsers = allUsers.map((user: any) => {
+                if (user.email === foundUser.email) {
+                  return { ...user, emailVerified: true }
+                }
+                return user
+              })
+              localStorage.setItem("allUsers", JSON.stringify(updatedUsers))
+              foundUser.emailVerified = true
+            } catch (error) {
+              console.error("Error updating user verification status:", error)
+            }
+          }
+        }
+        
         // IMPORTANT: Add user to this device's allUsers array if not already present
         const allUsersStr = localStorage.getItem("allUsers")
         let allUsers: any[] = []

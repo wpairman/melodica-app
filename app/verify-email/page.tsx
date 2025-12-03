@@ -167,7 +167,11 @@ export default function VerifyEmail() {
       }))
 
       // Send verification email
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api'
+      // Get API URL - check both env var and window location
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 
+        (typeof window !== 'undefined' && window.location.hostname === 'melodicaapp.com' 
+          ? 'https://melodica-api.vercel.app' 
+          : '/api')
       const response = await fetch(`${apiUrl}/auth/send-verification`, {
         method: 'POST',
         headers: {

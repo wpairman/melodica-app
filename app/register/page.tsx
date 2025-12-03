@@ -368,7 +368,12 @@ Remember: This is general information only. Always consult with your healthcare 
 
       // Send verification email
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api'
+        // Get API URL - check both env var and window location
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 
+          (typeof window !== 'undefined' && window.location.hostname === 'melodicaapp.com' 
+            ? 'https://melodica-api.vercel.app' 
+            : '/api')
+        console.log('📡 API URL:', apiUrl)
         const response = await fetch(`${apiUrl}/auth/send-verification`, {
           method: 'POST',
           headers: {

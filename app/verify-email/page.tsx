@@ -172,7 +172,7 @@ export default function VerifyEmail() {
         (typeof window !== 'undefined' && window.location.hostname === 'melodicaapp.com' 
           ? 'https://melodica-api.vercel.app' 
           : '/api')
-      const response = await fetch(`${apiUrl}/auth/send-verification`, {
+      const response = await fetch(`${apiUrl}/api/auth/send-verification`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

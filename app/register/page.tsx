@@ -374,7 +374,7 @@ Remember: This is general information only. Always consult with your healthcare 
             ? 'https://melodica-api.vercel.app' 
             : '/api')
         console.log('📡 API URL:', apiUrl)
-        const response = await fetch(`${apiUrl}/auth/send-verification`, {
+        const response = await fetch(`${apiUrl}/api/auth/send-verification`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

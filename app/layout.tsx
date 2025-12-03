@@ -1,5 +1,5 @@
 import type React from "react"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
 import "../styles/globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -30,11 +30,6 @@ export const metadata: Metadata = {
   generator: 'Next.js',
   applicationName: "Melodica",
   referrer: "origin-when-cross-origin",
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-  },
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -74,6 +69,12 @@ export const metadata: Metadata = {
     // google: "your-google-verification-code",
     // yandex: "your-yandex-verification-code",
   },
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
 }
 
 export default function RootLayout({

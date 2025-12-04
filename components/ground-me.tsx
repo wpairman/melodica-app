@@ -247,7 +247,8 @@ export default function GroundMe() {
               }
             },
             (error) => {
-              console.error("Geolocation error:", error)
+              // Silently handle geolocation errors (permission denied, unavailable, timeout)
+              // These are expected scenarios and don't need console logging
               setLocationLoading(false)
             },
             { timeout: 10000 }

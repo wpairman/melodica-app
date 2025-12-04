@@ -37,6 +37,8 @@ For production, you should verify your domain in Resend:
 4. Wait for verification (usually takes a few minutes)
 5. Update `RESEND_FROM_EMAIL` to use your verified domain
 
+**📖 Detailed DNS Setup Instructions:** See [RESEND_DNS_SETUP.md](./RESEND_DNS_SETUP.md) for step-by-step instructions on configuring DKIM, SPF, and MX records for your domain provider.
+
 For development/testing, you can use Resend's default domain (`onboarding@resend.dev`).
 
 ## How It Works

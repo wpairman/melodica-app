@@ -41,6 +41,19 @@ const MENTAL_HEALTH_CONDITIONS = [
   "Other",
 ]
 
+const SYMPTOMS = [
+  "Feeling anxious",
+  "Feeling depressed",
+  "Feeling stressed or burned out",
+  "Emotional ups and downs",
+  "Difficulty concentrating or staying motivated",
+  "Trouble sleeping",
+  "Feeling socially anxious",
+  "Feeling disconnected",
+  "Unsure, but something feels off",
+  "Prefer not to say",
+]
+
 export default function Register() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -66,6 +79,7 @@ export default function Register() {
     gender: "",
     favoriteArtists: "",
     favoriteActivities: "",
+    symptoms: [] as string[],
     hasMentalIllness: false,
     mentalHealthConditions: [] as string[],
     isOnMedication: false,
@@ -103,6 +117,15 @@ export default function Register() {
       mentalHealthConditions: checked
         ? [...prev.mentalHealthConditions, condition]
         : prev.mentalHealthConditions.filter((c) => c !== condition),
+    }))
+  }
+
+  const handleSymptomChange = (symptom: string, checked: boolean) => {
+    setFormData((prev) => ({
+      ...prev,
+      symptoms: checked
+        ? [...prev.symptoms, symptom]
+        : prev.symptoms.filter((s) => s !== symptom),
     }))
   }
 
@@ -694,6 +717,29 @@ Remember: This is general information only. Always consult with your healthcare 
                     <div className="text-xs text-gray-300 whitespace-pre-line">{analyses.activities}</div>
                   </div>
                 )}
+              </div>
+
+              {/* Symptoms Section */}
+              <div className="space-y-3 pt-4 border-t border-gray-600">
+                <Label className="text-sm font-medium text-white">
+                  Not diagnosed but have symptoms of:
+                </Label>
+                <div className="max-h-48 overflow-y-auto border rounded-md p-3 bg-gray-700 border-gray-600">
+                  {SYMPTOMS.map((symptom) => (
+                    <div key={symptom} className="flex items-center space-x-2 py-1.5">
+                      <input
+                        type="checkbox"
+                        id={`symptom-${symptom}`}
+                        checked={formData.symptoms.includes(symptom)}
+                        onChange={(e) => handleSymptomChange(symptom, e.target.checked)}
+                        className="h-3 w-3 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
+                      />
+                      <Label htmlFor={`symptom-${symptom}`} className="text-xs text-white cursor-pointer">
+                        {symptom}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Mental Health Section */}

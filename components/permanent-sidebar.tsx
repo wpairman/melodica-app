@@ -27,7 +27,7 @@ export function PermanentSidebar() {
   const isActive = (path: string) => pathname === path
 
   return (
-    <div className="hidden lg:flex fixed left-0 top-0 h-screen w-80 bg-gray-900 border-r border-gray-700 flex-col z-40">
+    <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-80 bg-gray-900 border-r border-gray-700 flex-col z-40">
       {/* Header */}
       <div className="flex h-14 items-center border-b border-gray-700 px-4 justify-between">
         <Link href="/" className="flex items-center gap-2 font-semibold text-white">
@@ -229,7 +229,7 @@ export function PermanentSidebar() {
           Log out
         </Button>
       </div>
-    </div>
+    </aside>
   )
 }
 

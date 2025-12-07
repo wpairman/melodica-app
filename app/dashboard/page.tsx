@@ -287,10 +287,9 @@ export default function Dashboard() {
   return (
     <AuthGuard>
       <DashboardLayout>
-        <>
-          <div className="flex min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
-            <CalendarNotifications />
-            <div className="flex-1">
+        <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
+          <CalendarNotifications />
+          <div className="w-full">
               <header className="sticky top-0 z-40 border-b bg-gray-900 border-gray-700 lg:hidden">
                 <div className="flex h-14 items-center px-4 justify-between">
                   <Link href="/" className="flex items-center gap-2 font-semibold text-white">
@@ -365,9 +364,8 @@ export default function Dashboard() {
                   </Tabs>
                 </div>
               </main>
-            </div>
           </div>
-        </>
+        </div>
       </DashboardLayout>
     </AuthGuard>
   )

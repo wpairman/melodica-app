@@ -9,9 +9,9 @@ interface DashboardLayoutProps {
 
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   return (
-    <div className="min-h-screen flex" style={{ backgroundColor: 'hsl(var(--background))' }}>
+    <div className="min-h-screen" style={{ backgroundColor: 'hsl(var(--background))' }}>
       <PermanentSidebar />
-      <div className="flex-1 lg:ml-80">
+      <div className="lg:ml-80">
         {children}
       </div>
     </div>

@@ -4,13 +4,15 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Quote, Sparkles, Loader2, Heart, Copy, Check } from "lucide-react"
+import { Quote, Sparkles, Loader2, Heart, Copy, Check, Star } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 interface QuoteData {
   quote: string
   timestamp: string
   userInput: string
+  isFavorited?: boolean
+  id?: string
 }
 
 export default function QuotesSection() {
@@ -18,16 +20,21 @@ export default function QuotesSection() {
   const [currentQuote, setCurrentQuote] = useState<QuoteData | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [savedQuotes, setSavedQuotes] = useState<QuoteData[]>([])
+  const [favoritedQuotes, setFavoritedQuotes] = useState<QuoteData[]>([])
   const [copied, setCopied] = useState(false)
   const { toast } = useToast()
 
-  // Load saved quotes from localStorage
+  // Load saved quotes and favorites from localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("melodica-saved-quotes")
       if (saved) {
         try {
-          setSavedQuotes(JSON.parse(saved))
+          const quotes = JSON.parse(saved)
+          setSavedQuotes(quotes)
+          // Filter favorited quotes
+          const favorites = quotes.filter((q: QuoteData) => q.isFavorited)
+          setFavoritedQuotes(favorites)
         } catch (e) {
           console.error("Error loading saved quotes:", e)
         }
@@ -187,6 +194,8 @@ export default function QuotesSection() {
           quote,
           timestamp: new Date().toISOString(),
           userInput: userInput.trim(),
+          isFavorited: false,
+          id: `quote-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         }
 
         setCurrentQuote(quoteData)
@@ -206,6 +215,17 @@ export default function QuotesSection() {
   const saveQuote = () => {
     if (!currentQuote) return
 
+    // Check if quote already exists (avoid duplicates)
+    const exists = savedQuotes.some(q => q.quote === currentQuote.quote && q.userInput === currentQuote.userInput)
+    if (exists) {
+      toast({
+        title: "Quote already saved",
+        description: "This quote is already in your collection.",
+        variant: "default",
+      })
+      return
+    }
+
     const updated = [currentQuote, ...savedQuotes]
     setSavedQuotes(updated)
     
@@ -216,6 +236,40 @@ export default function QuotesSection() {
     toast({
       title: "Quote saved! 💚",
       description: "Your quote has been saved to your collection.",
+    })
+  }
+
+  const toggleFavorite = (quote: QuoteData, index?: number) => {
+    const updated = savedQuotes.map((q, i) => {
+      // If index is provided, use it; otherwise match by quote text and userInput
+      if (index !== undefined && i === index) {
+        return { ...q, isFavorited: !q.isFavorited }
+      }
+      if (q.quote === quote.quote && q.userInput === quote.userInput) {
+        return { ...q, isFavorited: !q.isFavorited }
+      }
+      return q
+    })
+    
+    setSavedQuotes(updated)
+    
+    // Update favorites list
+    const favorites = updated.filter(q => q.isFavorited)
+    setFavoritedQuotes(favorites)
+    
+    if (typeof window !== "undefined") {
+      localStorage.setItem("melodica-saved-quotes", JSON.stringify(updated))
+    }
+
+    const isNowFavorited = updated.find(q => 
+      q.quote === quote.quote && q.userInput === quote.userInput
+    )?.isFavorited
+
+    toast({
+      title: isNowFavorited ? "Added to favorites! ⭐" : "Removed from favorites",
+      description: isNowFavorited 
+        ? "This quote has been added to your favorites." 
+        : "This quote has been removed from your favorites.",
     })
   }
 
@@ -320,6 +374,20 @@ export default function QuotesSection() {
                 Save Quote
               </Button>
               <Button
+                onClick={() => {
+                  if (currentQuote) {
+                    const updatedQuote = { ...currentQuote, isFavorited: !currentQuote.isFavorited }
+                    setCurrentQuote(updatedQuote)
+                    toggleFavorite(currentQuote)
+                  }
+                }}
+                variant="outline"
+                className={`flex-1 border-gray-700 text-white hover:bg-yellow-600/20 hover:border-yellow-500 ${currentQuote.isFavorited ? 'border-yellow-500 bg-yellow-600/10' : ''}`}
+              >
+                <Star className={`mr-2 h-4 w-4 ${currentQuote.isFavorited ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                {currentQuote.isFavorited ? 'Favorited' : 'Favorite'}
+              </Button>
+              <Button
                 onClick={copyQuote}
                 variant="outline"
                 className="flex-1 border-gray-700 text-white hover:bg-gray-800"
@@ -341,6 +409,66 @@ export default function QuotesSection() {
         </Card>
       )}
 
+      {/* Favorites Section */}
+      {favoritedQuotes.length > 0 && (
+        <Card className="bg-gradient-to-br from-yellow-900/20 to-orange-900/20 border-yellow-700/50">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
+              Favorite Quotes ({favoritedQuotes.length})
+            </CardTitle>
+            <CardDescription className="text-gray-300">
+              Your favorite inspirational quotes
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {favoritedQuotes.map((quoteData, index) => {
+                const originalIndex = savedQuotes.findIndex(q => 
+                  q.quote === quoteData.quote && q.userInput === quoteData.userInput
+                )
+                return (
+                  <div
+                    key={quoteData.id || index}
+                    className="p-4 bg-gray-900/50 rounded-lg border border-yellow-700/30 hover:border-yellow-500/50 transition-colors"
+                  >
+                    <div className="flex items-start gap-3">
+                      <Star className="h-5 w-5 text-yellow-400 fill-yellow-400 mt-1 flex-shrink-0" />
+                      <div className="flex-1">
+                        <p className="text-white italic mb-2">"{quoteData.quote}"</p>
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm text-gray-400">
+                            {new Date(quoteData.timestamp).toLocaleDateString()}
+                          </p>
+                          <div className="flex gap-2">
+                            <Button
+                              onClick={() => toggleFavorite(quoteData, originalIndex)}
+                              variant="ghost"
+                              size="sm"
+                              className="text-yellow-400 hover:text-yellow-300"
+                            >
+                              <Star className="h-4 w-4 fill-yellow-400" />
+                            </Button>
+                            <Button
+                              onClick={() => deleteQuote(originalIndex)}
+                              variant="ghost"
+                              size="sm"
+                              className="text-gray-400 hover:text-red-400"
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Saved Quotes */}
       {savedQuotes.length > 0 && (
         <Card className="bg-gray-800 border-gray-700">
@@ -357,7 +485,7 @@ export default function QuotesSection() {
             <div className="space-y-4">
               {savedQuotes.map((quoteData, index) => (
                 <div
-                  key={index}
+                  key={quoteData.id || index}
                   className="p-4 bg-gray-900/50 rounded-lg border border-gray-700 hover:border-purple-700/50 transition-colors"
                 >
                   <div className="flex items-start gap-3">
@@ -368,14 +496,25 @@ export default function QuotesSection() {
                         <p className="text-sm text-gray-400">
                           {new Date(quoteData.timestamp).toLocaleDateString()}
                         </p>
-                        <Button
-                          onClick={() => deleteQuote(index)}
-                          variant="ghost"
-                          size="sm"
-                          className="text-gray-400 hover:text-red-400"
-                        >
-                          Delete
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => toggleFavorite(quoteData, index)}
+                            variant="ghost"
+                            size="sm"
+                            className={quoteData.isFavorited ? "text-yellow-400 hover:text-yellow-300" : "text-gray-400 hover:text-yellow-400"}
+                            title={quoteData.isFavorited ? "Remove from favorites" : "Add to favorites"}
+                          >
+                            <Star className={`h-4 w-4 ${quoteData.isFavorited ? 'fill-yellow-400' : ''}`} />
+                          </Button>
+                          <Button
+                            onClick={() => deleteQuote(index)}
+                            variant="ghost"
+                            size="sm"
+                            className="text-gray-400 hover:text-red-400"
+                          >
+                            Delete
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>

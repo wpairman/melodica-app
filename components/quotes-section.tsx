@@ -216,8 +216,8 @@ export default function QuotesSection() {
     if (!currentQuote) return
 
     // Check if quote already exists (avoid duplicates)
-    const exists = savedQuotes.some(q => q.quote === currentQuote.quote && q.userInput === currentQuote.userInput)
-    if (exists) {
+    const existingIndex = savedQuotes.findIndex(q => q.quote === currentQuote.quote && q.userInput === currentQuote.userInput)
+    if (existingIndex !== -1) {
       toast({
         title: "Quote already saved",
         description: "This quote is already in your collection.",
@@ -229,13 +229,20 @@ export default function QuotesSection() {
     const updated = [currentQuote, ...savedQuotes]
     setSavedQuotes(updated)
     
+    // Update favorites if this quote is favorited
+    if (currentQuote.isFavorited) {
+      setFavoritedQuotes([currentQuote, ...favoritedQuotes])
+    }
+    
     if (typeof window !== "undefined") {
       localStorage.setItem("melodica-saved-quotes", JSON.stringify(updated))
     }
 
     toast({
       title: "Quote saved! 💚",
-      description: "Your quote has been saved to your collection.",
+      description: currentQuote.isFavorited 
+        ? "Your quote has been saved and added to favorites." 
+        : "Your quote has been saved to your collection.",
     })
   }
 

@@ -63,9 +63,9 @@ export function NavigationSidebar({ isOpen, onOpenChange }: NavigationSidebarPro
                   </Button>
                 </Link>
                 <Link href="/dashboard/quotes">
-                  <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
-                    <Quote className="mr-2 h-4 w-4" />
-                    Quotes
+                  <Button variant="ghost" className="w-full justify-start text-white hover:bg-purple-600/20 border-l-2 border-purple-500">
+                    <Quote className="mr-2 h-4 w-4 text-purple-400" />
+                    <span className="font-semibold">Quotes</span>
                   </Button>
                 </Link>
                 <Link href="/calendar">

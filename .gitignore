@@ -50,3 +50,6 @@ next-env.d.ts
 # OS
 .DS_Store
 Thumbs.db
+
+# API project (separate repository)
+/melodica-api/

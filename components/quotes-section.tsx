@@ -240,6 +240,11 @@ export default function QuotesSection() {
   }
 
   const toggleFavorite = (quote: QuoteData, index?: number) => {
+    // Check if this is the current quote
+    const isCurrentQuote = currentQuote && 
+      currentQuote.quote === quote.quote && 
+      currentQuote.userInput === quote.userInput
+
     const updated = savedQuotes.map((q, i) => {
       // If index is provided, use it; otherwise match by quote text and userInput
       if (index !== undefined && i === index) {
@@ -256,6 +261,11 @@ export default function QuotesSection() {
     // Update favorites list
     const favorites = updated.filter(q => q.isFavorited)
     setFavoritedQuotes(favorites)
+    
+    // Update current quote if it's the one being favorited
+    if (isCurrentQuote && currentQuote) {
+      setCurrentQuote({ ...currentQuote, isFavorited: !currentQuote.isFavorited })
+    }
     
     if (typeof window !== "undefined") {
       localStorage.setItem("melodica-saved-quotes", JSON.stringify(updated))
@@ -374,13 +384,7 @@ export default function QuotesSection() {
                 Save Quote
               </Button>
               <Button
-                onClick={() => {
-                  if (currentQuote) {
-                    const updatedQuote = { ...currentQuote, isFavorited: !currentQuote.isFavorited }
-                    setCurrentQuote(updatedQuote)
-                    toggleFavorite(currentQuote)
-                  }
-                }}
+                onClick={() => currentQuote && toggleFavorite(currentQuote)}
                 variant="outline"
                 className={`flex-1 border-gray-700 text-white hover:bg-yellow-600/20 hover:border-yellow-500 ${currentQuote.isFavorited ? 'border-yellow-500 bg-yellow-600/10' : ''}`}
               >

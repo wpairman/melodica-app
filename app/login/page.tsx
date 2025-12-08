@@ -307,10 +307,15 @@ export default function Login() {
       if (foundUser) {
         console.log("✅ LOGIN SUCCESS - Proceeding with login")
         
-        // Check if email is verified (only for new users - existing users are grandfathered in)
-        // If emailVerified is explicitly false, require verification
-        // If emailVerified is undefined (old users), allow login for backward compatibility
-        if (foundUser.emailVerified === false) {
+        // Only require email verification for NEW users (first-time signups)
+        // A new user is identified by having a verificationToken (from registration)
+        // Existing users (already in system) should NOT need verification
+        const hasVerificationToken = foundUser.verificationToken || 
+                                     localStorage.getItem(`verificationToken_${foundUser.email}`)
+        const isNewUser = foundUser.emailVerified === false && hasVerificationToken
+        
+        if (isNewUser) {
+          // This is a new user who hasn't verified yet - require verification
           toast({
             title: "Email not verified",
             description: "Please verify your email address before logging in. Check your email for the verification link.",
@@ -322,7 +327,30 @@ export default function Login() {
           return
         }
         
-        // For backward compatibility: if emailVerified is undefined, mark as verified
+        // For existing users: if they don't have a verificationToken, they're an existing user
+        // Mark them as verified if not already set (backward compatibility)
+        if (!hasVerificationToken && foundUser.emailVerified !== true) {
+          // This is an existing user - mark as verified
+          const allUsersStr = localStorage.getItem("allUsers")
+          if (allUsersStr) {
+            try {
+              const allUsers = JSON.parse(allUsersStr)
+              const updatedUsers = allUsers.map((user: any) => {
+                if (user.email === foundUser.email) {
+                  return { ...user, emailVerified: true }
+                }
+                return user
+              })
+              localStorage.setItem("allUsers", JSON.stringify(updatedUsers))
+              foundUser.emailVerified = true
+            } catch (error) {
+              console.error("Error updating user verification status:", error)
+            }
+          }
+        }
+        
+        // For existing users (emailVerified === true OR undefined), allow login without verification
+        // If emailVerified is undefined (old users), mark as verified for consistency
         if (foundUser.emailVerified === undefined) {
           // Update user to mark as verified (grandfather existing users)
           const allUsersStr = localStorage.getItem("allUsers")

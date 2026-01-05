@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Heart, ArrowLeft, Mail, CheckCircle, AlertCircle, Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { generateVerificationToken } from "@/lib/email-utils"
+import { updateUserEmailVerificationInFirebase } from "@/lib/firebase-users"
 
 export default function VerifyEmail() {
   const { toast } = useToast()
@@ -88,6 +89,14 @@ export default function VerifyEmail() {
             localStorage.setItem("userData", JSON.stringify(updatedUserData))
           }
         }
+      }
+
+      // Update email verification status in Firebase
+      try {
+        await updateUserEmailVerificationInFirebase(userEmail, true)
+      } catch (error) {
+        console.error("Failed to update Firebase:", error)
+        // Don't fail verification if Firebase update fails
       }
 
       // Remove verification token

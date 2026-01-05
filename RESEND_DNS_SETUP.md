@@ -177,26 +177,6 @@ Remove everything before `p=` and use only:
 p=MIGfMA0GCSqGSIb3DQEB...
 ```
 
-### DKIM Stuck on "Pending"?
-
-**Problem:** DKIM record is correct and DNS is propagated, but Resend still shows "Pending"
-
-**Checklist:**
-1. ✅ Verify DNS record exists: Use https://mxtoolbox.com/TXTLookup.aspx to check `resend._domainkey.yourdomain.com`
-2. ✅ Confirm format: Record should start with `p=` (not `v=DKIM1`)
-3. ✅ Check for duplicates: Make sure there's only ONE `resend._domainkey` TXT record
-4. ✅ Wait time: Can take up to 24-48 hours, but usually 15-30 minutes
-
-**If DNS is correct but still pending after 24 hours:**
-- **Contact Resend Support**: They can manually verify on their end
-- Go to Resend Dashboard → Support or email support@resend.com
-- Tell them: "DKIM DNS record is correctly configured and propagated, but verification is stuck on pending"
-
-**Temporary Workaround:**
-While waiting for DKIM verification, you can use Resend's test domain:
-- Set `RESEND_FROM_EMAIL = Melodica <onboarding@resend.dev>`
-- **Note:** This only works for sending to your own verified email address (will7ovo@gmail.com)
-
 ### SPF Still Failing?
 
 **Problem:** Only added SPF TXT record, missing SPF MX record

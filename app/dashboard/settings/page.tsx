@@ -15,6 +15,9 @@ import { useToast } from "@/hooks/use-toast"
 import { useTheme } from "next-themes"
 import { MenuButton } from "@/components/navigation-sidebar"
 import { AuthGuard } from "@/components/auth-guard"
+import SpotifyIntegration from "@/components/spotify-integration"
+import ProfileSharing from "@/components/profile-sharing"
+import MoodDataExport from "@/components/mood-data-export"
 
 export default function SettingsPage() {
   const { toast } = useToast()
@@ -973,116 +976,13 @@ export default function SettingsPage() {
           </Card>
 
           {/* Music Integration */}
-          <Card className="bg-gray-800 border-gray-700">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Music className="h-5 w-5" />
-                Music Integration
-              </CardTitle>
-              <CardDescription className="text-gray-300">
-                Connect your music streaming accounts for personalized recommendations
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center">
-                    <Music className="h-6 w-6 text-white" />
-                  </div>
-                  <div className="space-y-0.5">
-                    <Label className="text-base text-white">Spotify</Label>
-                    <div className="text-sm text-gray-400">
-                      Connect to sync your playlists and preferences
-                    </div>
-                  </div>
-                </div>
-                {settings.music?.spotifyConnected ? (
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      const newSettings = {
-                        ...settings,
-                        music: { ...settings.music, spotifyConnected: false },
-                      }
-                      updateSettings(newSettings)
-                      toast({
-                        title: "Disconnected",
-                        description: "Spotify has been disconnected.",
-                      })
-                    }}
-                  >
-                    Disconnect
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={() => {
-                      const newSettings = {
-                        ...settings,
-                        music: { ...settings.music, spotifyConnected: true },
-                      }
-                      updateSettings(newSettings)
-                      toast({
-                        title: "Connected!",
-                        description: "Spotify has been connected successfully.",
-                      })
-                    }}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    Connect
-                  </Button>
-                )}
-              </div>
+          <SpotifyIntegration />
 
-              <div className="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
-                    <Music className="h-6 w-6 text-white" />
-                  </div>
-                  <div className="space-y-0.5">
-                    <Label className="text-base text-white">Apple Music</Label>
-                    <div className="text-sm text-gray-400">
-                      Connect to sync your library and listening history
-                    </div>
-                  </div>
-                </div>
-                {settings.music?.appleMusicConnected ? (
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      const newSettings = {
-                        ...settings,
-                        music: { ...settings.music, appleMusicConnected: false },
-                      }
-                      updateSettings(newSettings)
-                      toast({
-                        title: "Disconnected",
-                        description: "Apple Music has been disconnected.",
-                      })
-                    }}
-                  >
-                    Disconnect
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={() => {
-                      const newSettings = {
-                        ...settings,
-                        music: { ...settings.music, appleMusicConnected: true },
-                      }
-                      updateSettings(newSettings)
-                      toast({
-                        title: "Connected!",
-                        description: "Apple Music has been connected successfully.",
-                      })
-                    }}
-                    className="bg-gradient-to-br from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
-                  >
-                    Connect
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          {/* Profile Sharing */}
+          <ProfileSharing />
+
+          {/* Data Export */}
+          <MoodDataExport />
 
           {/* Test Notification */}
           <Card className="bg-gray-800 border-gray-700">

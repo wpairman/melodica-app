@@ -21,6 +21,8 @@ export interface FirebaseUser {
   name: string
   email: string
   password?: string // Hashed password
+  emailVerified?: boolean
+  verificationToken?: string
   gender?: string
   favoriteArtists?: string
   favoriteActivities?: string
@@ -191,6 +193,41 @@ export async function updateUserSubscriptionInFirebase(
     return false
   } catch (error) {
     console.error("Error updating user subscription in Firebase:", error)
+    return false
+  }
+}
+
+/**
+ * Update user email verification status in Firebase
+ */
+export async function updateUserEmailVerificationInFirebase(
+  email: string,
+  emailVerified: boolean
+): Promise<boolean> {
+  if (!db) {
+    console.warn("Firebase not initialized.")
+    return false
+  }
+
+  try {
+    const q = query(collection(db, USERS_COLLECTION), where("email", "==", email))
+    const querySnapshot = await getDocs(q)
+    
+    if (!querySnapshot.empty) {
+      const userDoc = querySnapshot.docs[0]
+      await updateDoc(doc(db, USERS_COLLECTION, userDoc.id), {
+        emailVerified,
+        updatedAt: serverTimestamp(),
+      })
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`✅ Updated email verification status in Firebase for ${email}: ${emailVerified}`)
+      }
+      return true
+    }
+    
+    return false
+  } catch (error) {
+    console.error("Error updating email verification in Firebase:", error)
     return false
   }
 }

@@ -334,6 +334,8 @@ Remember: This is general information only. Always consult with your healthcare 
           name: userData.name,
           email: userData.email,
           password: userData.password, // Already hashed
+          emailVerified: false, // New users need to verify email
+          verificationToken: verificationToken, // Store token for verification
           gender: userData.gender,
           favoriteArtists: userData.favoriteArtists,
           favoriteActivities: userData.favoriteActivities,

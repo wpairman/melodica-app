@@ -23,6 +23,9 @@ import WeatherMoodDashboard from "@/components/weather-mood-dashboard"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
 import { AuthGuard } from "@/components/auth-guard"
+import AIMusicRecommendations from "@/components/ai-music-recommendations"
+import CustomActivityPrograms from "@/components/custom-activity-programs"
+import PersonalizedPlaylists from "@/components/personalized-playlists"
 
 export default function Dashboard() {
   const { toast } = useToast()
@@ -274,6 +277,7 @@ export default function Dashboard() {
         { value: "mood", label: "Home" },
         { value: "calendar", label: "Calendar" },
         { value: "recommendations", label: "Recommendations" },
+        { value: "activities", label: "Activities" },
         { value: "period", label: "Period Tracking" },
         { value: "therapists", label: "Find Therapists" },
       ]
@@ -281,6 +285,7 @@ export default function Dashboard() {
         { value: "mood", label: "Home" },
         { value: "calendar", label: "Calendar" },
         { value: "recommendations", label: "Recommendations" },
+        { value: "activities", label: "Activities" },
         { value: "therapists", label: "Find Therapists" },
       ]
 
@@ -480,7 +485,22 @@ export default function Dashboard() {
                     </TabsContent>
 
                     <TabsContent value="recommendations" className="mt-6">
-                      <Recommendations userData={userData} />
+                      <div className="space-y-6">
+                        <AIMusicRecommendations 
+                          userData={userData} 
+                          currentMood={moodHistory.length > 0 ? moodHistory[moodHistory.length - 1].mood : 5}
+                          moodHistory={moodHistory}
+                        />
+                        <PersonalizedPlaylists 
+                          userData={userData}
+                          currentMood={moodHistory.length > 0 ? moodHistory[moodHistory.length - 1].mood : 5}
+                        />
+                        <Recommendations userData={userData} />
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="activities" className="mt-6">
+                      <CustomActivityPrograms />
                     </TabsContent>
 
                     <TabsContent value="therapists" className="mt-6">

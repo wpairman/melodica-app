@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migrate Users to Firebase</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(to bottom, #111827, #1f2937);
+            color: white;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .container {
+            background: #1f2937;
+            border-radius: 8px;
+            padding: 24px;
+            border: 1px solid #374151;
+        }
+        h1 {
+            margin-top: 0;
+        }
+        button {
+            background: #14b8a6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 8px 8px 8px 0;
+        }
+        button:hover {
+            background: #0d9488;
+        }
+        button:disabled {
+            background: #4b5563;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 16px;
+            background: #111827;
+            border-radius: 6px;
+            border: 1px solid #374151;
+        }
+        .success {
+            color: #10b981;
+        }
+        .error {
+            color: #ef4444;
+        }
+        .info {
+            color: #60a5fa;
+        }
+        pre {
+            background: #0f172a;
+            padding: 12px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 14px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 16px 0;
+        }
+        .stat-box {
+            background: #111827;
+            padding: 16px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 8px;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Migrate Users to Firebase</h1>
+        <p>This tool migrates all users from localStorage to Firebase Firestore.</p>
+        
+        <div>
+            <button onclick="compareCounts()">Compare User Counts</button>
+            <button onclick="migrateUsers()">Start Migration</button>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script type="module">
+        // Import Firebase config
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, getDocs, addDoc, query, where, updateDoc, doc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // Firebase config - you'll need to replace these with your actual values
+        // Get these from your .env.local file or Firebase Console
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.compareCounts = async function() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p class="info">Comparing user counts...</p>';
+
+            // Get localStorage count
+            const allUsersStr = localStorage.getItem("allUsers");
+            let localStorageCount = 0;
+            if (allUsersStr) {
+                try {
+                    const allUsers = JSON.parse(allUsersStr);
+                    localStorageCount = Array.isArray(allUsers) ? allUsers.length : 0;
+                } catch (error) {
+                    console.error("Error parsing localStorage:", error);
+                }
+            }
+
+            // Get Firebase count
+            let firebaseCount = 0;
+            try {
+                const querySnapshot = await getDocs(collection(db, "users"));
+                firebaseCount = querySnapshot.size;
+            } catch (error) {
+                console.error("Error getting Firebase users:", error);
+                resultsDiv.innerHTML = `<p class="error">Error: ${error.message}</p><p>Make sure Firebase is configured correctly.</p>`;
+                return;
+            }
+
+            const difference = localStorageCount - firebaseCount;
+
+            resultsDiv.innerHTML = `
+                <div class="result">
+                    <h3>User Count Comparison</h3>
+                    <div class="stats">
+                        <div class="stat-box">
+                            <div class="stat-label">localStorage</div>
+                            <div class="stat-value">${localStorageCount}</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Firebase</div>
+                            <div class="stat-value">${firebaseCount}</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Difference</div>
+                            <div class="stat-value ${difference > 0 ? 'error' : 'success'}">${difference}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        window.migrateUsers = async function() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p class="info">Starting migration...</p>';
+
+            // Get all users from localStorage
+            const allUsersStr = localStorage.getItem("allUsers");
+            if (!allUsersStr) {
+                resultsDiv.innerHTML = '<p class="error">No users found in localStorage</p>';
+                return;
+            }
+
+            let allUsers = [];
+            try {
+                allUsers = JSON.parse(allUsersStr);
+            } catch (error) {
+                resultsDiv.innerHTML = `<p class="error">Error parsing localStorage: ${error.message}</p>`;
+                return;
+            }
+
+            if (!Array.isArray(allUsers) || allUsers.length === 0) {
+                resultsDiv.innerHTML = '<p class="error">No users found in localStorage array</p>';
+                return;
+            }
+
+            let success = 0;
+            let failed = 0;
+            const errors = [];
+
+            for (const user of allUsers) {
+                if (!user.email) {
+                    failed++;
+                    errors.push({ email: "unknown", error: "Missing email" });
+                    continue;
+                }
+
+                try {
+                    // Check if user exists
+                    const q = query(collection(db, "users"), where("email", "==", user.email));
+                    const querySnapshot = await getDocs(q);
+
+                    const userData = {
+                        name: user.name || "Unknown",
+                        email: user.email,
+                        password: user.password,
+                        emailVerified: user.emailVerified || false,
+                        verificationToken: user.verificationToken,
+                        gender: user.gender,
+                        favoriteArtists: user.favoriteArtists,
+                        favoriteActivities: user.favoriteActivities,
+                        selectedPlan: user.selectedPlan || "free",
+                        subscription: user.subscription || {
+                            plan: user.selectedPlan === "free" ? "Free" : (user.selectedPlan?.charAt(0).toUpperCase() + user.selectedPlan?.slice(1) || "Free"),
+                            status: "active",
+                            currentPeriodEnd: null,
+                            isLifetime: false,
+                        },
+                        updatedAt: serverTimestamp(),
+                    };
+
+                    if (!querySnapshot.empty) {
+                        // Update existing user
+                        const existingUser = querySnapshot.docs[0];
+                        await updateDoc(doc(db, "users", existingUser.id), userData);
+                    } else {
+                        // Add new user
+                        await addDoc(collection(db, "users"), {
+                            ...userData,
+                            createdAt: serverTimestamp(),
+                        });
+                    }
+
+                    success++;
+                } catch (error) {
+                    failed++;
+                    errors.push({ email: user.email, error: error.message });
+                }
+
+                // Update progress
+                resultsDiv.innerHTML = `
+                    <p class="info">Migrating... ${success + failed} / ${allUsers.length}</p>
+                    <p class="success">✅ Success: ${success}</p>
+                    <p class="error">❌ Failed: ${failed}</p>
+                `;
+            }
+
+            // Show final results
+            let errorsHtml = '';
+            if (errors.length > 0) {
+                errorsHtml = `
+                    <h4>Errors:</h4>
+                    <pre>${JSON.stringify(errors, null, 2)}</pre>
+                `;
+            }
+
+            resultsDiv.innerHTML = `
+                <div class="result">
+                    <h3>Migration Complete!</h3>
+                    <div class="stats">
+                        <div class="stat-box">
+                            <div class="stat-label">Success</div>
+                            <div class="stat-value success">${success}</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Failed</div>
+                            <div class="stat-value error">${failed}</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Total</div>
+                            <div class="stat-value">${allUsers.length}</div>
+                        </div>
+                    </div>
+                    ${errorsHtml}
+                </div>
+            `;
+        };
+    </script>
+</body>
+</html>
+
+
+

@@ -644,7 +644,7 @@ export default function CalendarPage() {
                     value={newEvent.title}
                     onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
                     placeholder="Event title"
-                    className="text-gray-900"
+                    className="text-gray-900 bg-white border-gray-300"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -655,7 +655,7 @@ export default function CalendarPage() {
                       type="date"
                       value={newEvent.date}
                       onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-                      className="text-gray-900"
+                      className="text-gray-900 bg-white border-gray-300"
                     />
                   </div>
                   <div>
@@ -665,7 +665,7 @@ export default function CalendarPage() {
                       type="time"
                       value={newEvent.time}
                       onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
-                      className="text-gray-900"
+                      className="text-gray-900 bg-white border-gray-300"
                     />
                   </div>
                 </div>
@@ -676,7 +676,7 @@ export default function CalendarPage() {
                     value={newEvent.location}
                     onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
                     placeholder="Event location"
-                    className="text-gray-900"
+                    className="text-gray-900 bg-white border-gray-300"
                   />
                 </div>
                 <div>
@@ -751,7 +751,7 @@ export default function CalendarPage() {
                     onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
                     placeholder="Event description"
                     rows={3}
-                    className="text-gray-900"
+                    className="text-gray-900 bg-white border-gray-300"
                   />
                 </div>
               </div>
@@ -788,7 +788,7 @@ export default function CalendarPage() {
                     value={newEvent.title}
                     onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
                     placeholder="Event title"
-                    className="text-gray-900"
+                    className="text-gray-900 bg-white border-gray-300"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -799,7 +799,7 @@ export default function CalendarPage() {
                       type="date"
                       value={newEvent.date}
                       onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-                      className="text-gray-900"
+                      className="text-gray-900 bg-white border-gray-300"
                     />
                   </div>
                   <div>
@@ -809,7 +809,7 @@ export default function CalendarPage() {
                       type="time"
                       value={newEvent.time}
                       onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
-                      className="text-gray-900"
+                      className="text-gray-900 bg-white border-gray-300"
                     />
                   </div>
                 </div>
@@ -820,7 +820,7 @@ export default function CalendarPage() {
                     value={newEvent.location}
                     onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
                     placeholder="Event location"
-                    className="text-gray-900"
+                    className="text-gray-900 bg-white border-gray-300"
                   />
                 </div>
                 <div>
@@ -895,7 +895,7 @@ export default function CalendarPage() {
                     onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
                     placeholder="Event description"
                     rows={3}
-                    className="text-gray-900"
+                    className="text-gray-900 bg-white border-gray-300"
                   />
                 </div>
               </div>

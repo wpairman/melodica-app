@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Registered Emails</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .emails {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 4px;
+            margin: 20px 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .email-item {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+        .email-item:last-child {
+            border-bottom: none;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .count {
+            font-size: 18px;
+            font-weight: bold;
+            color: #007bff;
+            margin: 10px 0;
+        }
+        .info {
+            color: #666;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📧 Registered Emails from LocalStorage</h1>
+        <div class="info">
+            <p>This page reads emails from your browser's localStorage (allUsers key).</p>
+            <p><strong>Note:</strong> This only shows emails stored locally on this device/browser.</p>
+        </div>
+        
+        <button onclick="getEmails()">Get Emails</button>
+        <button onclick="copyAllEmails()">Copy All Emails</button>
+        <button onclick="downloadCSV()">Download CSV</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        let emailsData = [];
+
+        function getEmails() {
+            try {
+                const allUsersStr = localStorage.getItem("allUsers");
+                
+                if (!allUsersStr) {
+                    document.getElementById("results").innerHTML = 
+                        '<div class="info"><p>❌ No users found in localStorage.</p><p>Make sure you are on the app domain and have registered users.</p></div>';
+                    return;
+                }
+
+                const allUsers = JSON.parse(allUsersStr);
+                
+                if (!Array.isArray(allUsers) || allUsers.length === 0) {
+                    document.getElementById("results").innerHTML = 
+                        '<div class="info"><p>❌ No users found in the allUsers array.</p></div>';
+                    return;
+                }
+
+                emailsData = allUsers.map(user => ({
+                    email: user.email || 'N/A',
+                    name: user.name || 'N/A',
+                    emailVerified: user.emailVerified || false
+                }));
+
+                const emailsList = emailsData.map((user, index) => 
+                    `<div class="email-item">
+                        ${index + 1}. <strong>${user.email}</strong> 
+                        ${user.name !== 'N/A' ? `(${user.name})` : ''}
+                        ${user.emailVerified ? '<span style="color: green;">✓ Verified</span>' : '<span style="color: orange;">⏳ Unverified</span>'}
+                    </div>`
+                ).join('');
+
+                const verifiedCount = emailsData.filter(u => u.emailVerified).length;
+                const unverifiedCount = emailsData.length - verifiedCount;
+
+                document.getElementById("results").innerHTML = `
+                    <div class="count">Total: ${emailsData.length} registered users</div>
+                    <div class="info">
+                        Verified: ${verifiedCount} | Unverified: ${unverifiedCount}
+                    </div>
+                    <div class="emails">
+                        ${emailsList}
+                    </div>
+                    <div class="info" style="margin-top: 20px;">
+                        <strong>Email addresses only:</strong>
+                        <div style="background: #f0f0f0; padding: 10px; margin-top: 10px; border-radius: 4px;">
+                            ${emailsData.map(u => u.email).join('<br>')}
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById("results").innerHTML = 
+                    `<div class="info" style="color: red;">
+                        <p>❌ Error reading localStorage: ${error.message}</p>
+                    </div>`;
+            }
+        }
+
+        function copyAllEmails() {
+            if (emailsData.length === 0) {
+                alert("Please click 'Get Emails' first!");
+                return;
+            }
+            
+            const emails = emailsData.map(u => u.email).join(', ');
+            navigator.clipboard.writeText(emails).then(() => {
+                alert(`Copied ${emailsData.length} emails to clipboard!`);
+            }).catch(err => {
+                alert("Failed to copy: " + err.message);
+            });
+        }
+
+        function downloadCSV() {
+            if (emailsData.length === 0) {
+                alert("Please click 'Get Emails' first!");
+                return;
+            }
+
+            const csv = [
+                ['Email', 'Name', 'Verified'],
+                ...emailsData.map(u => [u.email, u.name, u.emailVerified ? 'Yes' : 'No'])
+            ].map(row => row.join(',')).join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `registered-emails-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Auto-load on page load
+        window.onload = function() {
+            getEmails();
+        };
+    </script>
+</body>
+</html>
+

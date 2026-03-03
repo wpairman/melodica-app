@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import Link from "next/link"
 import { Camera, Lock, User, Heart, Music, Activity, Save, Edit3 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
@@ -456,7 +457,12 @@ export default function ProfilePage() {
                   </div>
                   <div>
                     <Label className="text-sm text-gray-600">Subscription</Label>
-                    <Badge variant="outline">Free Plan</Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{userData.subscription?.plan || "Free"}</Badge>
+                      <Link href="/dashboard/settings" className="text-sm text-teal-600 hover:underline">
+                        Change plan
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </CardContent>

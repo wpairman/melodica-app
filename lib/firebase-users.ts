@@ -231,4 +231,3 @@ export async function updateUserEmailVerificationInFirebase(
     return false
   }
 }
-

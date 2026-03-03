@@ -7,7 +7,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Heart, Activity, User, Settings, LogOut, Music, CreditCard, Calendar, TrendingUp, Cloud, ListMusic, Sparkles, Quote } from "lucide-react"
+import { Heart, Activity, User, Settings, LogOut, Music, Calendar, TrendingUp, Cloud, ListMusic, Sparkles, Quote } from "lucide-react"
 import { MenuButton } from "@/components/navigation-sidebar"
 import MoodTracker from "@/components/mood-tracker"
 import Recommendations from "@/components/recommendations"
@@ -379,12 +379,6 @@ export default function Dashboard() {
                       <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
                         <Sparkles className="mr-2 h-4 w-4" />
                         Jamaica Wellness Toolkit
-                      </Button>
-                    </Link>
-                    <Link href="/pricing">
-                      <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
-                        <CreditCard className="mr-2 h-4 w-4" />
-                        Subscription
                       </Button>
                     </Link>
                     <Link href="/dashboard/settings">

@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Heart, Activity, User, Settings, LogOut, Music, CreditCard, Calendar, TrendingUp, Cloud, ListMusic, Sparkles, Quote } from "lucide-react"
+import { Heart, Activity, User, Settings, LogOut, Music, Calendar, TrendingUp, Cloud, ListMusic, Sparkles, Quote } from "lucide-react"
 import { DarkModeToggle } from "@/components/dark-mode-toggle"
 import { useAuth } from "@/contexts/auth-context"
 import { useToast } from "@/hooks/use-toast"
@@ -188,18 +188,6 @@ export function PermanentSidebar() {
               >
                 <Sparkles className="mr-2 h-4 w-4" />
                 Jamaica Wellness Toolkit
-              </Button>
-            </Link>
-            <Link href="/pricing">
-              <Button 
-                variant="ghost" 
-                className={cn(
-                  "w-full justify-start text-white hover:bg-gray-800",
-                  isActive("/pricing") && "bg-gray-800"
-                )}
-              >
-                <CreditCard className="mr-2 h-4 w-4" />
-                Subscription
               </Button>
             </Link>
             <Link href="/dashboard/settings">

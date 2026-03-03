@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
-import { Bell, Clock, Moon, Volume2, Palette, Eye, MapPin, Shield, Calendar, Music, Info } from "lucide-react"
+import Link from "next/link"
+import { Bell, Clock, Moon, Volume2, Palette, Eye, MapPin, Shield, Calendar, Music, Info, CreditCard, ArrowRight } from "lucide-react"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
 import { ColorCustomizationPanel } from "@/components/settings/color-customization-panel"
 import { AccountSync } from "@/components/account-sync"
@@ -22,6 +23,7 @@ import MoodDataExport from "@/components/mood-data-export"
 export default function SettingsPage() {
   const { toast } = useToast()
   const { theme, setTheme } = useTheme()
+  const [userData, setUserData] = useState<any>(null)
   const [settings, setSettings] = useState({
     notifications: {
       enabled: true,
@@ -71,8 +73,20 @@ export default function SettingsPage() {
   })
 
   useEffect(() => {
-    // Load settings from localStorage (client-side only)
+    // Load user data and settings from localStorage (client-side only)
     if (typeof window !== 'undefined') {
+      const storedUserData = localStorage.getItem("userData")
+      if (storedUserData) {
+        try {
+          const parsed = JSON.parse(storedUserData)
+          if (!parsed.subscription) {
+            parsed.subscription = { plan: "Free", status: "active", currentPeriodEnd: null, isLifetime: false }
+          }
+          setUserData(parsed)
+        } catch (e) {
+          console.error("Error parsing user data:", e)
+        }
+      }
       const storedSettings = localStorage.getItem("appSettings")
       if (storedSettings) {
         const parsed = JSON.parse(storedSettings)
@@ -519,6 +533,60 @@ export default function SettingsPage() {
           <div className="flex flex-col gap-6">
 
         <div className="grid gap-6">
+          {/* Subscription & Plan */}
+          <Card className="bg-gray-800 border-gray-700">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-white">
+                <CreditCard className="h-5 w-5" />
+                Subscription & Plan
+              </CardTitle>
+              <CardDescription className="text-gray-300">
+                View your current plan and change or upgrade your subscription
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {userData ? (
+                <>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-400">Current plan</p>
+                      <p className="text-lg font-semibold text-white">
+                        {userData.subscription?.plan || "Free"}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-400">Status</p>
+                      <p className="text-sm text-white">
+                        {userData.subscription?.isLifetime
+                          ? "Lifetime Access"
+                          : userData.subscription?.status === "active"
+                            ? "Active"
+                            : userData.subscription?.status === "canceled"
+                              ? "Canceled"
+                              : "Active"}
+                      </p>
+                    </div>
+                  </div>
+                  {userData.subscription?.currentPeriodEnd && !userData.subscription?.isLifetime && (
+                    <p className="text-sm text-gray-400">
+                      {userData.subscription?.status === "canceled"
+                        ? `Access until ${new Date(userData.subscription.currentPeriodEnd).toLocaleDateString()}`
+                        : `Current period ends ${new Date(userData.subscription.currentPeriodEnd).toLocaleDateString()}`}
+                    </p>
+                  )}
+                  <Link href="/pricing">
+                    <Button className="w-full sm:w-auto">
+                      Change plan
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                </>
+              ) : (
+                <p className="text-gray-400">Loading...</p>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Calendar Settings */}
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>

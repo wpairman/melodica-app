@@ -69,7 +69,7 @@ export default function Register() {
     activities: "",
     medications: "",
   })
-  const [selectedPlan, setSelectedPlan] = useState<string>("free")
+  const [selectedPlan, setSelectedPlan] = useState<string>("premium")
   const [selectedInterval, setSelectedInterval] = useState<string>("monthly")
   const [formData, setFormData] = useState({
     name: "",
@@ -90,7 +90,7 @@ export default function Register() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const planParam = searchParams?.get('plan')
-      if (planParam && (planParam === 'premium' || planParam === 'ultimate')) {
+      if (planParam && (planParam === 'premium' || planParam === 'ultimate' || planParam === 'lifetime')) {
         setSelectedPlan(planParam)
       }
     }
@@ -325,6 +325,12 @@ Remember: This is general information only. Always consult with your healthcare 
         emailVerified: false, // Email not verified yet
         verificationToken: verificationToken,
         verificationTokenExpiry: tokenExpiry.toISOString(),
+        subscription: {
+          plan: selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1),
+          status: "active",
+          currentPeriodEnd: null,
+          isLifetime: selectedPlan === "lifetime",
+        },
       }
       
       // Save to Firebase (if configured) - this allows admin to see all users
@@ -341,10 +347,10 @@ Remember: This is general information only. Always consult with your healthcare 
           favoriteActivities: userData.favoriteActivities,
           selectedPlan: userData.selectedPlan,
           subscription: {
-            plan: userData.selectedPlan === "free" ? "Free" : userData.selectedPlan.charAt(0).toUpperCase() + userData.selectedPlan.slice(1),
+            plan: userData.selectedPlan.charAt(0).toUpperCase() + userData.selectedPlan.slice(1),
             status: "active",
             currentPeriodEnd: null,
-            isLifetime: false,
+            isLifetime: userData.selectedPlan === "lifetime",
           },
         })
         if (firebaseUserId) {
@@ -477,25 +483,6 @@ Remember: This is general information only. Always consult with your healthcare 
                 <div className="grid grid-cols-1 gap-3">
                   <button
                     type="button"
-                    onClick={() => setSelectedPlan("free")}
-                    className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
-                      selectedPlan === "free"
-                        ? "border-teal-500 bg-teal-900/20"
-                        : "border-gray-600 bg-gray-700/50 hover:border-gray-500"
-                    }`}
-                  >
-                    <div className="text-left">
-                      <div className="flex items-center gap-2">
-                        <p className="font-semibold text-white">Free Plan</p>
-                        {selectedPlan === "free" && <Check className="h-5 w-5 text-teal-500" />}
-                      </div>
-                      <p className="text-sm text-gray-300">Basic features</p>
-                    </div>
-                    <p className="text-lg font-bold text-white">$0</p>
-                  </button>
-
-                  <button
-                    type="button"
                     onClick={() => setSelectedPlan("premium")}
                     className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
                       selectedPlan === "premium"
@@ -548,6 +535,25 @@ Remember: This is general information only. Always consult with your healthcare 
                         <p className="text-xs text-gray-400">Save 15%</p>
                       )}
                     </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPlan("lifetime")}
+                    className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
+                      selectedPlan === "lifetime"
+                        ? "border-teal-500 bg-teal-900/20"
+                        : "border-gray-600 bg-gray-700/50 hover:border-gray-500"
+                    }`}
+                  >
+                    <div className="text-left">
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-white">Lifetime</p>
+                        {selectedPlan === "lifetime" && <Check className="h-5 w-5 text-teal-500" />}
+                      </div>
+                      <p className="text-sm text-gray-300">One-time payment, unlimited access</p>
+                    </div>
+                    <p className="text-lg font-bold text-white">$99.99</p>
                   </button>
                 </div>
 

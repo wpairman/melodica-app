@@ -35,7 +35,7 @@ export default function ManageSubscriptionPage() {
         // Add subscription data if not present (for demo)
         if (!parsedData.subscription) {
           parsedData.subscription = {
-            plan: "Free",
+            plan: "Select plan",
             status: "active",
             currentPeriodEnd: null,
             isLifetime: false,
@@ -129,7 +129,7 @@ export default function ManageSubscriptionPage() {
                 ? isActive
                   ? "Your subscription is active"
                   : "Your subscription has been canceled"
-                : "You are currently on the free plan"}
+                : "Select a plan to get started"}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

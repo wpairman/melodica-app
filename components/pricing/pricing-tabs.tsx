@@ -28,30 +28,6 @@ export default function PricingTabs() {
 
   const plans = [
     {
-      name: "Free",
-      description: "Basic mood tracking and recommendations",
-      monthlyPrice: "$0",
-      yearlyPrice: "$0",
-      features: [
-        { name: "Basic mood tracking", included: true },
-        { name: "Limited music recommendations", included: true },
-        { name: "Activity suggestions", included: true },
-        { name: "Ad-supported experience", included: true },
-        { name: "Spotify song previews (30 sec)", included: true },
-        { name: "Calendar integration & event reminders", included: true },
-        { name: "Detailed music preference quiz", included: false },
-        { name: "Personalized playlists", included: false },
-        { name: "Advanced mood analytics", included: false },
-        { name: "Ad-free experience", included: false },
-        { name: "Full Spotify integration", included: false },
-      ],
-      cta: "Get Started",
-      ctaLink: "/register",
-      popular: false,
-      icon: Heart,
-      freeTrial: false,
-    },
-    {
       name: "Premium",
       description: "Enhanced features for music therapy",
       monthlyPrice: "$1.99",

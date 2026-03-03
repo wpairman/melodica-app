@@ -451,7 +451,7 @@ export default function ProfilePage() {
                   <div>
                     <Label className="text-sm text-gray-400">Subscription</Label>
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline">{userData.subscription?.plan || "Free"}</Badge>
+                      <Badge variant="outline">{userData.subscription?.plan || "Select plan"}</Badge>
                       <Link href="/dashboard/settings" className="text-sm text-teal-600 hover:underline">
                         Change plan
                       </Link>

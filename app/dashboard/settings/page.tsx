@@ -80,7 +80,7 @@ export default function SettingsPage() {
         try {
           const parsed = JSON.parse(storedUserData)
           if (!parsed.subscription) {
-            parsed.subscription = { plan: "Free", status: "active", currentPeriodEnd: null, isLifetime: false }
+            parsed.subscription = { plan: "Select plan", status: "inactive", currentPeriodEnd: null, isLifetime: false }
           }
           setUserData(parsed)
         } catch (e) {
@@ -551,7 +551,7 @@ export default function SettingsPage() {
                     <div>
                       <p className="text-sm text-gray-400">Current plan</p>
                       <p className="text-lg font-semibold text-white">
-                        {userData.subscription?.plan || "Free"}
+                        {userData.subscription?.plan || "Select plan"}
                       </p>
                     </div>
                     <div className="text-right">

@@ -34,6 +34,7 @@ export default function Dashboard() {
   const [userData, setUserData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [isMounted, setIsMounted] = useState(false)
+  const [moodHistory, setMoodHistory] = useState<any[]>([])
 
   // Load initial data
   useEffect(() => {
@@ -52,6 +53,20 @@ export default function Dashboard() {
     }
 
     setLoading(false)
+  }, [])
+
+  // Load mood history from localStorage
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const stored = localStorage.getItem("moodHistory")
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored)
+        setMoodHistory(Array.isArray(parsed) ? parsed : [])
+      } catch {
+        setMoodHistory([])
+      }
+    }
   }, [])
 
   // Set up service worker listener and sync IndexedDB moods
@@ -165,6 +180,7 @@ export default function Dashboard() {
           if (!exists) {
             moodHistory.push(newEntry)
             localStorage.setItem("moodHistory", JSON.stringify(moodHistory))
+            setMoodHistory(moodHistory)
             
             // Show toast notification
             toast({

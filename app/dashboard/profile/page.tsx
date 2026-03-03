@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { Camera, Lock, User, Heart, Music, Activity, Save, Edit3 } from "lucide-react"
+import { Camera, Lock, User, Heart, Music, Activity, Save } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
 import { MenuButton } from "@/components/navigation-sidebar"
@@ -22,7 +22,6 @@ import { AuthGuard } from "@/components/auth-guard"
 export default function ProfilePage() {
   const { toast } = useToast()
   const [userData, setUserData] = useState<any>(null)
-  const [isEditing, setIsEditing] = useState(false)
   const [profileImage, setProfileImage] = useState<string>("")
   const [formData, setFormData] = useState({
     name: "",
@@ -119,7 +118,6 @@ export default function ProfilePage() {
       localStorage.setItem("userData", JSON.stringify(updatedUserData))
     }
     setUserData(updatedUserData)
-    setIsEditing(false)
 
     // Clear password fields
     setFormData((prev) => ({
@@ -213,13 +211,9 @@ export default function ProfilePage() {
               <p className="text-gray-300 text-sm">Manage your account and customize your experience</p>
             </div>
           </div>
-          <Button onClick={() => {
-            if (typeof window !== 'undefined') {
-              isEditing ? handleSave() : setIsEditing(true)
-            }
-          }} className="flex items-center gap-2">
-            {isEditing ? <Save className="h-4 w-4" /> : <Edit3 className="h-4 w-4" />}
-            {isEditing ? "Save Changes" : "Edit Profile"}
+          <Button onClick={() => typeof window !== 'undefined' && handleSave()} className="flex items-center gap-2">
+            <Save className="h-4 w-4" />
+            Save Profile
           </Button>
         </div>
         
@@ -234,13 +228,12 @@ export default function ProfilePage() {
                   <AvatarImage src={profileImage || "/placeholder.svg"} alt={userData.name} />
                   <AvatarFallback className="text-2xl bg-gray-700 text-white">{getInitials(userData.name)}</AvatarFallback>
                 </Avatar>
-                {isEditing && (
-                  <label className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full cursor-pointer hover:bg-blue-600 transition-colors">
-                    <Camera className="h-4 w-4" />
-                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                  </label>
-                )}
+                <label className="absolute bottom-0 right-0 bg-teal-500 text-white p-2 rounded-full cursor-pointer hover:bg-teal-600 transition-colors shadow-lg">
+                  <Camera className="h-4 w-4" />
+                  <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                </label>
               </div>
+              <p className="text-xs text-gray-400 mt-1">Click to add or change photo</p>
               <CardTitle className="mt-4 text-white">{userData.name}</CardTitle>
               <CardDescription className="text-gray-300">{userData.email}</CardDescription>
             </CardHeader>
@@ -285,7 +278,7 @@ export default function ProfilePage() {
                       id="name"
                       value={formData.name}
                       onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-                      disabled={!isEditing}
+                      placeholder="Enter your full name"
                       className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                     />
                   </div>
@@ -296,7 +289,7 @@ export default function ProfilePage() {
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
-                      disabled={!isEditing}
+                      placeholder="Enter your email"
                       className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                     />
                   </div>
@@ -308,25 +301,24 @@ export default function ProfilePage() {
                     value={formData.bio}
                     onChange={(e) => setFormData((prev) => ({ ...prev, bio: e.target.value }))}
                     placeholder="Tell us a bit about yourself..."
-                    disabled={!isEditing}
-                    rows={3}
-                    className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                    rows={4}
+                    className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 resize-none"
                   />
                 </div>
               </CardContent>
             </Card>
 
             {/* Preferences */}
-            <Card>
+            <Card className="bg-gray-800 border-gray-700">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-white">
                   <Heart className="h-5 w-5" />
                   Preferences
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="artists" className="flex items-center gap-2">
+                  <Label htmlFor="artists" className="flex items-center gap-2 text-white">
                     <Music className="h-4 w-4" />
                     Favorite Artists
                   </Label>
@@ -335,12 +327,12 @@ export default function ProfilePage() {
                     value={formData.favoriteArtists}
                     onChange={(e) => setFormData((prev) => ({ ...prev, favoriteArtists: e.target.value }))}
                     placeholder="List your favorite artists or musicians..."
-                    disabled={!isEditing}
-                    rows={2}
+                    rows={3}
+                    className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 resize-none"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="activities" className="flex items-center gap-2">
+                  <Label htmlFor="activities" className="flex items-center gap-2 text-white">
                     <Activity className="h-4 w-4" />
                     Favorite Activities
                   </Label>
@@ -349,68 +341,69 @@ export default function ProfilePage() {
                     value={formData.favoriteActivities}
                     onChange={(e) => setFormData((prev) => ({ ...prev, favoriteActivities: e.target.value }))}
                     placeholder="List your favorite activities..."
-                    disabled={!isEditing}
-                    rows={2}
+                    rows={3}
+                    className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 resize-none"
                   />
                 </div>
               </CardContent>
             </Card>
 
             {/* Security */}
-            {isEditing && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Lock className="h-5 w-5" />
-                    Change Password
-                  </CardTitle>
-                  <CardDescription>Leave blank if you don't want to change your password</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <Lock className="h-5 w-5" />
+                  Change Password
+                </CardTitle>
+                <CardDescription className="text-gray-300">Leave blank if you don't want to change your password</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="currentPassword" className="text-white">Current Password</Label>
+                  <Input
+                    id="currentPassword"
+                    type="password"
+                    value={formData.currentPassword}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, currentPassword: e.target.value }))}
+                    placeholder="Enter current password"
+                    className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                  />
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <Label htmlFor="currentPassword">Current Password</Label>
+                    <Label htmlFor="newPassword" className="text-white">New Password</Label>
                     <Input
-                      id="currentPassword"
+                      id="newPassword"
                       type="password"
-                      value={formData.currentPassword}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, currentPassword: e.target.value }))}
-                      placeholder="Enter current password"
+                      value={formData.newPassword}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, newPassword: e.target.value }))}
+                      placeholder="Enter new password"
+                      className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                     />
                   </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <Label htmlFor="newPassword">New Password</Label>
-                      <Input
-                        id="newPassword"
-                        type="password"
-                        value={formData.newPassword}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, newPassword: e.target.value }))}
-                        placeholder="Enter new password"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="confirmPassword">Confirm Password</Label>
-                      <Input
-                        id="confirmPassword"
-                        type="password"
-                        value={formData.confirmPassword}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, confirmPassword: e.target.value }))}
-                        placeholder="Confirm new password"
-                      />
-                    </div>
+                  <div>
+                    <Label htmlFor="confirmPassword" className="text-white">Confirm Password</Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      value={formData.confirmPassword}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+                      placeholder="Confirm new password"
+                      className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                    />
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Clear Saved Credentials */}
-            <Card>
+            <Card className="bg-gray-800 border-gray-700">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-white">
                   <Lock className="h-5 w-5" />
                   Saved Credentials
                 </CardTitle>
-                <CardDescription>Manage your saved login credentials</CardDescription>
+                <CardDescription className="text-gray-300">Manage your saved login credentials</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -433,30 +426,30 @@ export default function ProfilePage() {
             </Card>
 
             {/* Account Info */}
-            <Card>
+            <Card className="bg-gray-800 border-gray-700">
               <CardHeader>
-                <CardTitle>Account Information</CardTitle>
+                <CardTitle className="text-white">Account Information</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <Label className="text-sm text-gray-600">Member Since</Label>
-                    <p className="font-medium">
+                    <Label className="text-sm text-gray-400">Member Since</Label>
+                    <p className="font-medium text-white">
                       {userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : "Recently"}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm text-gray-600">Last Updated</Label>
-                    <p className="font-medium">
+                    <Label className="text-sm text-gray-400">Last Updated</Label>
+                    <p className="font-medium text-white">
                       {userData.lastUpdated ? new Date(userData.lastUpdated).toLocaleDateString() : "Never"}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm text-gray-600">Account Status</Label>
+                    <Label className="text-sm text-gray-400">Account Status</Label>
                     <Badge className="bg-green-100 text-green-800">Active</Badge>
                   </div>
                   <div>
-                    <Label className="text-sm text-gray-600">Subscription</Label>
+                    <Label className="text-sm text-gray-400">Subscription</Label>
                     <div className="flex items-center gap-2">
                       <Badge variant="outline">{userData.subscription?.plan || "Free"}</Badge>
                       <Link href="/dashboard/settings" className="text-sm text-teal-600 hover:underline">

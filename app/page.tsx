@@ -264,6 +264,55 @@ export default function Home() {
                 </div>
                 <p className="text-xs text-gray-400 mt-2">Available soon on iOS and Android</p>
               </div>
+
+              {/* Add to Home Screen / Install as App */}
+              <div className="mt-10 pt-10 border-t border-gray-200 w-full max-w-2xl">
+                <div className="flex items-center gap-2 justify-center mb-4">
+                  <Smartphone className="h-5 w-5 text-teal-600" />
+                  <h3 className="text-lg font-semibold text-gray-900">Use Melodica Like an App</h3>
+                </div>
+                <p className="text-sm text-gray-600 mb-6 text-center">
+                  Add this website to your home screen for quick access — it works like a native app.
+                </p>
+                <div className="grid gap-4 sm:grid-cols-3 text-left">
+                  <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Apple className="h-5 w-5 text-gray-700" />
+                      <span className="font-medium text-gray-900">iPhone / iPad</span>
+                    </div>
+                    <ol className="text-sm text-gray-600 space-y-1 list-decimal list-inside">
+                      <li>Open in <strong>Safari</strong></li>
+                      <li>Tap the Share button (square with arrow)</li>
+                      <li>Scroll and tap <strong>Add to Home Screen</strong></li>
+                      <li>Tap <strong>Add</strong></li>
+                    </ol>
+                  </div>
+                  <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Play className="h-5 w-5 text-gray-700" />
+                      <span className="font-medium text-gray-900">Android</span>
+                    </div>
+                    <ol className="text-sm text-gray-600 space-y-1 list-decimal list-inside">
+                      <li>Open in <strong>Chrome</strong></li>
+                      <li>Tap the <strong>⋮</strong> menu (top right)</li>
+                      <li>Tap <strong>Add to Home screen</strong> or <strong>Install app</strong></li>
+                      <li>Confirm with <strong>Add</strong></li>
+                    </ol>
+                  </div>
+                  <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Smartphone className="h-5 w-5 text-gray-700" />
+                      <span className="font-medium text-gray-900">Desktop</span>
+                    </div>
+                    <ol className="text-sm text-gray-600 space-y-1 list-decimal list-inside">
+                      <li>Open in <strong>Chrome</strong> or <strong>Edge</strong></li>
+                      <li>Click the <strong>⊕</strong> or install icon in the address bar</li>
+                      <li>Or: Menu → <strong>Install Melodica</strong></li>
+                      <li>Click <strong>Install</strong></li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>

@@ -114,7 +114,8 @@ export default function ActivityPreferences({ userData }: ActivityPreferencesPro
   }
 
   const getFavoriteActivities = () => {
-    return userData.favoriteActivities.split(',').map(a => a.trim())
+    if (!userData?.favoriteActivities) return []
+    return userData.favoriteActivities.split(',').map(a => a.trim()).filter(Boolean)
   }
 
   const handleRateActivity = (activity: string, star: number) => {

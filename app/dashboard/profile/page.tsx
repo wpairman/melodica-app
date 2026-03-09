@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
 import { MenuButton } from "@/components/navigation-sidebar"
 import { AuthGuard } from "@/components/auth-guard"
+import { saveUserToFirebase } from "@/lib/firebase-users"
 
 export default function ProfilePage() {
   const { toast } = useToast()
@@ -29,6 +30,10 @@ export default function ProfilePage() {
     bio: "",
     favoriteArtists: "",
     favoriteActivities: "",
+    musicGenres: "",
+    mentalIllnesses: "",
+    medication: "",
+    gender: "",
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
@@ -48,6 +53,10 @@ export default function ProfilePage() {
           bio: parsed.bio || "",
           favoriteArtists: parsed.favoriteArtists || "",
           favoriteActivities: parsed.favoriteActivities || "",
+          musicGenres: parsed.musicGenres || "",
+          mentalIllnesses: parsed.mentalIllnesses || "",
+          medication: parsed.medication || "",
+          gender: parsed.gender || "",
           currentPassword: "",
           newPassword: "",
           confirmPassword: "",
@@ -81,7 +90,7 @@ export default function ProfilePage() {
     }
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // Validate password change if attempted
     if (formData.newPassword) {
       if (formData.newPassword !== formData.confirmPassword) {
@@ -102,7 +111,7 @@ export default function ProfilePage() {
       }
     }
 
-    // Update user data
+    // Update user data (preserve all preferences)
     const updatedUserData = {
       ...userData,
       name: formData.name,
@@ -110,12 +119,36 @@ export default function ProfilePage() {
       bio: formData.bio,
       favoriteArtists: formData.favoriteArtists,
       favoriteActivities: formData.favoriteActivities,
+      musicGenres: formData.musicGenres || userData.musicGenres,
+      mentalIllnesses: formData.mentalIllnesses ?? userData.mentalIllnesses,
+      medication: formData.medication ?? userData.medication,
+      gender: formData.gender || userData.gender,
       lastUpdated: new Date().toISOString(),
     }
 
-    // Save to localStorage
+    // Save to Firebase (persists all preferences)
+    try {
+      await saveUserToFirebase(updatedUserData)
+    } catch (e) {
+      console.warn("Firebase save failed, preferences saved locally:", e)
+    }
+
+    // Save to localStorage and sync allUsers
     if (typeof window !== 'undefined') {
       localStorage.setItem("userData", JSON.stringify(updatedUserData))
+      localStorage.setItem("currentUser", JSON.stringify(updatedUserData))
+      const allUsersStr = localStorage.getItem("allUsers")
+      if (allUsersStr) {
+        try {
+          const allUsers = JSON.parse(allUsersStr)
+          const updated = allUsers.map((u: any) =>
+            (u.email || "").toLowerCase() === (userData.email || "").toLowerCase() ? updatedUserData : u
+          )
+          localStorage.setItem("allUsers", JSON.stringify(updated))
+        } catch (e) {
+          console.error("Error updating allUsers:", e)
+        }
+      }
     }
     setUserData(updatedUserData)
 
@@ -342,6 +375,52 @@ export default function ProfilePage() {
                     onChange={(e) => setFormData((prev) => ({ ...prev, favoriteActivities: e.target.value }))}
                     placeholder="List your favorite activities..."
                     rows={3}
+                    className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 resize-none"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="musicGenres" className="text-white">Music Genres</Label>
+                  <Input
+                    id="musicGenres"
+                    value={formData.musicGenres}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, musicGenres: e.target.value }))}
+                    placeholder="e.g. Pop, Jazz, Classical"
+                    className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="gender" className="text-white">Gender</Label>
+                  <select
+                    id="gender"
+                    value={formData.gender}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, gender: e.target.value }))}
+                    className="flex h-10 w-full rounded-md border border-gray-600 bg-gray-700 text-white px-3"
+                  >
+                    <option value="">Select</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="non-binary">Non-binary</option>
+                  </select>
+                </div>
+                <div>
+                  <Label htmlFor="mentalIllnesses" className="text-white">Mental Health (optional)</Label>
+                  <Textarea
+                    id="mentalIllnesses"
+                    value={formData.mentalIllnesses}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, mentalIllnesses: e.target.value }))}
+                    placeholder="If comfortable sharing, helps tailor recommendations"
+                    rows={2}
+                    className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 resize-none"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="medication" className="text-white">Medication (optional)</Label>
+                  <Textarea
+                    id="medication"
+                    value={formData.medication}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, medication: e.target.value }))}
+                    placeholder="If comfortable sharing, helps tailor recommendations"
+                    rows={2}
                     className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 resize-none"
                   />
                 </div>

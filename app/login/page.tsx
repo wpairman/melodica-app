@@ -16,6 +16,7 @@ import { Heart, ArrowLeft, AlertCircle, Info } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/auth-context"
 import { verifyPassword, isOldHashFormat, migratePassword } from "@/lib/password-utils"
+import { getUserByEmailFromFirebase } from "@/lib/firebase-users"
 import { AccountImportButton } from "@/components/account-import-button"
 
 export default function Login() {
@@ -168,7 +169,7 @@ export default function Login() {
       }
       // First check allUsers array (new system)
       const allUsersStr = localStorage.getItem("allUsers")
-      let foundUser = null
+      let foundUser: { email?: string; emailVerified?: boolean; password?: string; [key: string]: unknown } | null = null
       
       console.log("allUsers in localStorage:", allUsersStr ? "EXISTS" : "NOT FOUND")
       
@@ -322,7 +323,7 @@ export default function Login() {
             variant: "destructive",
           })
           // Redirect to verification page
-          router.push(`/verify-email?email=${encodeURIComponent(foundUser.email)}`)
+          router.push(`/verify-email?email=${encodeURIComponent(foundUser.email ?? "")}`)
           setIsSubmitting(false)
           return
         }
@@ -335,8 +336,9 @@ export default function Login() {
           if (allUsersStr) {
             try {
               const allUsers = JSON.parse(allUsersStr)
+              const userEmail = foundUser.email
               const updatedUsers = allUsers.map((user: any) => {
-                if (user.email === foundUser.email) {
+                if (user.email === userEmail) {
                   return { ...user, emailVerified: true }
                 }
                 return user
@@ -357,8 +359,9 @@ export default function Login() {
           if (allUsersStr) {
             try {
               const allUsers = JSON.parse(allUsersStr)
+              const userEmail = foundUser.email
               const updatedUsers = allUsers.map((user: any) => {
-                if (user.email === foundUser.email) {
+                if (user.email === userEmail) {
                   return { ...user, emailVerified: true }
                 }
                 return user
@@ -371,6 +374,16 @@ export default function Login() {
           }
         }
         
+        // Fetch latest user data from Firebase (preferences may have been updated elsewhere)
+        try {
+          const firebaseUser = await getUserByEmailFromFirebase(normalizedEmail)
+          if (firebaseUser) {
+            foundUser = { ...foundUser, ...firebaseUser, password: foundUser.password }
+          }
+        } catch (e) {
+          console.warn("Could not fetch from Firebase, using local data:", e)
+        }
+
         // IMPORTANT: Add user to this device's allUsers array if not already present
         const allUsersStr = localStorage.getItem("allUsers")
         let allUsers: any[] = []
@@ -384,20 +397,22 @@ export default function Login() {
           }
         }
         
-        // Check if user already exists in this device's allUsers
         const userExists = allUsers.some((user: any) => 
           (user.email || "").trim().toLowerCase() === normalizedEmail
         )
         
-        // If user doesn't exist on this device, add them to enable future logins
         if (!userExists) {
           allUsers.push(foundUser)
           try {
             localStorage.setItem("allUsers", JSON.stringify(allUsers))
-            console.log("✅ Added user to this device's allUsers array for multi-device support")
           } catch (error) {
             console.error("Error saving allUsers:", error)
           }
+        } else {
+          const updated = allUsers.map((u: any) =>
+            (u.email || "").trim().toLowerCase() === normalizedEmail ? foundUser : u
+          )
+          localStorage.setItem("allUsers", JSON.stringify(updated))
         }
         
         // Save credentials if "Remember me" is checked
@@ -427,7 +442,15 @@ export default function Login() {
 
         // Use the auth context to log in the user
         console.log("🔐 Calling login function...")
-        login(foundUser)
+        const userForAuth = {
+          ...foundUser,
+          name: String(foundUser.name ?? ""),
+          email: String(foundUser.email ?? ""),
+          gender: String(foundUser.gender ?? ""),
+          favoriteArtists: String(foundUser.favoriteArtists ?? ""),
+          favoriteActivities: String(foundUser.favoriteActivities ?? ""),
+        }
+        login(userForAuth as Parameters<typeof login>[0])
         console.log("✅ Login function called, navigating to dashboard...")
         
         // Use setTimeout to ensure state updates before navigation (helps on mobile/iPad)

@@ -22,6 +22,10 @@ interface AIRecommendationsProps {
   userData: {
     favoriteArtists?: string
     favoriteActivities?: string
+    musicGenres?: string
+    mentalIllnesses?: string
+    medication?: string
+    gender?: string
     musicPreferences?: any
   }
   currentMood: number
@@ -71,10 +75,9 @@ export default function AIMusicRecommendations({ userData, currentMood, moodHist
         ? moodHistory.reduce((sum, entry) => sum + entry.mood, 0) / moodHistory.length
         : currentMood
 
-      // Analyze favorite artists
-      const favoriteArtists = userData.favoriteArtists?.split(',').map(a => a.trim()) || []
-      
-      // Analyze music preferences
+      const favoriteArtists = userData.favoriteArtists?.split(',').map(a => a.trim()).filter(Boolean) || []
+      const musicGenres = (userData.musicGenres || "").split(',').map(g => g.trim().toLowerCase()).filter(Boolean)
+      const hasMentalHealthConsideration = userData.mentalIllnesses && userData.mentalIllnesses !== "No"
       const preferences = userData.musicPreferences || {}
       
       // Determine mood category
@@ -92,7 +95,6 @@ export default function AIMusicRecommendations({ userData, currentMood, moodHist
 
       // Generate recommendations based on mood and preferences
       if (moodCategory === "low") {
-        // Uplifting songs when mood is low
         const upliftingSongs = [
           { title: "Here Comes The Sun", artist: "The Beatles", mood: "uplifting", reasoning: "Classic uplifting melody proven to boost mood" },
           { title: "Don't Stop Me Now", artist: "Queen", mood: "energetic", reasoning: "High-energy track to combat low mood" },
@@ -101,29 +103,30 @@ export default function AIMusicRecommendations({ userData, currentMood, moodHist
           { title: "Shake It Off", artist: "Taylor Swift", mood: "energetic", reasoning: "Empowering lyrics help shift perspective" },
         ]
         
-        // Personalize based on favorite artists
-        if (favoriteArtists.length > 0) {
-          upliftingSongs.forEach(song => {
-            const matches = favoriteArtists.some(artist => 
-              song.artist.toLowerCase().includes(artist.toLowerCase())
-            )
-            if (matches) {
-              aiRecommendations.push({
-                ...song,
-                reasoning: `${song.reasoning}. Matches your favorite artists.`
-              })
-            }
-          })
+        const genreMap: Record<string, string[]> = {
+          classical: ["Erik Satie", "Claude Debussy", "Ludovico Einaudi", "Yiruma", "Chopin"],
+          jazz: ["Louis Armstrong", "Bill Withers", "Marvin Gaye"],
+          pop: ["Taylor Swift", "Pharrell Williams", "Justin Timberlake", "Katy Perry"],
+          rock: ["Queen", "The Beatles", "Foo Fighters"],
         }
-        
-        // Add remaining songs
-        upliftingSongs.slice(0, 5).forEach(song => {
-          if (!aiRecommendations.find(r => r.title === song.title)) {
-            aiRecommendations.push(song)
+        let scored = upliftingSongs.map(song => {
+          let score = 0
+          if (favoriteArtists.some(a => song.artist.toLowerCase().includes(a.toLowerCase()))) score += 2
+          for (const g of musicGenres) {
+            if ((genreMap[g] || []).some(artist => song.artist.includes(artist))) { score += 1; break }
           }
+          if (hasMentalHealthConsideration) {
+            const gentle = ["Here Comes The Sun", "Walking on Sunshine", "Three Little Birds", "Weightless"]
+            if (gentle.some(t => song.title.includes(t) || song.mood === "uplifting")) score += 1
+          }
+          return { ...song, _score: score }
         })
+        scored.sort((a, b) => (b._score || 0) - (a._score || 0))
+        aiRecommendations.push(...scored.slice(0, 5).map(({ _score, ...s }) => ({
+          ...s,
+          reasoning: _score > 0 ? `${s.reasoning} Personalized to your preferences.` : s.reasoning
+        })))
       } else if (moodCategory === "neutral") {
-        // Calming and balanced songs
         const calmingSongs = [
           { title: "Weightless", artist: "Marconi Union", mood: "calming", reasoning: "Scientifically proven to reduce anxiety by 65%" },
           { title: "Strawberry Swing", artist: "Coldplay", mood: "peaceful", reasoning: "Gentle melody promotes relaxation" },
@@ -131,10 +134,22 @@ export default function AIMusicRecommendations({ userData, currentMood, moodHist
           { title: "Clair de Lune", artist: "Claude Debussy", mood: "peaceful", reasoning: "Classical piece enhances focus and calm" },
           { title: "Nuvole Bianche", artist: "Ludovico Einaudi", mood: "calming", reasoning: "Ambient music regulates heart rate" },
         ]
-        
-        aiRecommendations.push(...calmingSongs.slice(0, 5))
+        const genreMapNeutral: Record<string, string[]> = {
+          classical: ["Debussy", "Einaudi", "Yiruma", "Satie"],
+          ambient: ["Marconi", "Moby"],
+          jazz: ["Armstrong", "Withers"],
+        }
+        let scored = calmingSongs.map(song => {
+          let score = 0
+          if (favoriteArtists.some(a => song.artist.toLowerCase().includes(a.toLowerCase()))) score += 2
+          for (const g of musicGenres) {
+            if ((genreMapNeutral[g] || []).some(artist => song.artist.includes(artist))) { score += 1; break }
+          }
+          return { ...song, _score: score }
+        })
+        scored.sort((a, b) => (b._score || 0) - (a._score || 0))
+        aiRecommendations.push(...scored.slice(0, 5).map(({ _score, ...s }) => s))
       } else {
-        // Celebratory and content songs
         const celebratorySongs = [
           { title: "What a Wonderful World", artist: "Louis Armstrong", mood: "content", reasoning: "Promotes gratitude and appreciation" },
           { title: "Three Little Birds", artist: "Bob Marley", mood: "carefree", reasoning: "Positive message reinforces good mood" },
@@ -142,8 +157,20 @@ export default function AIMusicRecommendations({ userData, currentMood, moodHist
           { title: "Lovely Day", artist: "Bill Withers", mood: "appreciative", reasoning: "Soulful track maintains positive energy" },
           { title: "Somewhere Over The Rainbow", artist: "Israel Kamakawiwo'ole", mood: "peaceful", reasoning: "Soothing melody preserves contentment" },
         ]
-        
-        aiRecommendations.push(...celebratorySongs.slice(0, 5))
+        const genreMapHigh: Record<string, string[]> = {
+          jazz: ["Armstrong", "Withers", "Marley"],
+          rock: ["U2"],
+        }
+        let scored = celebratorySongs.map(song => {
+          let score = 0
+          if (favoriteArtists.some(a => song.artist.toLowerCase().includes(a.toLowerCase()))) score += 2
+          for (const g of musicGenres) {
+            if ((genreMapHigh[g] || []).some(artist => song.artist.includes(artist))) { score += 1; break }
+          }
+          return { ...song, _score: score }
+        })
+        scored.sort((a, b) => (b._score || 0) - (a._score || 0))
+        aiRecommendations.push(...scored.slice(0, 5).map(({ _score, ...s }) => s))
       }
 
       // Analyze mood trends for additional insights

@@ -16,8 +16,12 @@ interface RecommendationsProps {
   userData: {
     name: string
     email: string
-    favoriteArtists: string
-    favoriteActivities: string
+    favoriteArtists?: string
+    favoriteActivities?: string
+    musicGenres?: string
+    mentalIllnesses?: string
+    medication?: string
+    gender?: string
     musicPreferences?: any
   }
 }
@@ -243,41 +247,69 @@ export default function Recommendations({ userData }: RecommendationsProps) {
       ? baseRecommendations.slice(0, limits.maxMusicRecommendations)
       : baseRecommendations
     
-    // Use user's favorite artists to personalize recommendations (Premium+ only)
-    if (userData.favoriteArtists && userPlan !== 'free') {
-      const favoriteArtists = userData.favoriteArtists.split(',').map((a: string) => a.trim())
-      const personalizedRecs = recommendations.map((rec: { title: string; artist: string; mood: string }) => {
-        // Match artist names to user's favorites
-        const matchesArtist = favoriteArtists.some((artist: string) => 
-          rec.artist.toLowerCase().includes(artist.toLowerCase()) ||
-          artist.toLowerCase().includes(rec.artist.toLowerCase())
-        )
-        return matchesArtist ? { ...rec, personalized: true } : rec
+    let personalizedRecs = recommendations
+    if (userPlan !== 'free') {
+      const favoriteArtists = (userData.favoriteArtists || "").split(',').map((a: string) => a.trim()).filter(Boolean)
+      const musicGenres = (userData.musicGenres || "").split(',').map((g: string) => g.trim().toLowerCase()).filter(Boolean)
+      const hasMentalHealthConsideration = userData.mentalIllnesses && userData.mentalIllnesses !== "No"
+
+      personalizedRecs = recommendations.map((rec: { title: string; artist: string; mood: string }) => {
+        let score = 0
+        if (favoriteArtists.length > 0) {
+          const matchesArtist = favoriteArtists.some((artist: string) => 
+            rec.artist.toLowerCase().includes(artist.toLowerCase()) ||
+            artist.toLowerCase().includes(rec.artist.toLowerCase())
+          )
+          if (matchesArtist) score += 2
+        }
+        if (musicGenres.length > 0) {
+          const genreMap: Record<string, string[]> = {
+            classical: ["Satie", "Debussy", "Chopin", "Einaudi", "Yiruma", "Tiersen", "Nyman", "Sakamoto"],
+            jazz: ["Armstrong", "Withers", "Marley", "Taylor", "King", "Gaye"],
+            pop: ["Swift", "Williams", "Timberlake", "Perry", "Mars"],
+            rock: ["Queen", "Beatles", "U2", "Foo Fighters", "Imagine Dragons"],
+            ambient: ["Marconi", "Moby", "Björk", "Télépopmusik"],
+          }
+          for (const g of musicGenres) {
+            const artists = genreMap[g] || []
+            if (artists.some(a => rec.artist.includes(a))) { score += 1; break }
+          }
+        }
+        if (hasMentalHealthConsideration && currentMood === "low") {
+          const calmingMoods = ["calming", "peaceful", "tranquil", "relaxing", "ambient"]
+          if (calmingMoods.includes(rec.mood)) score += 1
+        }
+        return { ...rec, personalized: score > 0, _score: score }
       })
-      // Put personalized recommendations first
-      return personalizedRecs.sort((a: { personalized?: boolean }, b: { personalized?: boolean }) => (b.personalized ? 1 : -1))
+      personalizedRecs.sort((a: any, b: any) => (b._score || 0) - (a._score || 0))
     }
     
-    return recommendations
+    return personalizedRecs
   }
 
   const getPersonalizedActivities = () => {
     const dailyRecs = getDailyRecommendations(currentMood)
     const baseRecommendations = dailyRecs.activities
-    
-    // Use user's favorite activities to personalize recommendations (Premium+ only)
-    if (userData.favoriteActivities && userPlan !== 'free') {
-      const favoriteActivities = userData.favoriteActivities.split(',').map((a: string) => a.trim())
+    const favoriteActivities = (userData.favoriteActivities || "").split(',').map((a: string) => a.trim()).filter(Boolean)
+    const hasMentalHealthConsideration = userData.mentalIllnesses && userData.mentalIllnesses !== "No"
+    const calmingActivities = ["yoga", "meditation", "deep breathing", "mindfulness", "stretching", "gratitude journaling", "light stretching"]
+
+    if (userPlan !== 'free') {
       const personalizedRecs = baseRecommendations.map((rec: { name: string; description: string; duration: string }) => {
-        // Match activity names to user's favorites
-        const matchesActivity = favoriteActivities.some((activity: string) => 
-          rec.name.toLowerCase().includes(activity.toLowerCase()) ||
-          activity.toLowerCase().includes(rec.name.toLowerCase())
-        )
-        return matchesActivity ? { ...rec, personalized: true } : rec
+        let score = 0
+        if (favoriteActivities.length > 0) {
+          const matches = favoriteActivities.some((a: string) => 
+            rec.name.toLowerCase().includes(a.toLowerCase()) || a.toLowerCase().includes(rec.name.toLowerCase())
+          )
+          if (matches) score += 2
+        }
+        if (hasMentalHealthConsideration && currentMood === "low") {
+          if (calmingActivities.some(c => rec.name.toLowerCase().includes(c))) score += 1
+        }
+        return { ...rec, personalized: score > 0, _score: score }
       })
-      // Put personalized recommendations first
-      return personalizedRecs.sort((a: { personalized?: boolean }, b: { personalized?: boolean }) => (b.personalized ? 1 : -1))
+      personalizedRecs.sort((a: any, b: any) => (b._score || 0) - (a._score || 0))
+      return personalizedRecs
     }
     
     return baseRecommendations

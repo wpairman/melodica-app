@@ -24,8 +24,12 @@ export interface FirebaseUser {
   emailVerified?: boolean
   verificationToken?: string
   gender?: string
+  age?: number
   favoriteArtists?: string
   favoriteActivities?: string
+  musicGenres?: string
+  mentalIllnesses?: string
+  medication?: string
   subscription?: {
     plan: string
     status: string

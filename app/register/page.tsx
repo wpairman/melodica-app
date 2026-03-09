@@ -1,13 +1,16 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { Heart, ArrowRight, Loader2 } from "lucide-react"
+import { Heart, ArrowRight, Loader2, Music, Sparkles, Zap, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { saveUserToFirebase, getUserByEmailFromFirebase, type FirebaseUser } from "@/lib/firebase-users"
 import { hashPassword } from "@/lib/password-utils"
 import { createStripeCheckoutSession } from "@/lib/api-utils"
@@ -21,26 +24,87 @@ const PLAN_LABELS: Record<string, string> = {
   ultimate_lifetime: "Lifetime",
 }
 
+const SUBSCRIPTION_OPTIONS = [
+  { plan: "premium", interval: "monthly", label: "Premium Monthly", price: "$1.99/mo", popular: true, icon: Music },
+  { plan: "premium", interval: "yearly", label: "Premium Yearly", price: "$19.99/yr", popular: false, icon: Music },
+  { plan: "ultimate", interval: "monthly", label: "Ultimate Monthly", price: "$2.99/mo", popular: false, icon: Sparkles },
+  { plan: "ultimate", interval: "yearly", label: "Ultimate Yearly", price: "$29.99/yr", popular: false, icon: Sparkles },
+  { plan: "ultimate", interval: "lifetime", label: "Lifetime", price: "$99.99 once", popular: false, icon: Zap },
+]
+
+const MUSIC_GENRES = [
+  "Pop", "Rock", "Hip-Hop/Rap", "R&B", "Country", "Electronic/Dance",
+  "Jazz", "Classical", "Folk", "Indie", "Metal", "Blues", "Reggae",
+  "Ambient", "Alternative", "Soul", "Funk",
+]
+
+const ACTIVITY_OPTIONS = [
+  "Yoga", "Meditation", "Exercise", "Reading", "Journaling", "Walking",
+  "Creative hobbies", "Music listening", "Deep breathing", "Stretching",
+  "Nature time", "Social connection", "Mindfulness", "Art/Crafts",
+]
+
 export default function RegisterPage() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
-  const [form, setForm] = useState({ name: "", email: "", password: "", confirmPassword: "" })
+  const [selectedPlan, setSelectedPlan] = useState<string>("")
+  const [selectedInterval, setSelectedInterval] = useState<string>("")
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    age: "",
+    musicGenres: [] as string[],
+    favoriteArtists: "",
+    activityPreferences: [] as string[],
+    mentalIllnesses: "no" as "yes" | "no",
+    mentalIllnessesDetails: "",
+    medication: "no" as "yes" | "no",
+    medicationDetails: "",
+  })
 
-  const plan = searchParams?.get("plan") || ""
-  const interval = searchParams?.get("interval") || ""
+  const planFromUrl = searchParams?.get("plan") || ""
+  const intervalFromUrl = searchParams?.get("interval") || ""
+
+  const plan = planFromUrl || selectedPlan
+  const interval = intervalFromUrl || selectedInterval
   const tier = plan && interval ? `${plan}_${interval}` : ""
+  const hasPlanSelected = !!tier
 
   useEffect(() => {
-    if (!plan || !interval) {
-      router.replace("/pricing")
+    if (planFromUrl && intervalFromUrl) {
+      setSelectedPlan(planFromUrl)
+      setSelectedInterval(intervalFromUrl)
     }
-  }, [plan, interval, router])
+  }, [planFromUrl, intervalFromUrl])
+
+  const handleSelectPlan = (p: string, i: string) => {
+    setSelectedPlan(p)
+    setSelectedInterval(i)
+  }
+
+  const handleMusicGenreChange = (genre: string, checked: boolean) => {
+    setForm((p) => ({
+      ...p,
+      musicGenres: checked ? [...p.musicGenres, genre] : p.musicGenres.filter((g) => g !== genre),
+    }))
+  }
+
+  const handleActivityChange = (activity: string, checked: boolean) => {
+    setForm((p) => ({
+      ...p,
+      activityPreferences: checked ? [...p.activityPreferences, activity] : p.activityPreferences.filter((a) => a !== activity),
+    }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!tier || !plan || !interval) return
+    if (!tier || !plan || !interval) {
+      toast({ title: "Please select a subscription plan", variant: "destructive" })
+      return
+    }
 
     if (form.password !== form.confirmPassword) {
       toast({ title: "Passwords don't match", variant: "destructive" })
@@ -58,6 +122,11 @@ export default function RegisterPage() {
       toast({ title: "Please enter your email", variant: "destructive" })
       return
     }
+    const ageNum = parseInt(form.age, 10)
+    if (!form.age || isNaN(ageNum) || ageNum < 13 || ageNum > 120) {
+      toast({ title: "Please enter a valid age (13–120)", variant: "destructive" })
+      return
+    }
 
     setLoading(true)
     try {
@@ -73,13 +142,17 @@ export default function RegisterPage() {
       }
 
       const hashedPassword = await hashPassword(form.password)
-      const userData = {
+      const userData: FirebaseUser = {
         name: form.name.trim(),
         email: form.email.toLowerCase().trim(),
         password: hashedPassword,
         gender: "",
-        favoriteArtists: "",
-        favoriteActivities: "",
+        age: ageNum,
+        favoriteArtists: form.favoriteArtists.trim() || undefined,
+        favoriteActivities: form.activityPreferences.length > 0 ? form.activityPreferences.join(", ") : undefined,
+        musicGenres: form.musicGenres.length > 0 ? form.musicGenres.join(", ") : undefined,
+        mentalIllnesses: form.mentalIllnesses === "yes" ? (form.mentalIllnessesDetails.trim() || "Yes") : "No",
+        medication: form.medication === "yes" ? (form.medicationDetails.trim() || "Yes") : "No",
         selectedPlan: plan,
         subscription: undefined as FirebaseUser["subscription"],
         createdAt: new Date(),
@@ -104,14 +177,6 @@ export default function RegisterPage() {
     }
   }
 
-  if (!plan || !interval) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-gray-900 to-gray-800">
-        <p className="text-gray-400">Redirecting to pricing...</p>
-      </div>
-    )
-  }
-
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-b from-gray-900 to-gray-800">
       <header className="border-b border-gray-700 px-4 py-4 lg:px-6">
@@ -120,73 +185,234 @@ export default function RegisterPage() {
           <span>Melodica</span>
         </Link>
       </header>
-      <main className="flex flex-1 items-center justify-center p-4">
-        <Card className="w-full max-w-md border-gray-700 bg-gray-800">
+      <main className="flex flex-1 items-start justify-center p-4 pb-12">
+        <Card className="w-full max-w-lg border-gray-700 bg-gray-800">
           <CardHeader>
             <CardTitle className="text-xl text-white">Create your account</CardTitle>
             <CardDescription className="text-gray-300">
-              You&apos;re signing up for{" "}
-              <strong className="text-teal-400">{PLAN_LABELS[tier] || tier}</strong>. You&apos;ll complete payment on the next step.
+              {hasPlanSelected
+                ? `You're signing up for ${PLAN_LABELS[tier] || tier}. Help us personalize your experience.`
+                : "Choose your plan and fill in your details below."}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="name" className="text-white">
-                  Full name
-                </Label>
-                <Input
-                  id="name"
-                  required
-                  placeholder="Your name"
-                  value={form.name}
-                  onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                  className="mt-1 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
-                />
+            {/* Plan selection - shown when no plan from URL or always visible */}
+            <div className="mb-6 space-y-3">
+              <h3 className="text-sm font-medium text-teal-400">Choose your subscription</h3>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {SUBSCRIPTION_OPTIONS.map((opt) => {
+                  const optTier = `${opt.plan}_${opt.interval}`
+                  const isSelected = plan === opt.plan && interval === opt.interval
+                  const Icon = opt.icon
+                  return (
+                    <button
+                      key={optTier}
+                      type="button"
+                      onClick={() => handleSelectPlan(opt.plan, opt.interval)}
+                      className={`flex flex-col items-start gap-1 rounded-lg border-2 p-3 text-left transition ${
+                        isSelected
+                          ? "border-teal-500 bg-teal-500/20"
+                          : "border-gray-600 bg-gray-700/50 hover:border-gray-500"
+                      }`}
+                    >
+                      <div className="flex w-full items-center justify-between">
+                        <Icon className={`h-4 w-4 ${isSelected ? "text-teal-400" : "text-gray-400"}`} />
+                        {isSelected && <Check className="h-4 w-4 text-teal-400" />}
+                      </div>
+                      <span className="text-sm font-medium text-white">{opt.label}</span>
+                      <span className="text-xs text-gray-400">{opt.price}</span>
+                      {opt.popular && (
+                        <span className="rounded bg-teal-600/50 px-1.5 py-0.5 text-[10px] text-teal-200">
+                          Popular
+                        </span>
+                      )}
+                    </button>
+                  )
+                })}
               </div>
-              <div>
-                <Label htmlFor="email" className="text-white">
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  required
-                  placeholder="you@example.com"
-                  value={form.email}
-                  onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
-                  className="mt-1 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
-                />
+              <p className="text-xs text-gray-500">
+                <Link href="/pricing" className="text-teal-400 hover:underline">
+                  Compare all plans
+                </Link>
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Basic info */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-medium text-teal-400">Basic information</h3>
+                <div>
+                  <Label htmlFor="name" className="text-white">Full name</Label>
+                  <Input
+                    id="name"
+                    required
+                    placeholder="Your name"
+                    value={form.name}
+                    onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                    className="mt-1 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="email" className="text-white">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    required
+                    placeholder="you@example.com"
+                    value={form.email}
+                    onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+                    className="mt-1 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="age" className="text-white">Age</Label>
+                  <Input
+                    id="age"
+                    type="number"
+                    required
+                    min={13}
+                    max={120}
+                    placeholder="Your age"
+                    value={form.age}
+                    onChange={(e) => setForm((p) => ({ ...p, age: e.target.value }))}
+                    className="mt-1 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="password" className="text-white">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    required
+                    minLength={6}
+                    placeholder="At least 6 characters"
+                    value={form.password}
+                    onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
+                    className="mt-1 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="confirmPassword" className="text-white">Confirm password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    required
+                    placeholder="Confirm your password"
+                    value={form.confirmPassword}
+                    onChange={(e) => setForm((p) => ({ ...p, confirmPassword: e.target.value }))}
+                    className="mt-1 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
+                  />
+                </div>
               </div>
-              <div>
-                <Label htmlFor="password" className="text-white">
-                  Password
-                </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  minLength={6}
-                  placeholder="At least 6 characters"
-                  value={form.password}
-                  onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
-                  className="mt-1 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
-                />
+
+              {/* Music preferences */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium text-teal-400">Music preferences</h3>
+                <p className="text-xs text-gray-400">Select genres you enjoy (optional)</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {MUSIC_GENRES.map((genre) => (
+                    <div key={genre} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`genre-${genre}`}
+                        checked={form.musicGenres.includes(genre)}
+                        onCheckedChange={(checked) => handleMusicGenreChange(genre, checked === true)}
+                        className="border-gray-500 data-[state=checked]:bg-teal-600"
+                      />
+                      <Label htmlFor={`genre-${genre}`} className="text-sm text-gray-300 cursor-pointer">
+                        {genre}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+                <div>
+                  <Label htmlFor="favoriteArtists" className="text-white text-sm">Favorite artists (optional)</Label>
+                  <Input
+                    id="favoriteArtists"
+                    placeholder="e.g. Taylor Swift, Coldplay"
+                    value={form.favoriteArtists}
+                    onChange={(e) => setForm((p) => ({ ...p, favoriteArtists: e.target.value }))}
+                    className="mt-1 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
+                  />
+                </div>
               </div>
-              <div>
-                <Label htmlFor="confirmPassword" className="text-white">
-                  Confirm password
-                </Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  required
-                  placeholder="Confirm your password"
-                  value={form.confirmPassword}
-                  onChange={(e) => setForm((p) => ({ ...p, confirmPassword: e.target.value }))}
-                  className="mt-1 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
-                />
+
+              {/* Activity preferences */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium text-teal-400">Activity preferences</h3>
+                <p className="text-xs text-gray-400">What activities do you enjoy? (optional)</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {ACTIVITY_OPTIONS.map((activity) => (
+                    <div key={activity} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`activity-${activity}`}
+                        checked={form.activityPreferences.includes(activity)}
+                        onCheckedChange={(checked) => handleActivityChange(activity, checked === true)}
+                        className="border-gray-500 data-[state=checked]:bg-teal-600"
+                      />
+                      <Label htmlFor={`activity-${activity}`} className="text-sm text-gray-300 cursor-pointer">
+                        {activity}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
               </div>
+
+              {/* Mental health */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium text-teal-400">Mental health</h3>
+                <p className="text-xs text-gray-400">This helps us tailor recommendations. Your answers are private and secure.</p>
+                <div>
+                  <Label className="text-white text-sm">Do you have any mental health conditions?</Label>
+                  <RadioGroup
+                    value={form.mentalIllnesses}
+                    onValueChange={(v) => setForm((p) => ({ ...p, mentalIllnesses: v as "yes" | "no" }))}
+                    className="mt-2 flex gap-4"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="no" id="mental-no" className="border-gray-500" />
+                      <Label htmlFor="mental-no" className="text-gray-300 cursor-pointer">No</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="yes" id="mental-yes" className="border-gray-500" />
+                      <Label htmlFor="mental-yes" className="text-gray-300 cursor-pointer">Yes</Label>
+                    </div>
+                  </RadioGroup>
+                  {form.mentalIllnesses === "yes" && (
+                    <Textarea
+                      placeholder="If you're comfortable sharing, list any conditions (e.g. anxiety, depression)"
+                      value={form.mentalIllnessesDetails}
+                      onChange={(e) => setForm((p) => ({ ...p, mentalIllnessesDetails: e.target.value }))}
+                      className="mt-2 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400 min-h-[80px]"
+                    />
+                  )}
+                </div>
+                <div>
+                  <Label className="text-white text-sm">Are you currently taking any medication for mental health?</Label>
+                  <RadioGroup
+                    value={form.medication}
+                    onValueChange={(v) => setForm((p) => ({ ...p, medication: v as "yes" | "no" }))}
+                    className="mt-2 flex gap-4"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="no" id="med-no" className="border-gray-500" />
+                      <Label htmlFor="med-no" className="text-gray-300 cursor-pointer">No</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="yes" id="med-yes" className="border-gray-500" />
+                      <Label htmlFor="med-yes" className="text-gray-300 cursor-pointer">Yes</Label>
+                    </div>
+                  </RadioGroup>
+                  {form.medication === "yes" && (
+                    <Textarea
+                      placeholder="If you're comfortable sharing, list any medications"
+                      value={form.medicationDetails}
+                      onChange={(e) => setForm((p) => ({ ...p, medicationDetails: e.target.value }))}
+                      className="mt-2 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400 min-h-[80px]"
+                    />
+                  )}
+                </div>
+              </div>
+
               <Button
                 type="submit"
                 className="w-full bg-teal-600 hover:bg-teal-700"

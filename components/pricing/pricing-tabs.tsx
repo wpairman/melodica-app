@@ -22,7 +22,6 @@ import {
   Zap,
 } from "lucide-react";
 import Link from "next/link";
-import CheckoutButton from "@/components/checkout-button";
 
 export default function PricingTabs() {
 
@@ -46,7 +45,7 @@ export default function PricingTabs() {
         { name: "Priority customer support", included: false },
       ],
       cta: "Subscribe",
-      ctaLink: "/register?plan=premium",
+      ctaLink: "/pricing",
       popular: true,
       icon: Music,
       freeTrial: true,
@@ -72,7 +71,7 @@ export default function PricingTabs() {
         { name: "24/7 priority customer support", included: true },
       ],
       cta: "Subscribe",
-      ctaLink: "/register?plan=ultimate",
+      ctaLink: "/pricing",
       popular: false,
       icon: Sparkles,
       freeTrial: true,
@@ -97,7 +96,7 @@ export default function PricingTabs() {
         { name: "Unlimited data exports", included: true },
       ],
       cta: "Buy Lifetime",
-      ctaLink: "/register?plan=lifetime",
+      ctaLink: "/pricing",
       popular: false,
       icon: Zap,
       freeTrial: false,
@@ -255,21 +254,22 @@ function PricingCard({ plan, price, billingCycle, popular }: PricingCardProps) {
       </CardContent>
       <CardFooter>
         {isPaidPlan ? (
-          <CheckoutButton
-            plan={plan.name.toLowerCase() as "premium" | "ultimate"}
-            interval={billingCycle}
-            className={`w-full text-white ${popular ? "bg-teal-600 hover:bg-teal-700" : "bg-gray-900 hover:bg-gray-800"}`}
+          <Link
+            href={`/register?plan=${plan.name.toLowerCase()}&interval=${billingCycle}`}
+            className="w-full"
           >
-            {plan.cta}
-          </CheckoutButton>
+            <Button
+              className={`w-full text-white ${popular ? "bg-teal-600 hover:bg-teal-700" : "bg-gray-900 hover:bg-gray-800"}`}
+            >
+              {plan.cta}
+            </Button>
+          </Link>
         ) : isLifetimePlan ? (
-          <CheckoutButton
-            plan="ultimate"
-            interval="lifetime"
-            className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
-          >
-            {plan.cta}
-          </CheckoutButton>
+          <Link href="/register?plan=ultimate&interval=lifetime" className="w-full">
+            <Button className="w-full bg-yellow-600 hover:bg-yellow-700 text-white">
+              {plan.cta}
+            </Button>
+          </Link>
         ) : (
           <Link href={plan.ctaLink} className="w-full">
             <Button className={`w-full text-white ${popular ? "bg-teal-600 hover:bg-teal-700" : "bg-gray-900 hover:bg-gray-800"}`}>

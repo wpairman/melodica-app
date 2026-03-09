@@ -1,6 +1,25 @@
 [build]
   command = "npm run build"
   publish = "out"
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/api/stripe/checkout"
+  to = "/.netlify/functions/stripe-checkout"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/stripe/verify-session"
+  to = "/.netlify/functions/stripe-verify-session"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/stripe/webhook"
+  to = "/.netlify/functions/stripe-webhook"
+  status = 200
+  force = true
 
 [build.environment]
   NODE_VERSION = "18"

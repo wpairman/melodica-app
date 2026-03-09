@@ -28,11 +28,14 @@ const CheckoutButton = ({ plan, interval, className, children }: CheckoutButtonP
         // Redirect to Stripe checkout
         window.location.href = data.url;
       } else {
-        throw new Error("No checkout URL returned from server");
+        // Surface the actual error from the server (e.g. STRIPE_SECRET_KEY not set)
+        const serverError = data?.error || "No checkout URL returned from server";
+        throw new Error(serverError);
       }
     } catch (err: any) {
       const errorMessage = err.message || "Failed to create checkout session. Please try again.";
       setError(errorMessage);
+      console.error("Checkout error:", err);
       alert(`Payment Error: ${errorMessage}\n\nPlease check your connection and try again.`);
       setLoading(false);
     }

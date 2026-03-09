@@ -8,21 +8,17 @@
 
 /**
  * Get the base API URL
- * Uses NEXT_PUBLIC_API_URL if set, otherwise falls back to relative /api for development
+ * For Netlify with co-located functions: leave NEXT_PUBLIC_API_URL unset so requests
+ * go to /api/* on the same origin. Only set it if using a separate API backend.
  */
 export function getApiUrl(): string {
   if (typeof window === 'undefined') {
-    // Server-side: use relative URL or environment variable
     return process.env.NEXT_PUBLIC_API_URL || '/api'
   }
-  
-  // Client-side: use environment variable or relative URL
   const apiUrl = process.env.NEXT_PUBLIC_API_URL
   if (apiUrl) {
     return apiUrl
   }
-  
-  // Fallback to relative URL (works in development, but not in static export)
   return '/api'
 }
 
@@ -36,35 +32,45 @@ export async function apiRequest<T = any>(
   const apiUrl = getApiUrl()
   const url = `${apiUrl}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`
   
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-  })
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ 
-      error: `HTTP ${response.status}: ${response.statusText}` 
-    }))
-    throw new Error(errorData.error || `Request failed: ${response.status}`)
+  let response: Response
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+    })
+  } catch (fetchError: any) {
+    throw new Error(`Network error (${url}): ${fetchError?.message || 'Failed to fetch'}`)
   }
 
-  return response.json()
+  const body = await response.json().catch(() => null)
+
+  if (!response.ok) {
+    const serverError = body?.error || `HTTP ${response.status}: ${response.statusText}`
+    throw new Error(serverError)
+  }
+
+  return body
 }
 
 /**
  * Stripe Checkout API
+ * @param tier - Plan and interval, e.g. "premium_monthly"
+ * @param customerEmail - Optional email to pre-fill in Stripe Checkout
  */
-export async function createStripeCheckoutSession(tier: string): Promise<{ url: string; error?: string }> {
+export async function createStripeCheckoutSession(
+  tier: string,
+  customerEmail?: string
+): Promise<{ url: string; error?: string }> {
   try {
     return await apiRequest<{ url: string; error?: string }>('/stripe/checkout', {
       method: 'POST',
-      body: JSON.stringify({ tier }),
+      body: JSON.stringify({ tier, customer_email: customerEmail }),
     })
   } catch (error: any) {
-    return { url: '', error: error.message || 'Failed to create checkout session' }
+    throw error
   }
 }
 

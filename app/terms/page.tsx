@@ -16,15 +16,15 @@ export default function TermsPage() {
           <Link href="/login" className="text-sm font-medium hover:underline underline-offset-4">
             Login
           </Link>
-          <Link href="/register" className="text-sm font-medium hover:underline underline-offset-4">
-            Register
+          <Link href="/pricing" className="text-sm font-medium hover:underline underline-offset-4">
+            Get Started
           </Link>
         </nav>
       </header>
 
       <main className="flex-1 container mx-auto px-4 py-8 max-w-4xl">
         <div className="mb-6">
-          <Link href="/register" className="inline-flex items-center text-sm text-teal-600 hover:underline">
+          <Link href="/pricing" className="inline-flex items-center text-sm text-teal-600 hover:underline">
             <ArrowLeft className="h-4 w-4 mr-1" />
             Back to Registration
           </Link>

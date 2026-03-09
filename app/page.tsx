@@ -94,14 +94,14 @@ export default function Home() {
   const handleHeaderSignup = () => {
     trackCTAClick('header_signup')
     if (typeof window !== 'undefined') {
-      window.location.href = '/register'
+      window.location.href = '/pricing'
     }
   }
 
   const handleHeroStartFreeClick = () => {
     trackCTAClick('hero_start_free')
     if (typeof window !== 'undefined') {
-      window.location.href = '/register'
+      window.location.href = '/pricing'
     }
   }
 
@@ -115,7 +115,7 @@ export default function Home() {
   const handlePricingFreeClick = () => {
     trackCTAClick('pricing_free')
     if (typeof window !== 'undefined') {
-      window.location.href = '/register'
+      window.location.href = '/pricing'
     }
   }
 
@@ -140,7 +140,7 @@ export default function Home() {
   const handleFinalCTASignupClick = () => {
     trackCTAClick('final_cta_signup')
     if (typeof window !== 'undefined') {
-      window.location.href = '/register'
+      window.location.href = '/pricing'
     }
   }
 

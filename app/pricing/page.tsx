@@ -2,7 +2,6 @@ import Link from "next/link"
 import { Heart } from "lucide-react"
 import PricingHeader from "@/components/pricing/pricing-header"
 import PricingTabs from "@/components/pricing/pricing-tabs"
-import CheckoutButton from "@/components/checkout-button";
 
 export default function PricingPage() {
   return (
@@ -16,7 +15,7 @@ export default function PricingPage() {
           <Link href="/login" className="text-sm font-medium hover:underline underline-offset-4 text-black">
             Login
           </Link>
-          <Link href="/register" className="text-sm font-medium hover:underline underline-offset-4 text-black">
+          <Link href="/pricing" className="text-sm font-medium hover:underline underline-offset-4 text-black">
             Register
           </Link>
         </nav>
@@ -25,13 +24,6 @@ export default function PricingPage() {
         <div className="container px-4 md:px-6 py-8 md:py-12 lg:py-16 max-w-5xl mx-auto">
           <PricingHeader />
           <PricingTabs />
-
-          {/* ✅ Add the test CheckoutButton here */}
-          <div className="mt-10">
-            <CheckoutButton plan="premium" interval="monthly">
-              Subscribe to Premium Monthly
-            </CheckoutButton>
-          </div>
         </div>
       </main>
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full border-t items-center px-4 md:px-6 border-t">

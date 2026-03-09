@@ -16,7 +16,7 @@ export default function PrivacyPage() {
           <Link href="/login" className="text-sm font-medium hover:underline underline-offset-4 text-white">
             Login
           </Link>
-          <Link href="/register" className="text-sm font-medium hover:underline underline-offset-4 text-white">
+          <Link href="/pricing" className="text-sm font-medium hover:underline underline-offset-4 text-white">
             Register
           </Link>
         </nav>

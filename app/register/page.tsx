@@ -55,7 +55,7 @@ export default function RegisterPage() {
     email: "",
     password: "",
     confirmPassword: "",
-    age: "",
+    gender: "" as "" | "male" | "female" | "non-binary",
     musicGenres: [] as string[],
     favoriteArtists: "",
     activityPreferences: [] as string[],
@@ -122,9 +122,8 @@ export default function RegisterPage() {
       toast({ title: "Please enter your email", variant: "destructive" })
       return
     }
-    const ageNum = parseInt(form.age, 10)
-    if (!form.age || isNaN(ageNum) || ageNum < 13 || ageNum > 120) {
-      toast({ title: "Please enter a valid age (13–120)", variant: "destructive" })
+    if (!form.gender) {
+      toast({ title: "Please select your gender", variant: "destructive" })
       return
     }
 
@@ -146,8 +145,7 @@ export default function RegisterPage() {
         name: form.name.trim(),
         email: form.email.toLowerCase().trim(),
         password: hashedPassword,
-        gender: "",
-        age: ageNum,
+        gender: form.gender,
         favoriteArtists: form.favoriteArtists.trim() || undefined,
         favoriteActivities: form.activityPreferences.length > 0 ? form.activityPreferences.join(", ") : undefined,
         musicGenres: form.musicGenres.length > 0 ? form.musicGenres.join(", ") : undefined,
@@ -191,8 +189,8 @@ export default function RegisterPage() {
             <CardTitle className="text-xl text-white">Create your account</CardTitle>
             <CardDescription className="text-gray-300">
               {hasPlanSelected
-                ? `You're signing up for ${PLAN_LABELS[tier] || tier}. Help us personalize your experience.`
-                : "Choose your plan and fill in your details below."}
+                ? `You're signing up for ${PLAN_LABELS[tier] || tier}. Your answers help our AI tailor music, activities, and insights to you.`
+                : "Choose your plan and fill in your details below. Our AI uses this to personalize your experience."}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -265,18 +263,26 @@ export default function RegisterPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="age" className="text-white">Age</Label>
-                  <Input
-                    id="age"
-                    type="number"
-                    required
-                    min={13}
-                    max={120}
-                    placeholder="Your age"
-                    value={form.age}
-                    onChange={(e) => setForm((p) => ({ ...p, age: e.target.value }))}
-                    className="mt-1 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
-                  />
+                  <Label className="text-white">Gender</Label>
+                  <RadioGroup
+                    value={form.gender}
+                    onValueChange={(v) => setForm((p) => ({ ...p, gender: v as typeof form.gender }))}
+                    className="mt-2 flex flex-wrap gap-4"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="male" id="gender-male" className="border-gray-500" />
+                      <Label htmlFor="gender-male" className="text-gray-300 cursor-pointer">Male</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="female" id="gender-female" className="border-gray-500" />
+                      <Label htmlFor="gender-female" className="text-gray-300 cursor-pointer">Female</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="non-binary" id="gender-non-binary" className="border-gray-500" />
+                      <Label htmlFor="gender-non-binary" className="text-gray-300 cursor-pointer">Non-binary</Label>
+                    </div>
+                  </RadioGroup>
+                  <p className="mt-1 text-xs text-gray-500">Female users get access to period tracking & cycle insights</p>
                 </div>
                 <div>
                   <Label htmlFor="password" className="text-white">Password</Label>

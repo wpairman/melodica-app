@@ -7,7 +7,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Heart, Activity, User, Settings, LogOut, Music, Calendar, TrendingUp, Cloud, ListMusic, Sparkles, Quote } from "lucide-react"
+import { Heart, Activity, User, Settings, LogOut, Music, Calendar, TrendingUp, Cloud, ListMusic, Sparkles, Quote, Droplets } from "lucide-react"
 import { MenuButton } from "@/components/navigation-sidebar"
 import MoodTracker from "@/components/mood-tracker"
 import Recommendations from "@/components/recommendations"
@@ -406,7 +406,7 @@ export default function Dashboard() {
                     {userData.gender === "female" && (
                       <Link href="/period-tracker">
                         <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
-                          <Music className="mr-2 h-4 w-4" />
+                          <Droplets className="mr-2 h-4 w-4" />
                           Period Tracking
                         </Button>
                       </Link>

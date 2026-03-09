@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Heart, Activity, User, Settings, LogOut, Music, Calendar, Menu, TrendingUp, Cloud, ListMusic, Sparkles, Quote } from "lucide-react"
+import { Heart, Activity, User, Settings, LogOut, Music, Calendar, Menu, TrendingUp, Cloud, ListMusic, Sparkles, Quote, Droplets } from "lucide-react"
 import { DarkModeToggle } from "@/components/dark-mode-toggle"
 import { useAuth } from "@/contexts/auth-context"
 import { useToast } from "@/hooks/use-toast"
@@ -16,7 +16,7 @@ interface NavigationSidebarProps {
 }
 
 export function NavigationSidebar({ isOpen, onOpenChange }: NavigationSidebarProps) {
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
 
@@ -136,6 +136,14 @@ export function NavigationSidebar({ isOpen, onOpenChange }: NavigationSidebarPro
                     Settings
                   </Button>
                 </Link>
+                {user?.gender === "female" && (
+                  <Link href="/period-tracker">
+                    <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800">
+                      <Droplets className="mr-2 h-4 w-4" />
+                      Period Tracking
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
           </nav>

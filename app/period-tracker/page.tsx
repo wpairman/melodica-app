@@ -24,6 +24,7 @@ import {
   ChevronRight,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/contexts/auth-context"
 import { MenuButton } from "@/components/navigation-sidebar"
 import { AuthGuard } from "@/components/auth-guard"
 import { getUserPlan, type PlanType } from "@/lib/plan-features"
@@ -86,6 +87,7 @@ const moodOptions = ["Happy", "Sad", "Irritable", "Anxious", "Calm", "Energetic"
 
 export default function PeriodTrackerPage() {
   const { toast } = useToast()
+  const { user } = useAuth()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [userPlan, setUserPlan] = useState<PlanType>("free")
   const [periodData, setPeriodData] = useState<PeriodData>({
@@ -515,6 +517,30 @@ export default function PeriodTrackerPage() {
     )
   }
 
+  const isFemale = user?.gender === "female"
+
+  if (!isFemale) {
+    return (
+      <AuthGuard>
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center p-4">
+          <Card className="max-w-md bg-gray-800 border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-white">Period Tracking</CardTitle>
+              <CardDescription className="text-gray-300">
+                Period tracking and cycle insights are available for female users. You can update your profile in Settings if needed.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link href="/dashboard">
+                <Button className="w-full">Back to Dashboard</Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      </AuthGuard>
+    )
+  }
+
   return (
     <AuthGuard>
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 p-4">
@@ -588,6 +614,48 @@ export default function PeriodTrackerPage() {
           </TabsList>
 
           <TabsContent value="cycle" className="space-y-4">
+            {/* PCOS - Prominent link for female users */}
+            <Card className="bg-amber-50 border-amber-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-amber-800">
+                  <Stethoscope className="h-5 w-5" />
+                  I have PCOS (Polycystic Ovary Syndrome)
+                </CardTitle>
+                <CardDescription className="text-amber-700">
+                  Link your PCOS status to get personalized cycle insights and management tips
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-amber-800">Track with PCOS</span>
+                  <Switch
+                    checked={periodData.medicalConditions.includes("PCOS (Polycystic Ovary Syndrome)")}
+                    onCheckedChange={(checked) => {
+                      let updatedConditions
+                      if (checked) {
+                        updatedConditions = [...periodData.medicalConditions, "PCOS (Polycystic Ovary Syndrome)"]
+                      } else {
+                        updatedConditions = periodData.medicalConditions.filter((c) => c !== "PCOS (Polycystic Ovary Syndrome)")
+                      }
+                      const updatedData = { ...periodData, medicalConditions: updatedConditions }
+                      savePeriodData(updatedData)
+                    }}
+                  />
+                </div>
+                {periodData.medicalConditions.includes("PCOS (Polycystic Ovary Syndrome)") && (
+                  <div className="mt-4 p-3 bg-white rounded-lg border border-amber-200">
+                    <h4 className="font-medium text-amber-800 mb-2">PCOS Management Tips:</h4>
+                    <ul className="text-sm text-amber-700 space-y-1">
+                      <li>• Track irregular cycles and ovulation signs</li>
+                      <li>• Monitor weight and insulin resistance symptoms</li>
+                      <li>• Focus on anti-inflammatory diet</li>
+                      <li>• Regular exercise can help regulate hormones</li>
+                    </ul>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-blue-800">

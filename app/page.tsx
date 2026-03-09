@@ -177,6 +177,9 @@ export default function Home() {
           <Link href="/login" className="text-sm font-medium hover:underline underline-offset-4 text-gray-700 hover:text-teal-600">
             Login
           </Link>
+          <Link href="/register" className="text-sm font-medium hover:underline underline-offset-4 text-gray-700 hover:text-teal-600">
+            Register
+          </Link>
           {isMounted && (
             <Button 
               size="sm" 
@@ -262,6 +265,83 @@ export default function Home() {
                 <p className="text-xs text-gray-400 mt-2">Available soon on iOS and Android</p>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* Choose Your Plan Section */}
+        <section className="w-full py-16 bg-gray-50">
+          <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Choose Your Plan</h2>
+              <p className="text-gray-600 max-w-2xl mx-auto">
+                Start with a 2-week free trial. Our AI tailors music, activities, and insights to your preferences, gender, and wellness goals.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+              <Link href="/register?plan=premium&interval=monthly" className="block">
+                <Card className="h-full border-2 hover:border-teal-500 transition-colors">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Premium Monthly</CardTitle>
+                    <CardDescription>$1.99/mo</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-600 mb-4">2-week free trial</p>
+                    <Button className="w-full bg-teal-600 hover:bg-teal-700">Get Started</Button>
+                  </CardContent>
+                </Card>
+              </Link>
+              <Link href="/register?plan=premium&interval=yearly" className="block">
+                <Card className="h-full border-2 hover:border-teal-500 transition-colors">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Premium Yearly</CardTitle>
+                    <CardDescription>$19.99/yr</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-600 mb-4">Save 15%</p>
+                    <Button className="w-full bg-teal-600 hover:bg-teal-700">Get Started</Button>
+                  </CardContent>
+                </Card>
+              </Link>
+              <Link href="/register?plan=ultimate&interval=monthly" className="block">
+                <Card className="h-full border-2 hover:border-teal-500 transition-colors">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Ultimate Monthly</CardTitle>
+                    <CardDescription>$2.99/mo</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-600 mb-4">Period tracking for female users</p>
+                    <Button className="w-full bg-teal-600 hover:bg-teal-700">Get Started</Button>
+                  </CardContent>
+                </Card>
+              </Link>
+              <Link href="/register?plan=ultimate&interval=yearly" className="block">
+                <Card className="h-full border-2 hover:border-teal-500 transition-colors">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Ultimate Yearly</CardTitle>
+                    <CardDescription>$29.99/yr</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-600 mb-4">Save 15%</p>
+                    <Button className="w-full bg-teal-600 hover:bg-teal-700">Get Started</Button>
+                  </CardContent>
+                </Card>
+              </Link>
+              <Link href="/register?plan=ultimate&interval=lifetime" className="block">
+                <Card className="h-full border-2 border-teal-400 hover:border-teal-500 transition-colors">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Lifetime</CardTitle>
+                    <CardDescription>$99.99 once</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-600 mb-4">One-time payment</p>
+                    <Button className="w-full bg-teal-600 hover:bg-teal-700">Get Started</Button>
+                  </CardContent>
+                </Card>
+              </Link>
+            </div>
+            <p className="text-center mt-6 text-sm text-gray-500">
+              <Link href="/pricing" className="text-teal-600 hover:underline">Compare all plans</Link>
+            </p>
           </div>
         </section>
 

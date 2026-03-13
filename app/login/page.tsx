@@ -459,32 +459,88 @@ export default function Login() {
           router.push("/dashboard")
         }, 100)
       } else {
-        console.log("❌ LOGIN FAILED - No matching user found")
-        console.log("=== LOGIN DEBUG END ===")
-        
-        // Check if this might be a multi-device issue
-        let hasNoUsers = false
+        console.log("❌ LOGIN FAILED - No matching user found in localStorage")
+        console.log("=== LOCAL LOGIN DEBUG END ===")
+
         try {
-          const allUsersStr = localStorage.getItem("allUsers")
-          if (!allUsersStr) {
-            hasNoUsers = true
-          } else {
-            const allUsers = JSON.parse(allUsersStr)
-            hasNoUsers = !Array.isArray(allUsers) || allUsers.length === 0
+          const response = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: normalizedEmail,
+              password: normalizedPassword,
+            }),
+          })
+
+          if (!response.ok) {
+            const data = await response.json().catch(() => ({}))
+            const message =
+              data?.error ||
+              "Invalid email or password. Please check your credentials and try again."
+
+            toast({
+              title: "Login failed",
+              description: message,
+              variant: "destructive",
+            })
+            setIsSubmitting(false)
+            return
           }
-        } catch (error) {
-          // If parsing fails, assume no users
-          hasNoUsers = true
+
+          const data = await response.json()
+          const backendUser = data.user
+
+          if (!backendUser) {
+            toast({
+              title: "Login failed",
+              description: "Unable to load your account. Please try again.",
+              variant: "destructive",
+            })
+            setIsSubmitting(false)
+            return
+          }
+
+          const userForAuth = {
+            name: String(backendUser.name ?? ""),
+            email: String(backendUser.email ?? normalizedEmail),
+            gender: String(backendUser.gender ?? ""),
+            favoriteArtists: String(backendUser.favoriteArtists ?? ""),
+            favoriteActivities: String(backendUser.favoriteActivities ?? ""),
+          }
+
+          try {
+            localStorage.setItem("currentUser", JSON.stringify(userForAuth))
+            localStorage.setItem("isLoggedIn", "true")
+            localStorage.setItem("userData", JSON.stringify(userForAuth))
+
+            if (formData.rememberMe) {
+              localStorage.setItem(
+                "savedCredentials",
+                JSON.stringify({ email: normalizedEmail, password: normalizedPassword })
+              )
+            } else {
+              localStorage.removeItem("savedCredentials")
+            }
+          } catch (storageError) {
+            console.error("Error saving backend login data:", storageError)
+          }
+
+          login(userForAuth as Parameters<typeof login>[0])
+          setTimeout(() => {
+            router.push("/dashboard")
+          }, 100)
+          setIsSubmitting(false)
+        } catch (apiError: any) {
+          console.error("❌ BACKEND LOGIN ERROR:", apiError)
+          toast({
+            title: "Login error",
+            description:
+              apiError?.message ||
+              "An error occurred while contacting the server. Please try again.",
+            variant: "destructive",
+          })
+          setIsSubmitting(false)
         }
-        
-        toast({
-          title: "Login failed",
-          description: hasNoUsers 
-            ? "Account not found on this device. If you registered on another device, use the 'Import Account' button above to import your account file."
-            : "Invalid email or password. Please check your credentials and try again.",
-          variant: "destructive",
-        })
-        setIsSubmitting(false)
       }
     } catch (error: any) {
       console.error("❌ LOGIN ERROR:", error)

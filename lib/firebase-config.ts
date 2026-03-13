@@ -30,76 +30,55 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
 
-// Debug: Log config status (only in browser, and only show if keys are missing)
-if (typeof window !== 'undefined') {
-  const hasApiKey = !!firebaseConfig.apiKey
-  const hasProjectId = !!firebaseConfig.projectId
-  if (!hasApiKey || !hasProjectId) {
-    console.error("❌ Firebase environment variables missing!")
-    console.error("Missing variables:", {
-      apiKey: !hasApiKey ? "❌ NEXT_PUBLIC_FIREBASE_API_KEY" : "✅",
-      projectId: !hasProjectId ? "❌ NEXT_PUBLIC_FIREBASE_PROJECT_ID" : "✅",
-      authDomain: !firebaseConfig.authDomain ? "❌ NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN" : "✅",
-      storageBucket: !firebaseConfig.storageBucket ? "❌ NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET" : "✅",
-      messagingSenderId: !firebaseConfig.messagingSenderId ? "❌ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID" : "✅",
-      appId: !firebaseConfig.appId ? "❌ NEXT_PUBLIC_FIREBASE_APP_ID" : "✅",
-    })
-    console.error("💡 Make sure .env.local exists in the project root and restart the dev server!")
-  }
-}
-
-// Initialize Firebase
+// Initialize Firebase for both client and server environments
 let app: FirebaseApp | undefined
 let db: Firestore | undefined
 let auth: Auth | undefined
 
-if (typeof window !== 'undefined') {
-  // Only log in development to avoid exposing secrets in production builds
-  if (process.env.NODE_ENV === 'development') {
-    console.log("🔍 Firebase Config Check:", {
-      hasApiKey: !!firebaseConfig.apiKey,
-      hasProjectId: !!firebaseConfig.projectId,
-      projectId: firebaseConfig.projectId || "MISSING",
-    })
-  }
-  
-  if (firebaseConfig.apiKey) {
-    // Only initialize if we have config and we're on the client side
-    try {
-      if (getApps().length === 0) {
-        if (process.env.NODE_ENV === 'development') {
-          console.log("🔥 Initializing Firebase app...")
-        }
-        app = initializeApp(firebaseConfig)
-        if (process.env.NODE_ENV === 'development') {
-          console.log("✅ Firebase app initialized:", app.name)
-        }
-      } else {
-        app = getApps()[0]
-        if (process.env.NODE_ENV === 'development') {
-          console.log("✅ Using existing Firebase app:", app.name)
-        }
+// Only log detailed config info in the browser during development
+if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+  console.log("🔍 Firebase Config Check:", {
+    hasApiKey: !!firebaseConfig.apiKey,
+    hasProjectId: !!firebaseConfig.projectId,
+    projectId: firebaseConfig.projectId || "MISSING",
+  })
+}
+
+if (firebaseConfig.apiKey) {
+  try {
+    if (getApps().length === 0) {
+      if (process.env.NODE_ENV === "development") {
+        console.log("🔥 Initializing Firebase app...")
       }
-      db = getFirestore(app)
+      app = initializeApp(firebaseConfig)
+      if (process.env.NODE_ENV === "development") {
+        console.log("✅ Firebase app initialized:", app.name)
+      }
+    } else {
+      app = getApps()[0]
+      if (process.env.NODE_ENV === "development") {
+        console.log("✅ Using existing Firebase app:", app.name)
+      }
+    }
+
+    // Firestore works in both server and client environments
+    db = getFirestore(app)
+
+    // Auth only on client to avoid Node warnings
+    if (typeof window !== "undefined") {
       auth = getAuth(app)
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV === "development") {
         console.log("✅ Firebase Firestore initialized:", db ? "YES" : "NO")
         console.log("✅ Firebase Auth initialized:", auth ? "YES" : "NO")
       }
-    } catch (error: any) {
-      console.error("❌ Firebase initialization error:", error)
-      if (process.env.NODE_ENV === 'development') {
-        console.error("Error details:", {
-          code: error?.code,
-          message: error?.message,
-        })
-      }
     }
-  } else {
-    console.error("❌ Firebase API key is missing!")
-    if (process.env.NODE_ENV === 'development') {
-      console.error("Make sure .env.local has NEXT_PUBLIC_FIREBASE_API_KEY")
-    }
+  } catch (error: any) {
+    console.error("❌ Firebase initialization error:", error)
+  }
+} else {
+  console.error("❌ Firebase API key is missing!")
+  if (process.env.NODE_ENV === "development") {
+    console.error("Make sure .env.local has NEXT_PUBLIC_FIREBASE_API_KEY")
   }
 }
 

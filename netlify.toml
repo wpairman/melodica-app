@@ -30,6 +30,4 @@
 [build.environment]
   NODE_VERSION = "18"
   NPM_FLAGS = "--no-package-lock"
-  # Omit NEXT_PUBLIC_FIREBASE_API_KEY from secret scanning
-  # This is intentionally public (Firebase client-side API key)
-  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_FIREBASE_API_KEY"
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_FIREBASE_API_KEY,FIREBASE_ADMIN_PROJECT_ID"

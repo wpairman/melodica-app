@@ -1,10 +1,7 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
-
-// Force dynamic rendering to avoid SSR issues with event handlers
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -12,564 +9,83 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Heart, ArrowLeft, AlertCircle, Info } from "lucide-react"
+import { Heart, ArrowLeft } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/auth-context"
-import { verifyPassword, isOldHashFormat, migratePassword } from "@/lib/password-utils"
-import { getUserByEmailFromFirebase } from "@/lib/firebase-users"
-import { AccountImportButton } from "@/components/account-import-button"
 
 export default function Login() {
   const router = useRouter()
   const { toast } = useToast()
-  const { login } = useAuth()
+  const { login, loginWithGoogle, isAuthenticated } = useAuth()
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     rememberMe: false,
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false)
 
-  // Load saved credentials on component mount and auto-login if session exists
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      // CRITICAL: Check if user explicitly logged out - DO NOT auto-login if they did
-      const explicitlyLoggedOut = localStorage.getItem("explicitlyLoggedOut")
-      if (explicitlyLoggedOut === "true") {
-        console.log("🚫 LOGIN PAGE - Auto-login blocked: User explicitly logged out")
-        // Clear the flag so it doesn't persist forever
-        localStorage.removeItem("explicitlyLoggedOut")
-        // Still load saved credentials for the form, but DON'T auto-login
-        const savedCredentials = localStorage.getItem("savedCredentials")
-        if (savedCredentials) {
-          try {
-            const credentials = JSON.parse(savedCredentials)
-            setFormData(prev => ({
-              ...prev,
-              email: credentials.email || "",
-              password: credentials.password || "",
-              rememberMe: true,
-            }))
-          } catch (error) {
-            console.error("Error parsing saved credentials:", error)
-          }
-        }
-        return // Exit early - do NOT auto-login
-      }
-      
-      // First, check if user is already logged in
-      const isLoggedIn = localStorage.getItem("isLoggedIn")
-      const currentUser = localStorage.getItem("currentUser")
-      
-      if (isLoggedIn === "true" && currentUser) {
-        try {
-          // User is already logged in, redirect to dashboard
-          const userData = JSON.parse(currentUser)
-          login(userData)
-          router.push("/dashboard")
-          return
-        } catch (error) {
-          console.error("Error parsing current user:", error)
-        }
-      }
-      
-      // Otherwise, load saved credentials for the form
-      const savedCredentials = localStorage.getItem("savedCredentials")
-      if (savedCredentials) {
-        try {
-          const credentials = JSON.parse(savedCredentials)
-          setFormData(prev => ({
-            ...prev,
-            email: credentials.email || "",
-            password: credentials.password || "",
-            rememberMe: true,
-          }))
-          
-          // Auto-login if credentials are saved (only if user didn't explicitly log out)
-          const storedData = localStorage.getItem("userData")
-          if (storedData) {
-            try {
-              const userData = JSON.parse(storedData)
-              if (userData.email === credentials.email && userData.password === credentials.password) {
-                // Auto-login the user
-                login(userData)
-                router.push("/dashboard")
-              }
-            } catch (error) {
-              console.error("Error auto-logging in:", error)
-            }
-          }
-        } catch (error) {
-          console.error("Error parsing saved credentials:", error)
-        }
-      }
+    if (isAuthenticated) {
+      router.push("/dashboard")
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []) // Empty dependency array - only run once on mount. login/router are stable.
+  }, [isAuthenticated, router])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target
-    setFormData((prev) => ({ 
-      ...prev, 
-      [name]: type === "checkbox" ? checked : value 
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
     }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    e.stopPropagation()
-    
-    // Prevent duplicate submissions
-    if (isSubmitting) {
-      console.log("⏸️ Already submitting, ignoring duplicate submission")
-      return
-    }
-    
+    if (isSubmitting) return
     setIsSubmitting(true)
 
-    try {
-      // Normalize email and password (trim whitespace, lowercase email)
-      const normalizedEmail = formData.email.trim().toLowerCase()
-      const normalizedPassword = formData.password.trim()
+    const normalizedEmail = formData.email.trim().toLowerCase()
+    const normalizedPassword = formData.password.trim()
 
-      if (!normalizedEmail || !normalizedPassword) {
-        toast({
-          title: "Invalid input",
-          description: "Please enter both email and password",
-          variant: "destructive",
-        })
-        setIsSubmitting(false)
-        return
-      }
-
-      console.log("=== LOGIN DEBUG START ===")
-      console.log("Input - Email:", normalizedEmail, "Password length:", normalizedPassword.length)
-
-      // Check credentials against all users in localStorage (client-side only)
-      if (typeof window === 'undefined') {
-        console.error("❌ window is undefined - cannot access localStorage")
-        setIsSubmitting(false)
-        return
-      }
-
-      // Check if localStorage is available (Safari private browsing mode disables it)
-      try {
-        const testKey = '__localStorage_test__'
-        localStorage.setItem(testKey, 'test')
-        localStorage.removeItem(testKey)
-      } catch (error) {
-        console.error("❌ localStorage is not available (possibly private browsing mode)")
-        toast({
-          title: "Storage unavailable",
-          description: "Please disable private browsing mode to use this app",
-          variant: "destructive",
-        })
-        setIsSubmitting(false)
-        return
-      }
-      // First check allUsers array (new system)
-      const allUsersStr = localStorage.getItem("allUsers")
-      let foundUser: { email?: string; emailVerified?: boolean; password?: string; [key: string]: unknown } | null = null
-      
-      console.log("allUsers in localStorage:", allUsersStr ? "EXISTS" : "NOT FOUND")
-      
-      if (allUsersStr) {
-        try {
-          const allUsers = JSON.parse(allUsersStr)
-          console.log("Total users in allUsers:", allUsers.length)
-          
-          // Check each user with password verification
-          for (const user of allUsers) {
-            const userEmail = (user.email || "").trim().toLowerCase()
-            const emailMatch = userEmail === normalizedEmail
-            
-            if (emailMatch) {
-              // Check if password is in old format (plain text) or new format (hashed)
-              const storedPassword = user.password || ""
-              
-              if (isOldHashFormat(storedPassword)) {
-                // Old format: plain text comparison (for backward compatibility)
-                console.log("⚠️ Using old password format for user:", user.email)
-                if (storedPassword === normalizedPassword) {
-                  foundUser = user
-                  console.log("✅ Password match (old format)")
-                  // Migrate password to new format (don't await - do it in background)
-                  migratePassword(user.email, normalizedPassword).then((hashedPassword) => {
-                    user.password = hashedPassword
-                    const updatedUsers = allUsers.map((u: any) => 
-                      u.email === user.email ? { ...u, password: hashedPassword } : u
-                    )
-                    try {
-                      localStorage.setItem("allUsers", JSON.stringify(updatedUsers))
-                      localStorage.setItem("userData", JSON.stringify({ ...user, password: hashedPassword }))
-                      console.log("✅ Migrated password to new format")
-                    } catch (error) {
-                      console.error("Error saving migrated password:", error)
-                    }
-                  }).catch((error) => {
-                    console.error("Error migrating password:", error)
-                  })
-                  break
-                } else {
-                  console.log("❌ Password mismatch (old format)")
-                }
-              } else {
-                // New format: verify password hash with timeout
-                console.log("🔐 Verifying password hash...")
-                try {
-                  // Add timeout to password verification (5 seconds max)
-                  const passwordVerificationPromise = verifyPassword(normalizedPassword, storedPassword)
-                  const timeoutPromise = new Promise<boolean>((_, reject) => 
-                    setTimeout(() => reject(new Error("Password verification timeout")), 5000)
-                  )
-                  
-                  const passwordMatch = await Promise.race([passwordVerificationPromise, timeoutPromise])
-                  if (passwordMatch) {
-                    foundUser = user
-                    console.log("✅ User found with password verification:", user.email)
-                    break
-                  } else {
-                    console.log("❌ Password mismatch (hash verification)")
-                  }
-                } catch (error) {
-                  console.error("Error verifying password:", error)
-                  // If verification fails or times out, continue to next user
-                }
-              }
-            }
-          }
-          
-          if (foundUser) {
-            console.log("✅ User found in allUsers array:", foundUser.email)
-          } else {
-            console.log("❌ User NOT found in allUsers array")
-          }
-        } catch (error) {
-          console.error("Error parsing allUsers:", error)
-          console.error("Raw allUsers string:", allUsersStr?.substring(0, 200))
-        }
-      }
-      
-      // Fallback to old userData for backward compatibility
-      if (!foundUser) {
-        const storedData = localStorage.getItem("userData")
-        console.log("userData in localStorage:", storedData ? "EXISTS" : "NOT FOUND")
-        
-        if (storedData) {
-          try {
-            const userData = JSON.parse(storedData)
-            const userEmail = (userData.email || "").trim().toLowerCase()
-            const storedPassword = userData.password || ""
-            
-            if (userEmail === normalizedEmail) {
-              // Check if password is in old format or new format
-              if (isOldHashFormat(storedPassword)) {
-                // Old format: plain text comparison
-                if (storedPassword === normalizedPassword) {
-                  foundUser = userData
-                  // Migrate password
-                  try {
-                    const hashedPassword = await migratePassword(userData.email, normalizedPassword)
-                    userData.password = hashedPassword
-                    localStorage.setItem("userData", JSON.stringify(userData))
-                    console.log("✅ Migrated password in userData to new format")
-                  } catch (error) {
-                    console.error("Error migrating password:", error)
-                  }
-                }
-              } else {
-                // New format: verify password hash with timeout
-                console.log("🔐 Verifying password hash in userData...")
-                try {
-                  // Add timeout to password verification (5 seconds max)
-                  const passwordVerificationPromise = verifyPassword(normalizedPassword, storedPassword)
-                  const timeoutPromise = new Promise<boolean>((_, reject) => 
-                    setTimeout(() => reject(new Error("Password verification timeout")), 5000)
-                  )
-                  
-                  const passwordMatch = await Promise.race([passwordVerificationPromise, timeoutPromise])
-                  if (passwordMatch) {
-                    foundUser = userData
-                    console.log("✅ User found in userData with password verification")
-                  } else {
-                    console.log("❌ Password mismatch (hash verification in userData)")
-                  }
-                } catch (error) {
-                  console.error("Error verifying password:", error)
-                }
-              }
-            }
-          } catch (error) {
-            console.error("Error parsing userData:", error)
-          }
-        }
-      }
-
-      if (foundUser) {
-        console.log("✅ LOGIN SUCCESS - Proceeding with login")
-        
-        // Only require email verification for NEW users (first-time signups)
-        // A new user is identified by having a verificationToken (from registration)
-        // Existing users (already in system) should NOT need verification
-        const hasVerificationToken = foundUser.verificationToken || 
-                                     localStorage.getItem(`verificationToken_${foundUser.email}`)
-        const isNewUser = foundUser.emailVerified === false && hasVerificationToken
-        
-        if (isNewUser) {
-          // This is a new user who hasn't verified yet - require verification
-          toast({
-            title: "Email not verified",
-            description: "Please verify your email address before logging in. Check your email for the verification link.",
-            variant: "destructive",
-          })
-          // Redirect to verification page
-          router.push(`/verify-email?email=${encodeURIComponent(foundUser.email ?? "")}`)
-          setIsSubmitting(false)
-          return
-        }
-        
-        // For existing users: if they don't have a verificationToken, they're an existing user
-        // Mark them as verified if not already set (backward compatibility)
-        if (!hasVerificationToken && foundUser.emailVerified !== true) {
-          // This is an existing user - mark as verified
-          const allUsersStr = localStorage.getItem("allUsers")
-          if (allUsersStr) {
-            try {
-              const allUsers = JSON.parse(allUsersStr)
-              const userEmail = foundUser.email
-              const updatedUsers = allUsers.map((user: any) => {
-                if (user.email === userEmail) {
-                  return { ...user, emailVerified: true }
-                }
-                return user
-              })
-              localStorage.setItem("allUsers", JSON.stringify(updatedUsers))
-              foundUser.emailVerified = true
-            } catch (error) {
-              console.error("Error updating user verification status:", error)
-            }
-          }
-        }
-        
-        // For existing users (emailVerified === true OR undefined), allow login without verification
-        // If emailVerified is undefined (old users), mark as verified for consistency
-        if (foundUser.emailVerified === undefined) {
-          // Update user to mark as verified (grandfather existing users)
-          const allUsersStr = localStorage.getItem("allUsers")
-          if (allUsersStr) {
-            try {
-              const allUsers = JSON.parse(allUsersStr)
-              const userEmail = foundUser.email
-              const updatedUsers = allUsers.map((user: any) => {
-                if (user.email === userEmail) {
-                  return { ...user, emailVerified: true }
-                }
-                return user
-              })
-              localStorage.setItem("allUsers", JSON.stringify(updatedUsers))
-              foundUser.emailVerified = true
-            } catch (error) {
-              console.error("Error updating user verification status:", error)
-            }
-          }
-        }
-        
-        // Fetch latest user data from Firebase (preferences may have been updated elsewhere)
-        try {
-          const firebaseUser = await getUserByEmailFromFirebase(normalizedEmail)
-          if (firebaseUser) {
-            foundUser = { ...foundUser, ...firebaseUser, password: foundUser.password }
-          }
-        } catch (e) {
-          console.warn("Could not fetch from Firebase, using local data:", e)
-        }
-
-        // IMPORTANT: Add user to this device's allUsers array if not already present
-        const allUsersStr = localStorage.getItem("allUsers")
-        let allUsers: any[] = []
-        
-        if (allUsersStr) {
-          try {
-            allUsers = JSON.parse(allUsersStr)
-          } catch (error) {
-            console.error("Error parsing allUsers:", error)
-            allUsers = []
-          }
-        }
-        
-        const userExists = allUsers.some((user: any) => 
-          (user.email || "").trim().toLowerCase() === normalizedEmail
-        )
-        
-        if (!userExists) {
-          allUsers.push(foundUser)
-          try {
-            localStorage.setItem("allUsers", JSON.stringify(allUsers))
-          } catch (error) {
-            console.error("Error saving allUsers:", error)
-          }
-        } else {
-          const updated = allUsers.map((u: any) =>
-            (u.email || "").trim().toLowerCase() === normalizedEmail ? foundUser : u
-          )
-          localStorage.setItem("allUsers", JSON.stringify(updated))
-        }
-        
-        // Save credentials if "Remember me" is checked
-        if (formData.rememberMe) {
-          try {
-            localStorage.setItem("savedCredentials", JSON.stringify({
-              email: normalizedEmail,
-              password: normalizedPassword,
-            }))
-          } catch (error) {
-            console.error("Error saving credentials:", error)
-          }
-        } else {
-          try {
-            localStorage.removeItem("savedCredentials")
-          } catch (error) {
-            console.error("Error removing saved credentials:", error)
-          }
-        }
-
-        // Update current userData for backward compatibility
-        try {
-          localStorage.setItem("userData", JSON.stringify(foundUser))
-        } catch (error) {
-          console.error("Error saving userData:", error)
-        }
-
-        // Use the auth context to log in the user
-        console.log("🔐 Calling login function...")
-        const userForAuth = {
-          ...foundUser,
-          name: String(foundUser.name ?? ""),
-          email: String(foundUser.email ?? ""),
-          gender: String(foundUser.gender ?? ""),
-          favoriteArtists: String(foundUser.favoriteArtists ?? ""),
-          favoriteActivities: String(foundUser.favoriteActivities ?? ""),
-        }
-        login(userForAuth as Parameters<typeof login>[0])
-        console.log("✅ Login function called, navigating to dashboard...")
-        
-        // Use setTimeout to ensure state updates before navigation (helps on mobile/iPad)
-        setTimeout(() => {
-          console.log("🚀 Navigating to dashboard...")
-          router.push("/dashboard")
-        }, 100)
-      } else {
-        console.log("❌ LOGIN FAILED - No matching user found in localStorage")
-        console.log("=== LOCAL LOGIN DEBUG END ===")
-
-        try {
-          const response = await fetch("/api/auth/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: normalizedEmail,
-              password: normalizedPassword,
-            }),
-          })
-
-          if (!response.ok) {
-            const data = await response.json().catch(() => ({}))
-            const message =
-              data?.error ||
-              "Invalid email or password. Please check your credentials and try again."
-
-            toast({
-              title: "Login failed",
-              description: message,
-              variant: "destructive",
-            })
-            setIsSubmitting(false)
-            return
-          }
-
-          const data = await response.json()
-          const backendUser = data.user
-
-          if (!backendUser) {
-            toast({
-              title: "Login failed",
-              description: "Unable to load your account. Please try again.",
-              variant: "destructive",
-            })
-            setIsSubmitting(false)
-            return
-          }
-
-          const userForAuth = {
-            name: String(backendUser.name ?? ""),
-            email: String(backendUser.email ?? normalizedEmail),
-            gender: String(backendUser.gender ?? ""),
-            favoriteArtists: String(backendUser.favoriteArtists ?? ""),
-            favoriteActivities: String(backendUser.favoriteActivities ?? ""),
-          }
-
-          try {
-            localStorage.setItem("currentUser", JSON.stringify(userForAuth))
-            localStorage.setItem("isLoggedIn", "true")
-            localStorage.setItem("userData", JSON.stringify(userForAuth))
-
-            if (formData.rememberMe) {
-              localStorage.setItem(
-                "savedCredentials",
-                JSON.stringify({ email: normalizedEmail, password: normalizedPassword })
-              )
-            } else {
-              localStorage.removeItem("savedCredentials")
-            }
-          } catch (storageError) {
-            console.error("Error saving backend login data:", storageError)
-          }
-
-          login(userForAuth as Parameters<typeof login>[0])
-          setTimeout(() => {
-            router.push("/dashboard")
-          }, 100)
-          setIsSubmitting(false)
-        } catch (apiError: any) {
-          console.error("❌ BACKEND LOGIN ERROR:", apiError)
-          toast({
-            title: "Login error",
-            description:
-              apiError?.message ||
-              "An error occurred while contacting the server. Please try again.",
-            variant: "destructive",
-          })
-          setIsSubmitting(false)
-        }
-      }
-    } catch (error: any) {
-      console.error("❌ LOGIN ERROR:", error)
-      console.error("Error stack:", error.stack)
+    if (!normalizedEmail || !normalizedPassword) {
       toast({
-        title: "Login error",
-        description: error.message || "An error occurred during login. Please try again.",
+        title: "Invalid input",
+        description: "Please enter both email and password",
+        variant: "destructive",
+      })
+      setIsSubmitting(false)
+      return
+    }
+
+    const result = await login(normalizedEmail, normalizedPassword)
+
+    if (result.success) {
+      router.push("/dashboard")
+    } else {
+      toast({
+        title: "Login failed",
+        description: result.error || "Invalid email or password",
         variant: "destructive",
       })
       setIsSubmitting(false)
     }
   }
 
-  // Add direct onClick handler as fallback for mobile devices
-  const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault()
-    e.stopPropagation()
-    console.log("🔘 Button clicked directly - isSubmitting:", isSubmitting)
-    
-    if (!isSubmitting && formData.email && formData.password) {
-      console.log("✅ Triggering form submission...")
-      // Create a synthetic form event
-      const syntheticEvent = {
-        preventDefault: () => {},
-        stopPropagation: () => {},
-      } as React.FormEvent
-      handleSubmit(syntheticEvent)
+  const handleGoogleLogin = async () => {
+    if (isGoogleSubmitting) return
+    setIsGoogleSubmitting(true)
+
+    const result = await loginWithGoogle()
+
+    if (result.success) {
+      router.push("/dashboard")
     } else {
-      console.log("⏸️ Button click ignored - already submitting or missing credentials")
+      toast({
+        title: "Google sign-in failed",
+        description: result.error || "Something went wrong. Please try again.",
+        variant: "destructive",
+      })
+      setIsGoogleSubmitting(false)
     }
   }
 
@@ -589,22 +105,40 @@ export default function Login() {
               </div>
             </div>
             <CardTitle className="text-2xl mt-4 text-white">Welcome back</CardTitle>
-            <CardDescription className="text-gray-300">Enter your credentials to access your account</CardDescription>
+            <CardDescription className="text-gray-300">
+              Enter your credentials to access your account
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            {/* Multi-device notice */}
-            <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-              <div className="flex items-start gap-2">
-                <Info className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
-                <div className="text-xs text-blue-200 flex-1">
-                  <p className="font-medium mb-1">Using a new device?</p>
-                  <p className="text-blue-300/80 mb-2">
-                    If you registered on another device, import your account file below to log in.
-                  </p>
-                  <AccountImportButton />
-                </div>
+          <CardContent className="space-y-4">
+
+            {/* Google Sign In */}
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full border-gray-600 bg-gray-700 text-white hover:bg-gray-600 flex items-center justify-center gap-3"
+              onClick={handleGoogleLogin}
+              disabled={isGoogleSubmitting || isSubmitting}
+            >
+              <svg className="h-4 w-4" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              {isGoogleSubmitting ? "Signing in..." : "Continue with Google"}
+            </Button>
+
+            {/* Divider */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-gray-600" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-gray-800 px-2 text-gray-400">Or continue with email</span>
               </div>
             </div>
+
+            {/* Email/Password Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-white">Email</Label>
@@ -640,10 +174,9 @@ export default function Login() {
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="rememberMe"
-                  name="rememberMe"
                   checked={formData.rememberMe}
-                  onCheckedChange={(checked) => 
-                    setFormData(prev => ({ ...prev, rememberMe: checked as boolean }))
+                  onCheckedChange={(checked) =>
+                    setFormData((prev) => ({ ...prev, rememberMe: checked as boolean }))
                   }
                   className="border-gray-600"
                 />
@@ -651,11 +184,10 @@ export default function Login() {
                   Remember me
                 </Label>
               </div>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full bg-teal-600 hover:bg-teal-700"
-                disabled={isSubmitting}
-                onClick={handleButtonClick}
+                disabled={isSubmitting || isGoogleSubmitting}
               >
                 {isSubmitting ? "Signing in..." : "Sign In"}
               </Button>

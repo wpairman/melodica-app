@@ -42,7 +42,9 @@ export default function Dashboard() {
     // In a real app, you would fetch this from an API (client-side only)
     if (typeof window !== 'undefined') {
       const storedData = localStorage.getItem("userData")
+      console.log("storedData", storedData)
       if (storedData) {
+        console.log("parsed user data", JSON.parse(storedData))
         try {
           const parsed = JSON.parse(storedData)
           setUserData(parsed)

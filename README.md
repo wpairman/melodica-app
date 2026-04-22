@@ -128,3 +128,5 @@ For support, email support@melodica.com or open an issue on GitHub.
 ---
 
 Made with ❤️ for mental wellness
+
+<!-- Netlify redeploy marker: 2026-03-28 -->

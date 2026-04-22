@@ -126,21 +126,28 @@ export const reducer = (state: State, action: Action): State => {
 
 let memoryState: State = { toasts: [] }
 
-// Simple ref to store force update function
-let forceUpdateFn: (() => void) | null = null
+/** All mounted useToast() subscribers must re-render when toasts change (not just the last mount). */
+const listeners = new Set<() => void>()
+
+function notifyListeners() {
+  listeners.forEach((fn) => {
+    try {
+      fn()
+    } catch (e) {
+      console.error("Toast listener error:", e)
+    }
+  })
+}
 
 // Safe dispatch function
 function dispatch(action: Action) {
-  if (typeof window === 'undefined') return
-  
+  if (typeof window === "undefined") return
+
   try {
     memoryState = reducer(memoryState, action)
-    // Trigger force update if registered
-    if (forceUpdateFn) {
-      forceUpdateFn()
-    }
+    notifyListeners()
   } catch (error) {
-    console.error('Error in toast dispatch:', error)
+    console.error("Error in toast dispatch:", error)
   }
 }
 
@@ -193,21 +200,19 @@ function toast({ ...props }: Toast) {
 }
 
 function useToast() {
-  // Use a simple counter to force re-renders
   const [, setUpdateCounter] = React.useState(0)
   const counterRef = React.useRef(0)
-  
-  // Register force update function
+
   React.useEffect(() => {
-    if (typeof window === 'undefined') return
-    
-    forceUpdateFn = () => {
+    if (typeof window === "undefined") return
+
+    const tick = () => {
       counterRef.current += 1
       setUpdateCounter(counterRef.current)
     }
-    
+    listeners.add(tick)
     return () => {
-      forceUpdateFn = null
+      listeners.delete(tick)
     }
   }, [])
 

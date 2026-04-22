@@ -7,11 +7,15 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Heart, Music, TrendingUp, Sparkles, Download, Apple, Smartphone, CheckCircle2, ArrowRight, Play, BarChart3, ListMusic } from "lucide-react"
+import { Heart, Music, TrendingUp, Sparkles, Apple, Smartphone, CheckCircle2, ArrowRight, Play, BarChart3, ListMusic, LayoutDashboard } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/contexts/auth-context"
+import { useRouter } from "next/navigation"
 
 export default function Home() {
   const { toast } = useToast()
+  const router = useRouter()
+  const { isAuthenticated, user, logout } = useAuth()
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
   const [showSplash, setShowSplash] = useState(true)
@@ -151,6 +155,15 @@ export default function Home() {
     }
   }
 
+  const handleLogout = () => {
+    logout()
+    toast({
+      title: "Logged out",
+      description: "You have been signed out.",
+    })
+    router.refresh()
+  }
+
   if (showSplash) {
     return (
       <div className="fixed inset-0 bg-white flex items-center justify-center z-50">
@@ -170,24 +183,44 @@ export default function Home() {
           <Heart className="h-6 w-6 text-teal-600 mr-2" />
           <span className="font-bold text-xl text-gray-900">Melodica</span>
         </Link>
-        <nav className="ml-auto flex gap-4 sm:gap-6 items-center">
+        <nav className="ml-auto flex flex-wrap gap-3 sm:gap-4 items-center justify-end">
           <Link className="text-sm font-medium hover:underline underline-offset-4 text-gray-700 hover:text-teal-600" href="/pricing">
             Pricing
           </Link>
-          <Link href="/login" className="text-sm font-medium hover:underline underline-offset-4 text-gray-700 hover:text-teal-600">
-            Login
-          </Link>
-          <Link href="/register" className="text-sm font-medium hover:underline underline-offset-4 text-gray-700 hover:text-teal-600">
-            Register
-          </Link>
-          {isMounted && (
-            <Button 
-              size="sm" 
-              className="bg-teal-600 hover:bg-teal-700 text-white" 
-              onClick={handleHeaderSignup}
-            >
-              Sign Up
-            </Button>
+          {isAuthenticated ? (
+            <>
+              <span className="text-sm text-gray-600 max-w-[160px] truncate hidden sm:inline" title={user?.email}>
+                {user?.name || user?.email}
+              </span>
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-teal-600 hover:text-teal-700 hover:underline underline-offset-4"
+              >
+                <LayoutDashboard className="h-4 w-4 shrink-0" />
+                Dashboard
+              </Link>
+              <Button type="button" variant="outline" size="sm" className="border-gray-300" onClick={handleLogout}>
+                Log out
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link href="/login" className="text-sm font-medium hover:underline underline-offset-4 text-gray-700 hover:text-teal-600">
+                Login
+              </Link>
+              <Link href="/register" className="text-sm font-medium hover:underline underline-offset-4 text-gray-700 hover:text-teal-600">
+                Register
+              </Link>
+              {isMounted && (
+                <Button
+                  size="sm"
+                  className="bg-teal-600 hover:bg-teal-700 text-white"
+                  onClick={handleHeaderSignup}
+                >
+                  Sign Up
+                </Button>
+              )}
+            </>
           )}
         </nav>
       </header>
@@ -214,22 +247,43 @@ export default function Home() {
               {/* CTA Buttons */}
               {isMounted && (
                 <div className="flex flex-col sm:flex-row gap-4 items-center">
-                  <Button 
-                    size="lg" 
-                    className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-6 text-lg"
-                    onClick={handleHeroStartFreeClick}
-                  >
-                    Start Free Trial
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                  <Button 
-                    size="lg" 
-                    variant="outline" 
-                    className="px-8 py-6 text-lg border-2"
-                    onClick={handleHeroViewPricingClick}
-                  >
-                    View Plans
-                  </Button>
+                  {isAuthenticated ? (
+                    <>
+                      <Button size="lg" className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-6 text-lg" asChild>
+                        <Link href="/dashboard">
+                          Go to dashboard
+                          <ArrowRight className="ml-2 h-5 w-5" />
+                        </Link>
+                      </Button>
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        className="px-8 py-6 text-lg border-2"
+                        onClick={handleHeroViewPricingClick}
+                      >
+                        View Plans
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        size="lg"
+                        className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-6 text-lg"
+                        onClick={handleHeroStartFreeClick}
+                      >
+                        Start Free Trial
+                        <ArrowRight className="ml-2 h-5 w-5" />
+                      </Button>
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        className="px-8 py-6 text-lg border-2"
+                        onClick={handleHeroViewPricingClick}
+                      >
+                        View Plans
+                      </Button>
+                    </>
+                  )}
                 </div>
               )}
 

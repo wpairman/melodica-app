@@ -57,18 +57,26 @@ export default function Login() {
       return
     }
 
-    const result = await login(normalizedEmail, normalizedPassword)
+    const result = await login(normalizedEmail, normalizedPassword, {
+      rememberMe: formData.rememberMe,
+    })
 
-    if (result.success) {
+    if (result && "success" in result && result.success) {
       router.push("/dashboard")
-    } else {
-      toast({
-        title: "Login failed",
-        description: result.error || "Invalid email or password",
-        variant: "destructive",
-      })
-      setIsSubmitting(false)
+      return
     }
+
+    const message =
+      result && "error" in result && typeof result.error === "string"
+        ? result.error
+        : "Invalid email or password"
+
+    toast({
+      title: "Couldn't sign in",
+      description: message,
+      variant: "destructive",
+    })
+    setIsSubmitting(false)
   }
 
   const handleGoogleLogin = async () => {

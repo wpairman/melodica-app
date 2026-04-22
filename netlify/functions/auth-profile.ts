@@ -1,5 +1,5 @@
 import type { Handler } from "@netlify/functions"
-import { loginWithEmailPassword } from "@/lib/server/auth-handlers"
+import { loadProfileByIdToken } from "@/lib/server/auth-handlers"
 
 export const handler: Handler = async (event) => {
   if (event.httpMethod !== "POST") {
@@ -12,9 +12,9 @@ export const handler: Handler = async (event) => {
 
   try {
     const body = event.body ? JSON.parse(event.body) : {}
-    const { email, password } = body as { email?: string; password?: string }
+    const { idToken } = body as { idToken?: string }
 
-    const result = await loginWithEmailPassword(email ?? "", password ?? "")
+    const result = await loadProfileByIdToken(idToken ?? "")
     if (!result.success) {
       return {
         statusCode: result.status,
@@ -29,10 +29,10 @@ export const handler: Handler = async (event) => {
       body: JSON.stringify({ success: true, user: result.user }),
     }
   } catch (error: unknown) {
-    console.error("Auth login error:", error)
-    const message = error instanceof Error ? error.message : "Login failed"
+    console.error("Auth profile error:", error)
+    const message = error instanceof Error ? error.message : "Failed to load profile"
     return {
-      statusCode: 500,
+      statusCode: 401,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ error: message }),
     }

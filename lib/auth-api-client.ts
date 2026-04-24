@@ -1,5 +1,5 @@
 /**
- * Calls Netlify functions via /api/auth/* (see netlify.toml redirects).
+ * Calls Netlify functions directly via /.netlify/functions/*.
  * Uses Firebase Admin on the server so Firestore security rules can stay strict.
  */
 
@@ -20,26 +20,12 @@ export type AuthApiPublicUser = {
   subscription: FirebaseUser["subscription"] | null
 }
 
-function apiOrigin(): string {
-  if (typeof window === "undefined") return ""
-  const override = process.env.NEXT_PUBLIC_AUTH_API_ORIGIN
-  if (override && /^https?:\/\//i.test(override)) {
-    return override.replace(/\/$/, "")
-  }
-  return window.location.origin
-}
-
 export async function postEmailPasswordLogin(
   email: string,
   password: string
 ): Promise<{ success: true; user: AuthApiPublicUser } | { success: false; error: string }> {
-  const origin = apiOrigin()
-  if (!origin) {
-    return { success: false, error: "Login API is only available in the browser." }
-  }
-
   try {
-    const res = await fetch(`${origin}/api/auth/login`, {
+    const res = await fetch("/.netlify/functions/auth-login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
@@ -61,7 +47,7 @@ export async function postEmailPasswordLogin(
     return { success: true, user: data.user }
   } catch (e: unknown) {
     const message =
-      e instanceof Error ? e.message : "Could not reach login service. If you use `next dev` locally, run `netlify dev` or test on your deployed site."
+      e instanceof Error ? e.message : "Could not reach login service."
     return { success: false, error: message }
   }
 }
@@ -69,13 +55,8 @@ export async function postEmailPasswordLogin(
 export async function postProfileByIdToken(
   idToken: string
 ): Promise<{ success: true; user: AuthApiPublicUser } | { success: false; error: string }> {
-  const origin = apiOrigin()
-  if (!origin) {
-    return { success: false, error: "Profile API is only available in the browser." }
-  }
-
   try {
-    const res = await fetch(`${origin}/api/auth/profile`, {
+    const res = await fetch("/.netlify/functions/auth-profile", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ idToken }),

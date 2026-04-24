@@ -757,4 +757,15 @@ button:active {
 html {
   scroll-behavior: smooth;
 }
-
+/* Fix dashboard tabs overlapping on mobile */
+@media (max-width: 768px) {
+  [role="tablist"] {
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  [role="tab"] {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+  }
+}

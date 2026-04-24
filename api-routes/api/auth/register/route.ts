@@ -1,12 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { hashPassword } from '@/lib/password-utils'
+import { adminAuth, adminDb } from '@/lib/firebase-admin'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, email, password, gender, favoriteArtists, favoriteActivities } = body
+    const {
+      name,
+      email,
+      password,
+      gender,
+      favoriteArtists,
+      favoriteActivities,
+      musicGenres,
+      mentalIllnesses,
+      medication,
+      selectedPlan,
+    } = body
 
-    // Validation
     if (!email || !password || !name) {
       return NextResponse.json(
         { error: 'Name, email, and password are required' },
@@ -21,50 +31,54 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Normalize email
     const normalizedEmail = email.trim().toLowerCase()
 
-    // In a real app, you would:
-    // 1. Check if user exists in database
-    // 2. Hash the password
-    // 3. Store user in database
-    // 4. Return success
+    const userRecord = await adminAuth.createUser({
+      email: normalizedEmail,
+      password,
+      displayName: name,
+    })
 
-    // For now, we'll return the user data with hashed password
-    // The client will store it in localStorage AND we can add database later
-    const hashedPassword = await hashPassword(password)
-
-    const userData = {
+    await adminDb.collection('users').doc(userRecord.uid).set({
+      uid: userRecord.uid,
       name,
       email: normalizedEmail,
-      password: hashedPassword, // Store hashed password
       gender: gender || '',
       favoriteArtists: favoriteArtists || '',
       favoriteActivities: favoriteActivities || '',
+      musicGenres: musicGenres || '',
+      mentalIllnesses: mentalIllnesses || 'No',
+      medication: medication || 'No',
+      selectedPlan: selectedPlan || '',
+      emailVerified: false,
+      subscription: { plan: 'none', status: 'inactive' },
       createdAt: new Date().toISOString(),
-    }
+    })
 
-    // TODO: Store in database here
-    // await db.users.create(userData)
+    const customToken = await adminAuth.createCustomToken(userRecord.uid)
 
     return NextResponse.json({
       success: true,
+      customToken,
       user: {
-        name: userData.name,
-        email: userData.email,
-        gender: userData.gender,
-        favoriteArtists: userData.favoriteArtists,
-        favoriteActivities: userData.favoriteActivities,
+        uid: userRecord.uid,
+        name,
+        email: normalizedEmail,
       },
-      // Return hashed password so client can store it
-      passwordHash: userData.password,
     })
   } catch (error: any) {
     console.error('Registration error:', error)
+
+    if (error.code === 'auth/email-already-exists') {
+      return NextResponse.json(
+        { error: 'An account with this email already exists' },
+        { status: 409 }
+      )
+    }
+
     return NextResponse.json(
       { error: error.message || 'Registration failed' },
       { status: 500 }
     )
   }
 }
-

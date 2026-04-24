@@ -58,7 +58,7 @@ export const handler: Handler = async (event) => {
       displayName: name,
     })
 
-    // Save profile to Firestore
+    // Save profile to Firestore using Admin SDK (bypasses security rules)
     await adminDb.collection("users").doc(userRecord.uid).set({
       uid: userRecord.uid,
       name,
@@ -75,11 +75,15 @@ export const handler: Handler = async (event) => {
       createdAt: new Date().toISOString(),
     })
 
+    // Create a custom token so the client can sign in immediately
+    const customToken = await adminAuth.createCustomToken(userRecord.uid)
+
     return {
       statusCode: 200,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         success: true,
+        customToken,
         user: {
           uid: userRecord.uid,
           name,

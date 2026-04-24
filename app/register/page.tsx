@@ -11,8 +11,8 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { saveUserToFirebase, getUserByEmailFromFirebase, type FirebaseUser } from "@/lib/firebase-users"
-import { hashPassword } from "@/lib/password-utils"
+import { signInWithCustomToken } from "firebase/auth"
+import { auth } from "@/lib/firebase-config"
 import { createStripeCheckoutSession } from "@/lib/api-utils"
 import { useToast } from "@/hooks/use-toast"
 
@@ -105,7 +105,6 @@ export default function RegisterPage() {
       toast({ title: "Please select a subscription plan", variant: "destructive" })
       return
     }
-
     if (form.password !== form.confirmPassword) {
       toast({ title: "Passwords don't match", variant: "destructive" })
       return
@@ -129,37 +128,64 @@ export default function RegisterPage() {
 
     setLoading(true)
     try {
-      const existingUser = await getUserByEmailFromFirebase(form.email.toLowerCase().trim())
-      if (existingUser) {
+      const normalizedEmail = form.email.toLowerCase().trim()
+
+      // ✅ FIXED: Calling Netlify function directly instead of Next.js API route
+      const response = await fetch("/.netlify/functions/auth-register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          email: normalizedEmail,
+          password: form.password,
+          gender: form.gender,
+          favoriteArtists: form.favoriteArtists.trim() || "",
+          favoriteActivities: form.activityPreferences.join(", "),
+          musicGenres: form.musicGenres.join(", "),
+          mentalIllnesses: form.mentalIllnesses === "yes"
+            ? form.mentalIllnessesDetails.trim() || "Yes"
+            : "No",
+          medication: form.medication === "yes"
+            ? form.medicationDetails.trim() || "Yes"
+            : "No",
+          selectedPlan: plan,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
         toast({
-          title: "Email already registered",
-          description: "Please log in to add a subscription or use a different email.",
+          title: "Registration failed",
+          description: data.error || "Something went wrong. Please try again.",
           variant: "destructive",
         })
         setLoading(false)
         return
       }
 
-      const hashedPassword = await hashPassword(form.password)
-      const userData: FirebaseUser = {
-        name: form.name.trim(),
-        email: form.email.toLowerCase().trim(),
-        password: hashedPassword,
-        gender: form.gender,
-        favoriteArtists: form.favoriteArtists.trim() || undefined,
-        favoriteActivities: form.activityPreferences.length > 0 ? form.activityPreferences.join(", ") : undefined,
-        musicGenres: form.musicGenres.length > 0 ? form.musicGenres.join(", ") : undefined,
-        mentalIllnesses: form.mentalIllnesses === "yes" ? (form.mentalIllnessesDetails.trim() || "Yes") : "No",
-        medication: form.medication === "yes" ? (form.medicationDetails.trim() || "Yes") : "No",
-        selectedPlan: plan,
-        subscription: undefined as FirebaseUser["subscription"],
-        createdAt: new Date(),
-        emailVerified: false,
+      const customToken = data.customToken as string | undefined
+      if (!customToken) {
+        toast({
+          title: "Registration incomplete",
+          description: "Could not start your session. Try logging in with your new account.",
+          variant: "destructive",
+        })
+        setLoading(false)
+        return
       }
+      if (!auth) {
+        toast({
+          title: "Configuration error",
+          description: "Authentication is not available. Refresh the page and try again.",
+          variant: "destructive",
+        })
+        setLoading(false)
+        return
+      }
+      await signInWithCustomToken(auth, customToken)
 
-      await saveUserToFirebase(userData)
-
-      const { url } = await createStripeCheckoutSession(tier, form.email.toLowerCase().trim())
+      const { url } = await createStripeCheckoutSession(tier, normalizedEmail)
       if (url) {
         window.location.href = url
       } else {
@@ -194,7 +220,7 @@ export default function RegisterPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {/* Plan selection - shown when no plan from URL or always visible */}
+            {/* Plan selection */}
             <div className="mb-6 space-y-3">
               <h3 className="text-sm font-medium text-teal-400">Choose your subscription</h3>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Calendar, Bell, Plus, Briefcase, BookOpen, ClipboardCheck, GraduationCap, Trophy, Calendar as CalendarIcon, Music } from "lucide-react"
+import { Calendar, Bell, Plus } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -18,7 +18,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { generateEventPreparationRecommendations, parseICalData, type SyncedCalendarEvent } from "@/lib/calendar-sync"
-import { syncCalendar } from "@/lib/api-utils"
 import { useToast } from "@/hooks/use-toast"
 
 type EventTopic = "Meeting" | "Homework" | "Quiz" | "Test" | "Sports Practice" | "Event" | "Concert"
@@ -33,448 +32,226 @@ type CalendarEvent = {
 }
 
 const MOCK_EVENTS: CalendarEvent[] = [
-  {
-    id: "1",
-    title: "Biology Mid-Term",
-    start: new Date(Date.now() + 1000 * 60 * 60 * 24), // +1 day
-    location: "Room 202",
-    topic: "Test",
-  },
-  {
-    id: "2",
-    title: "Math Homework",
-    start: new Date(Date.now() + 1000 * 60 * 60 * 48), // +2 days
-    topic: "Homework",
-  },
-  {
-    id: "3",
-    title: "Team Meeting",
-    start: new Date(Date.now() + 1000 * 60 * 60 * 72), // +3 days
-    location: "Conference Room",
-    topic: "Meeting",
-  },
+  { id: "1", title: "Biology Mid-Term", start: new Date(Date.now() + 1000 * 60 * 60 * 24), location: "Room 202", topic: "Test" },
+  { id: "2", title: "Math Homework", start: new Date(Date.now() + 1000 * 60 * 60 * 48), topic: "Homework" },
+  { id: "3", title: "Team Meeting", start: new Date(Date.now() + 1000 * 60 * 60 * 72), location: "Conference Room", topic: "Meeting" },
 ]
 
 const READINESS_KITS: Record<EventTopic, string[]> = {
-  "Meeting": [
-    "Review meeting agenda and objectives",
-    "Prepare talking points and questions",
-    "Charge devices and bring notebooks",
-    "Plan route to ensure punctuality",
-    "Take 5 deep breaths to center yourself"
-  ],
-  "Homework": [
-    "Gather all necessary materials and resources",
-    "Find a quiet, distraction-free workspace",
-    "Set a realistic completion goal",
-    "Start with the most challenging task first",
-    "Take breaks every 25-30 minutes"
-  ],
-  "Quiz": [
-    "Review notes and key concepts (don't cram!)",
-    "Get a good night's sleep beforehand",
-    "Eat a healthy breakfast",
-    "Bring all required materials (pens, calculator, etc.)",
-    "Arrive 10 minutes early to settle in"
-  ],
-  "Test": [
-    "Complete practice problems or past papers",
-    "Organize your study materials",
-    "Get 7-8 hours of sleep the night before",
-    "Pack everything needed: ID, calculator, extra pens",
-    "Do a quick mindfulness exercise before starting"
-  ],
-  "Sports Practice": [
-    "Hydrate well throughout the day",
-    "Eat a light meal 2-3 hours before",
-    "Wear appropriate gear and bring extras",
-    "Do a proper warm-up routine",
-    "Set intention for what you want to improve"
-  ],
-  "Event": [
-    "Confirm event time and location",
-    "Plan your outfit the night before",
-    "Review any background information",
-    "Prepare conversation starters",
-    "Bring essentials: phone, wallet, ID"
-  ],
-  "Concert": [
-    "Check venue parking and arrival time",
-    "Bring ear protection if needed",
-    "Dress comfortably for standing/dancing",
-    "Eat beforehand and stay hydrated",
-    "Leave early to avoid traffic stress"
-  ],
+  "Meeting": ["Review meeting agenda and objectives", "Prepare talking points and questions", "Charge devices and bring notebooks", "Plan route to ensure punctuality", "Take 5 deep breaths to center yourself"],
+  "Homework": ["Gather all necessary materials and resources", "Find a quiet, distraction-free workspace", "Set a realistic completion goal", "Start with the most challenging task first", "Take breaks every 25-30 minutes"],
+  "Quiz": ["Review notes and key concepts (don't cram!)", "Get a good night's sleep beforehand", "Eat a healthy breakfast", "Bring all required materials (pens, calculator, etc.)", "Arrive 10 minutes early to settle in"],
+  "Test": ["Complete practice problems or past papers", "Organize your study materials", "Get 7-8 hours of sleep the night before", "Pack everything needed: ID, calculator, extra pens", "Do a quick mindfulness exercise before starting"],
+  "Sports Practice": ["Hydrate well throughout the day", "Eat a light meal 2-3 hours before", "Wear appropriate gear and bring extras", "Do a proper warm-up routine", "Set intention for what you want to improve"],
+  "Event": ["Confirm event time and location", "Plan your outfit the night before", "Review any background information", "Prepare conversation starters", "Bring essentials: phone, wallet, ID"],
+  "Concert": ["Check venue parking and arrival time", "Bring ear protection if needed", "Dress comfortably for standing/dancing", "Eat beforehand and stay hydrated", "Leave early to avoid traffic stress"],
 }
+
+type CalendarPlatform = "google" | "apple" | "canvas" | "other"
+
+const platforms = [
+  {
+    id: "google" as CalendarPlatform,
+    name: "Google Calendar",
+    icon: "🗓️",
+    color: "border-blue-500 bg-blue-500/10",
+    instructions: [
+      "Open Google Calendar on desktop",
+      "Click the three dots next to your calendar name",
+      'Select "Settings and sharing"',
+      'Scroll down to "Export calendar"',
+      "Download the .ics file",
+      "Upload it below",
+    ],
+  },
+  {
+    id: "apple" as CalendarPlatform,
+    name: "Apple Calendar",
+    icon: "🍎",
+    color: "border-gray-400 bg-gray-400/10",
+    instructions: [
+      "Open the Calendar app on your Mac",
+      "Right-click on the calendar you want to export",
+      'Select "Export..."',
+      "Save the .ics file to your computer",
+      "Upload it below",
+    ],
+  },
+  {
+    id: "canvas" as CalendarPlatform,
+    name: "Canvas",
+    icon: "🎓",
+    color: "border-red-500 bg-red-500/10",
+    instructions: [
+      "Log in to your Canvas account",
+      'Click "Calendar" in the left sidebar',
+      'Click "Calendar Feed" at the bottom right',
+      "Copy the URL and open it in your browser",
+      "Save the file as .ics and upload below",
+    ],
+  },
+  {
+    id: "other" as CalendarPlatform,
+    name: "Other Calendar",
+    icon: "📅",
+    color: "border-teal-500 bg-teal-500/10",
+    instructions: [
+      "Open your calendar app",
+      "Go to Settings or File menu",
+      'Look for "Export" or "Export as .ics"',
+      "Save the file and upload it below",
+    ],
+  },
+]
 
 export default function CalendarIntegration() {
   const { toast } = useToast()
-  const [connected, setConnected] = useState<boolean>(false)
+  const [connected, setConnected] = useState(false)
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [syncedEvents, setSyncedEvents] = useState<SyncedCalendarEvent[]>([])
-  const [leadMinutes, setLeadMinutes] = useState<number>(60) // default 1 h
-  const [open, setOpen] = useState<boolean>(false)
+  const [leadMinutes, setLeadMinutes] = useState(60)
+  const [open, setOpen] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
   const [newEventTopic, setNewEventTopic] = useState<EventTopic>("Meeting")
-  const [addEventDialog, setAddEventDialog] = useState<boolean>(false)
+  const [addEventDialog, setAddEventDialog] = useState(false)
   const [newEventTitle, setNewEventTitle] = useState("")
   const [newEventDate, setNewEventDate] = useState("")
   const [newEventLocation, setNewEventLocation] = useState("")
   const [syncDialogOpen, setSyncDialogOpen] = useState(false)
-  const [icalUrl, setIcalUrl] = useState("")
+  const [selectedPlatform, setSelectedPlatform] = useState<CalendarPlatform | null>(null)
   const [syncing, setSyncing] = useState(false)
 
-  /* Load persisted prefs on mount */
   useEffect(() => {
-    // Check if we're in a browser environment
     if (typeof window === 'undefined') return
-    
     const isConnected = localStorage.getItem("calendarConnected") === "true"
     const savedLead = Number(localStorage.getItem("calendarLeadMinutes"))
     setConnected(isConnected)
-    if (!Number.isNaN(savedLead) && savedLead > 0) {
-      setLeadMinutes(savedLead)
-    }
+    if (!Number.isNaN(savedLead) && savedLead > 0) setLeadMinutes(savedLead)
     if (isConnected) {
-      // Load events from localStorage (including synced events)
       const storedEvents = localStorage.getItem("calendarEvents")
       if (storedEvents) {
         try {
-          const parsedEvents = JSON.parse(storedEvents).map((event: any) => ({
-            ...event,
-            start: new Date(event.start),
-            end: event.end ? new Date(event.end) : undefined,
-          }))
-          setEvents(parsedEvents)
-        } catch (error) {
-          console.error("Error loading events:", error)
-          setEvents(MOCK_EVENTS)
-        }
-      } else {
-        setEvents(MOCK_EVENTS)
-      }
-      
-      // Load synced events
-      const storedSyncedEvents = localStorage.getItem("syncedCalendarEvents")
-      if (storedSyncedEvents) {
-        try {
-          const parsedSynced = JSON.parse(storedSyncedEvents).map((event: any) => ({
-            ...event,
-            start: new Date(event.start),
-            end: event.end ? new Date(event.end) : undefined,
-          }))
-          setSyncedEvents(parsedSynced)
-        } catch (error) {
-          console.error("Error loading synced events:", error)
-        }
+          setEvents(JSON.parse(storedEvents).map((e: any) => ({ ...e, start: new Date(e.start), end: e.end ? new Date(e.end) : undefined })))
+        } catch { setEvents(MOCK_EVENTS) }
+      } else { setEvents(MOCK_EVENTS) }
+      const storedSynced = localStorage.getItem("syncedCalendarEvents")
+      if (storedSynced) {
+        try { setSyncedEvents(JSON.parse(storedSynced).map((e: any) => ({ ...e, start: new Date(e.start), end: e.end ? new Date(e.end) : undefined }))) } catch {}
       }
     }
   }, [])
 
-  /* Persist lead-time changes */
   useEffect(() => {
-    // Check if we're in a browser environment
     if (typeof window === 'undefined') return
-    
     localStorage.setItem("calendarLeadMinutes", String(leadMinutes))
   }, [leadMinutes])
 
-  const connectCalendar = async () => {
-    // Show sync dialog for iCloud/CalDAV
-    setSyncDialogOpen(true)
+  const detectEventTopic = (event: SyncedCalendarEvent): EventTopic => {
+    const t = event.title.toLowerCase()
+    if (t.includes("meeting")) return "Meeting"
+    if (t.includes("homework") || t.includes("assignment")) return "Homework"
+    if (t.includes("quiz")) return "Quiz"
+    if (t.includes("test") || t.includes("exam")) return "Test"
+    if (t.includes("practice") || t.includes("workout") || t.includes("gym")) return "Sports Practice"
+    if (t.includes("concert") || t.includes("show")) return "Concert"
+    return "Event"
   }
 
-  const syncICloudCalendar = async () => {
-    if (!icalUrl.trim()) {
-      toast({
-        title: "URL required",
-        description: "Please enter your calendar URL",
-        variant: "destructive",
-      })
+  const processICalData = (icalData: string, source: string) => {
+    const parsedEvents = parseICalData(icalData)
+    if (parsedEvents.length === 0) {
+      toast({ title: "No events found", description: "The file was loaded but contained no events.", variant: "destructive" })
       return
     }
-
-    setSyncing(true)
-
-    try {
-      console.log("Starting calendar sync with URL:", icalUrl)
-      
-      // Use our API route to fetch the calendar (no CORS issues)
-      const result = await syncCalendar(icalUrl)
-      
-      if (!result.success || !result.data) {
-        throw new Error("Invalid response from server")
-      }
-
-      const icalData = result.data
-
-      if (!icalData || icalData.trim().length === 0) {
-        throw new Error("Calendar file appears to be empty")
-      }
-
-      const parsedEvents = parseICalData(icalData)
-
-      if (parsedEvents.length === 0) {
-        toast({
-          title: "No events found",
-          description: "The calendar file was loaded but contained no events.",
-          variant: "destructive",
-        })
-        setSyncing(false)
-        return
-      }
-
-      // Transfer synced events to app calendar
-      const appEvents: CalendarEvent[] = parsedEvents.map((syncedEvent) => ({
-        id: syncedEvent.id,
-        title: syncedEvent.title,
-        start: syncedEvent.start,
-        end: syncedEvent.end,
-        location: syncedEvent.location,
-        topic: detectEventTopic(syncedEvent),
-      }))
-
-      // Merge with existing events (avoid duplicates)
-      const existingEvents = JSON.parse(localStorage.getItem("calendarEvents") || "[]")
-      const existingIds = new Set(existingEvents.map((e: CalendarEvent) => e.id))
-      const newEvents = appEvents.filter(e => !existingIds.has(e.id))
-      const allEvents = [...existingEvents, ...newEvents]
-
-      // Save to localStorage
-      if (typeof window !== 'undefined') {
-        localStorage.setItem("calendarEvents", JSON.stringify(allEvents))
-        localStorage.setItem("syncedCalendarEvents", JSON.stringify(parsedEvents))
-        localStorage.setItem("calendarConnected", "true")
-      }
-
-      setSyncedEvents([...syncedEvents, ...parsedEvents])
-      setEvents(allEvents)
-      setConnected(true)
-      setSyncDialogOpen(false)
-      setIcalUrl("")
-
-      toast({
-        title: "Calendar synced! ✅",
-        description: `Successfully imported ${parsedEvents.length} event${parsedEvents.length === 1 ? '' : 's'} from your calendar`,
-      })
-    } catch (error: any) {
-      console.error("Error syncing calendar:", error)
-      const errorMessage = error?.message || "Unknown error occurred"
-      
-      toast({
-        title: "Sync failed",
-        description: `Could not sync calendar: ${errorMessage}. If the issue persists, try using the file upload option below.`,
-        variant: "destructive",
-        duration: 8000,
-      })
-    } finally {
-      setSyncing(false)
-    }
+    const appEvents: CalendarEvent[] = parsedEvents.map(e => ({ id: e.id, title: e.title, start: e.start, end: e.end, location: e.location, topic: detectEventTopic(e) }))
+    const existing = JSON.parse(localStorage.getItem("calendarEvents") || "[]")
+    const existingIds = new Set(existing.map((e: CalendarEvent) => e.id))
+    const allEvents = [...existing, ...appEvents.filter(e => !existingIds.has(e.id))]
+    localStorage.setItem("calendarEvents", JSON.stringify(allEvents))
+    localStorage.setItem("syncedCalendarEvents", JSON.stringify(parsedEvents))
+    localStorage.setItem("calendarConnected", "true")
+    setSyncedEvents(prev => [...prev, ...parsedEvents])
+    setEvents(allEvents)
+    setConnected(true)
+    setSyncDialogOpen(false)
+    setSelectedPlatform(null)
+    toast({ title: "Calendar imported! ✅", description: `Imported ${parsedEvents.length} event${parsedEvents.length === 1 ? '' : 's'} from ${source}` })
   }
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
-
     if (!file.name.endsWith('.ics') && !file.name.endsWith('.ical')) {
-      toast({
-        title: "Invalid file type",
-        description: "Please upload a .ics or .ical calendar file",
-        variant: "destructive",
-      })
+      toast({ title: "Invalid file type", description: "Please upload a .ics or .ical file", variant: "destructive" })
       return
     }
-
     setSyncing(true)
     const reader = new FileReader()
-
     reader.onload = (e) => {
       try {
-        const icalData = e.target?.result as string
-        console.log("Loaded file, length:", icalData.length)
-
-        if (!icalData || icalData.trim().length === 0) {
-          throw new Error("File appears to be empty")
-        }
-
-        const parsedEvents = parseICalData(icalData)
-        console.log("Parsed events from file:", parsedEvents.length)
-
-        if (parsedEvents.length === 0) {
-          toast({
-            title: "No events found",
-            description: "The calendar file was loaded but contained no events.",
-            variant: "destructive",
-          })
-          setSyncing(false)
-          return
-        }
-
-        // Transfer synced events to app calendar
-        const appEvents: CalendarEvent[] = parsedEvents.map((syncedEvent) => ({
-          id: syncedEvent.id,
-          title: syncedEvent.title,
-          start: syncedEvent.start,
-          end: syncedEvent.end,
-          location: syncedEvent.location,
-          topic: detectEventTopic(syncedEvent),
-        }))
-
-        // Merge with existing events (avoid duplicates)
-        const existingEvents = JSON.parse(localStorage.getItem("calendarEvents") || "[]")
-        const existingIds = new Set(existingEvents.map((e: CalendarEvent) => e.id))
-        const newEvents = appEvents.filter(e => !existingIds.has(e.id))
-        const allEvents = [...existingEvents, ...newEvents]
-
-        // Save to localStorage
-        if (typeof window !== 'undefined') {
-          localStorage.setItem("calendarEvents", JSON.stringify(allEvents))
-          localStorage.setItem("syncedCalendarEvents", JSON.stringify([...syncedEvents, ...parsedEvents]))
-          localStorage.setItem("calendarConnected", "true")
-        }
-
-        setSyncedEvents([...syncedEvents, ...parsedEvents])
-        setEvents(allEvents)
-        setConnected(true)
-        setSyncDialogOpen(false)
-        setIcalUrl("")
-
-        toast({
-          title: "Calendar imported! ✅",
-          description: `Successfully imported ${parsedEvents.length} event${parsedEvents.length === 1 ? '' : 's'} from your calendar file`,
-        })
-      } catch (error: any) {
-        console.error("Error processing calendar file:", error)
-        toast({
-          title: "Import failed",
-          description: `Could not import calendar: ${error?.message || "Unknown error"}`,
-          variant: "destructive",
-        })
+        const data = e.target?.result as string
+        if (!data?.trim()) throw new Error("File is empty")
+        processICalData(data, platforms.find(p => p.id === selectedPlatform)?.name || "your calendar")
+      } catch (err: any) {
+        toast({ title: "Import failed", description: err?.message || "Unknown error", variant: "destructive" })
       } finally {
         setSyncing(false)
-        // Reset file input
         event.target.value = ""
       }
     }
-
-    reader.onerror = () => {
-      toast({
-        title: "File read error",
-        description: "Could not read the calendar file. Please try again.",
-        variant: "destructive",
-      })
-      setSyncing(false)
-      event.target.value = ""
-    }
-
+    reader.onerror = () => { toast({ title: "File read error", description: "Could not read the file.", variant: "destructive" }); setSyncing(false) }
     reader.readAsText(file)
   }
 
-  // Detect event topic for AI recommendations
-  const detectEventTopic = (event: SyncedCalendarEvent): EventTopic => {
-    const titleLower = event.title.toLowerCase()
-    if (titleLower.includes("meeting")) return "Meeting"
-    if (titleLower.includes("homework") || titleLower.includes("assignment")) return "Homework"
-    if (titleLower.includes("quiz")) return "Quiz"
-    if (titleLower.includes("test") || titleLower.includes("exam")) return "Test"
-    if (titleLower.includes("practice") || titleLower.includes("workout") || titleLower.includes("gym")) return "Sports Practice"
-    if (titleLower.includes("concert") || titleLower.includes("show")) return "Concert"
-    return "Event"
-  }
-
-  const handleNotifLeadChange = (value: string) => {
-    const n = Number(value)
-    if (!Number.isNaN(n) && n > 0) setLeadMinutes(n)
-  }
+  const selectedPlatformData = platforms.find(p => p.id === selectedPlatform)
 
   return (
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="size-5 text-rose-600" />
+          <CardTitle className="flex items-center gap-2 text-white">
+            <Calendar className="size-5 text-rose-500" />
             Calendar Integration
           </CardTitle>
-          <CardDescription>
-            Sync your calendar so Melodica can send helpful, mood-aware reminders before important events.
+          <CardDescription className="text-gray-300">
+            Sync your calendar so Melodica can send mood-aware reminders before important events.
           </CardDescription>
         </CardHeader>
-
         <CardContent>
           {!connected ? (
             <div className="space-y-3">
-              <Button onClick={connectCalendar} className="flex gap-2 w-full">
-                <Plus className="size-4" />
-                Sync iCloud Calendar
+              <Button onClick={() => setSyncDialogOpen(true)} className="w-full bg-teal-600 hover:bg-teal-700 text-white">
+                <Plus className="size-4 mr-2" /> Sync Your Calendar
               </Button>
-              <p className="text-xs text-muted-foreground">
-                Connect your iCloud calendar to automatically import events and get AI-powered preparation recommendations
-              </p>
+              <p className="text-xs text-gray-400">Supports Google Calendar, Apple Calendar, Canvas, and any .ics file</p>
             </div>
           ) : (
             <>
-              <p className="mb-4 text-sm text-muted-foreground">
-                Connected&nbsp;✓ — we’ll watch your calendar and notify you{" "}
-                <span className="font-medium">{leadMinutes}</span>&nbsp;minutes before each event.
-              </p>
-
-              {/* Notification timing */}
-              <div className="flex flex-wrap items-end gap-4 mb-6">
+              <p className="mb-4 text-sm text-gray-300">Connected ✓ — notifying you <span className="font-medium text-white">{leadMinutes}</span> minutes before each event.</p>
+              <div className="flex flex-wrap items-end gap-4 mb-4">
                 <div>
-                  <Label htmlFor="lead">Notify me …</Label>
-                  <Input
-                    id="lead"
-                    type="number"
-                    min={5}
-                    value={leadMinutes}
-                    onChange={(e) => handleNotifLeadChange(e.target.value)}
-                    className="w-24"
-                  />
+                  <Label htmlFor="lead" className="text-white">Notify me …</Label>
+                  <Input id="lead" type="number" min={5} value={leadMinutes} onChange={(e) => { const n = Number(e.target.value); if (!Number.isNaN(n) && n > 0) setLeadMinutes(n) }} className="w-24 bg-gray-700 border-gray-600 text-white" />
                 </div>
-                <span className="pb-1 text-sm text-muted-foreground">minutes ahead</span>
+                <span className="pb-1 text-sm text-gray-400">minutes ahead</span>
               </div>
-
-              {/* Add Event Button */}
-              <Button variant="outline" className="mb-4" onClick={() => setAddEventDialog(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Event
-              </Button>
-
-              {/* Upcoming events */}
-              <h4 className="mb-2 font-medium">Next events</h4>
+              <div className="flex gap-2 mb-4">
+                <Button variant="outline" onClick={() => setAddEventDialog(true)} className="border-gray-600 text-gray-300 hover:bg-gray-700"><Plus className="mr-2 h-4 w-4" />Add Event</Button>
+                <Button variant="outline" onClick={() => setSyncDialogOpen(true)} className="border-gray-600 text-gray-300 hover:bg-gray-700">Sync Another</Button>
+              </div>
+              <h4 className="mb-2 font-medium text-white">Next events</h4>
               <ul className="space-y-2">
                 {events.map((ev) => (
-                  <li key={ev.id} className={cn("rounded-md border p-3 transition-colors", "hover:bg-muted/60")}>
+                  <li key={ev.id} className={cn("rounded-md border border-gray-600 p-3 bg-gray-700/50 hover:bg-gray-700")}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        {ev.topic && (
-                          <Badge variant="secondary" className="text-xs">
-                            {ev.topic}
-                          </Badge>
-                        )}
-                        <span>{ev.title}</span>
+                        {ev.topic && <Badge variant="secondary" className="text-xs">{ev.topic}</Badge>}
+                        <span className="text-white">{ev.title}</span>
                       </div>
-                      <span className="text-sm text-muted-foreground">
-                        {ev.start.toLocaleString(undefined, {
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
+                      <span className="text-sm text-gray-400">{ev.start.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
                     </div>
-                    {ev.location && <p className="mt-1 text-xs text-muted-foreground">{ev.location}</p>}
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="mt-2" 
-                      onClick={() => {
-                        setSelectedEvent(ev)
-                        setOpen(true)
-                      }}
-                    >
-                      Get readiness kit
-                    </Button>
+                    {ev.location && <p className="mt-1 text-xs text-gray-400">{ev.location}</p>}
+                    <Button variant="outline" size="sm" className="mt-2 border-gray-600 text-gray-300 hover:bg-gray-700" onClick={() => { setSelectedEvent(ev); setOpen(true) }}>Get readiness kit</Button>
                   </li>
                 ))}
               </ul>
@@ -485,218 +262,99 @@ export default function CalendarIntegration() {
 
       {/* Readiness Kit Modal */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl bg-gray-800 border-gray-700">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Bell className="size-5 text-emerald-600" />
-              Readiness Kit: {selectedEvent?.title}
-            </DialogTitle>
-            <DialogDescription>
-              A personalized preparation checklist for your upcoming {selectedEvent?.topic?.toLowerCase() || "event"}.
-            </DialogDescription>
+            <DialogTitle className="flex items-center gap-2 text-white"><Bell className="size-5 text-emerald-500" />Readiness Kit: {selectedEvent?.title}</DialogTitle>
+            <DialogDescription className="text-gray-300">A personalized preparation checklist for your upcoming {selectedEvent?.topic?.toLowerCase() || "event"}.</DialogDescription>
           </DialogHeader>
-          {selectedEvent && (
-            <div className="space-y-3">
-              <h4 className="font-medium text-sm">AI-Powered Preparation Checklist:</h4>
-              {(() => {
-                // Check if this is a synced event
-                const syncedEvent = syncedEvents.find(e => e.id === selectedEvent.id)
-                let recommendations: string[] = []
-
-                if (syncedEvent) {
-                  // Use AI recommendations for synced events
-                  recommendations = generateEventPreparationRecommendations(syncedEvent)
-                } else if (selectedEvent.topic) {
-                  // Use topic-based recommendations for manually added events
-                  recommendations = READINESS_KITS[selectedEvent.topic]
-                } else {
-                  // Generate AI recommendations for events without topics
-                  const mockSyncedEvent: SyncedCalendarEvent = {
-                    id: selectedEvent.id,
-                    title: selectedEvent.title,
-                    start: selectedEvent.start,
-                    end: selectedEvent.end,
-                    location: selectedEvent.location,
-                    description: "",
-                    calendarId: "local",
-                    calendarName: "Local Calendar",
-                  }
-                  recommendations = generateEventPreparationRecommendations(mockSyncedEvent)
-                }
-
-                return (
-                  <ul className="space-y-2">
-                    {recommendations.map((item, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <div className="mt-1 h-5 w-5 rounded-full border-2 border-emerald-600 flex items-center justify-center shrink-0">
-                          <div className="h-2 w-2 rounded-full bg-emerald-600" />
-                        </div>
-                        <span className="text-sm">{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )
-              })()}
-            </div>
-          )}
-          <DialogFooter>
-            <Button onClick={() => setOpen(false)}>Got it!</Button>
-          </DialogFooter>
+          {selectedEvent && (() => {
+            const synced = syncedEvents.find(e => e.id === selectedEvent.id)
+            const recs = synced ? generateEventPreparationRecommendations(synced)
+              : selectedEvent.topic ? READINESS_KITS[selectedEvent.topic]
+              : generateEventPreparationRecommendations({ id: selectedEvent.id, title: selectedEvent.title, start: selectedEvent.start, end: selectedEvent.end, location: selectedEvent.location, description: "", calendarId: "local", calendarName: "Local Calendar" })
+            return <ul className="space-y-2">{recs.map((item, i) => (<li key={i} className="flex items-start gap-2"><div className="mt-1 h-5 w-5 rounded-full border-2 border-emerald-500 flex items-center justify-center shrink-0"><div className="h-2 w-2 rounded-full bg-emerald-500" /></div><span className="text-sm text-gray-200">{item}</span></li>))}</ul>
+          })()}
+          <DialogFooter><Button onClick={() => setOpen(false)} className="bg-teal-600 hover:bg-teal-700">Got it!</Button></DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Add Event Dialog */}
       <Dialog open={addEventDialog} onOpenChange={setAddEventDialog}>
-        <DialogContent>
+        <DialogContent className="bg-gray-800 border-gray-700">
           <DialogHeader>
-            <DialogTitle>Add New Event</DialogTitle>
-            <DialogDescription>
-              Create a new calendar event with a topic.
-            </DialogDescription>
+            <DialogTitle className="text-white">Add New Event</DialogTitle>
+            <DialogDescription className="text-gray-300">Create a new calendar event.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            <div><Label className="text-white">Event Title</Label><Input value={newEventTitle} onChange={(e) => setNewEventTitle(e.target.value)} placeholder="e.g., Team Meeting" className="bg-gray-700 border-gray-600 text-white" /></div>
             <div>
-              <Label htmlFor="event-title">Event Title</Label>
-              <Input
-                id="event-title"
-                value={newEventTitle}
-                onChange={(e) => setNewEventTitle(e.target.value)}
-                placeholder="e.g., Team Meeting"
-              />
-            </div>
-            <div>
-              <Label htmlFor="event-topic">Event Topic</Label>
-              <Select value={newEventTopic} onValueChange={(value) => setNewEventTopic(value as EventTopic)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Meeting">Meeting</SelectItem>
-                  <SelectItem value="Homework">Homework</SelectItem>
-                  <SelectItem value="Quiz">Quiz</SelectItem>
-                  <SelectItem value="Test">Test</SelectItem>
-                  <SelectItem value="Sports Practice">Sports Practice</SelectItem>
-                  <SelectItem value="Event">Event</SelectItem>
-                  <SelectItem value="Concert">Concert</SelectItem>
+              <Label className="text-white">Event Topic</Label>
+              <Select value={newEventTopic} onValueChange={(v) => setNewEventTopic(v as EventTopic)}>
+                <SelectTrigger className="bg-gray-700 border-gray-600 text-white"><SelectValue /></SelectTrigger>
+                <SelectContent className="bg-gray-700 border-gray-600">
+                  {["Meeting","Homework","Quiz","Test","Sports Practice","Event","Concert"].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label htmlFor="event-date">Date & Time</Label>
-              <Input
-                id="event-date"
-                type="datetime-local"
-                value={newEventDate}
-                onChange={(e) => setNewEventDate(e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="event-location">Location (optional)</Label>
-              <Input
-                id="event-location"
-                value={newEventLocation}
-                onChange={(e) => setNewEventLocation(e.target.value)}
-                placeholder="e.g., Room 202"
-              />
-            </div>
+            <div><Label className="text-white">Date & Time</Label><Input type="datetime-local" value={newEventDate} onChange={(e) => setNewEventDate(e.target.value)} className="bg-gray-700 border-gray-600 text-white" /></div>
+            <div><Label className="text-white">Location (optional)</Label><Input value={newEventLocation} onChange={(e) => setNewEventLocation(e.target.value)} placeholder="e.g., Room 202" className="bg-gray-700 border-gray-600 text-white" /></div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAddEventDialog(false)}>Cancel</Button>
-            <Button onClick={() => {
+            <Button variant="outline" onClick={() => setAddEventDialog(false)} className="border-gray-600 text-gray-300">Cancel</Button>
+            <Button className="bg-teal-600 hover:bg-teal-700" onClick={() => {
               if (newEventTitle && newEventDate) {
-                const newEvent: CalendarEvent = {
-                  id: Date.now().toString(),
-                  title: newEventTitle,
-                  start: new Date(newEventDate),
-                  location: newEventLocation || undefined,
-                  topic: newEventTopic,
-                }
-                setEvents([...events, newEvent])
-                setNewEventTitle("")
-                setNewEventDate("")
-                setNewEventLocation("")
-                setNewEventTopic("Meeting")
-                setAddEventDialog(false)
+                setEvents(prev => [...prev, { id: Date.now().toString(), title: newEventTitle, start: new Date(newEventDate), location: newEventLocation || undefined, topic: newEventTopic }])
+                setNewEventTitle(""); setNewEventDate(""); setNewEventLocation(""); setNewEventTopic("Meeting"); setAddEventDialog(false)
               }
             }}>Add Event</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* iCloud Calendar Sync Dialog */}
-      <Dialog open={syncDialogOpen} onOpenChange={setSyncDialogOpen}>
-        <DialogContent className="max-w-lg">
+      {/* Multi-Platform Sync Dialog */}
+      <Dialog open={syncDialogOpen} onOpenChange={(o) => { setSyncDialogOpen(o); if (!o) setSelectedPlatform(null) }}>
+        <DialogContent className="max-w-lg bg-gray-800 border-gray-700">
           <DialogHeader>
-            <DialogTitle>Sync Calendar</DialogTitle>
-            <DialogDescription>
-              Import events from your iCloud calendar. You can either paste a calendar URL or upload a .ics file.
-            </DialogDescription>
+            <DialogTitle className="text-white">Sync Your Calendar</DialogTitle>
+            <DialogDescription className="text-gray-300">Choose your calendar platform and upload your .ics file.</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="ical-url">Option 1: Calendar URL (iCal format)</Label>
-              <Input
-                id="ical-url"
-                type="url"
-                placeholder="https://pXX-caldav.icloud.com/..."
-                value={icalUrl}
-                onChange={(e) => setIcalUrl(e.target.value)}
-                disabled={syncing}
-                className="mt-1"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Your calendar URL will be fetched securely through our server to avoid CORS issues.
-              </p>
-              <Button 
-                onClick={syncICloudCalendar} 
-                disabled={syncing || !icalUrl.trim()}
-                className="mt-2 w-full"
-              >
-                {syncing ? "Syncing..." : "Sync from URL"}
-              </Button>
+          {!selectedPlatform ? (
+            <div className="grid grid-cols-2 gap-3">
+              {platforms.map((platform) => (
+                <button key={platform.id} onClick={() => setSelectedPlatform(platform.id)}
+                  className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 text-center transition hover:opacity-90 ${platform.color}`}>
+                  <span className="text-3xl">{platform.icon}</span>
+                  <span className="text-sm font-medium text-white">{platform.name}</span>
+                </button>
+              ))}
             </div>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
+          ) : (
+            <div className="space-y-4">
+              <button onClick={() => setSelectedPlatform(null)} className="text-sm text-teal-400 hover:underline">← Back to platforms</button>
+              <div className="p-4 bg-gray-700/50 rounded-lg">
+                <p className="text-sm font-medium text-white mb-2">{selectedPlatformData?.icon} How to export from {selectedPlatformData?.name}:</p>
+                <ol className="space-y-1">
+                  {selectedPlatformData?.instructions.map((step, i) => (
+                    <li key={i} className="text-xs text-gray-300 flex gap-2">
+                      <span className="text-teal-400 font-medium shrink-0">{i + 1}.</span>{step}
+                    </li>
+                  ))}
+                </ol>
               </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">Or</span>
+              <div className="space-y-2">
+                <Label htmlFor="file-upload" className="text-white">Upload your .ics file</Label>
+                <Input id="file-upload" type="file" accept=".ics,.ical" onChange={handleFileUpload} disabled={syncing} className="bg-gray-700 border-gray-600 text-white" />
               </div>
+              {syncing && (
+                <div className="flex items-center gap-2 text-sm text-gray-400">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-teal-400" />
+                  Processing calendar...
+                </div>
+              )}
             </div>
-
-            <div>
-              <Label htmlFor="file-upload">Option 2: Upload Calendar File (.ics)</Label>
-              <p className="text-xs text-muted-foreground mt-1 mb-2">
-                Download your calendar from iCloud as a .ics file, then upload it here
-              </p>
-              <Input
-                id="file-upload"
-                type="file"
-                accept=".ics,.ical"
-                onChange={handleFileUpload}
-                disabled={syncing}
-                className="mt-1"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                How to export: In iCloud Calendar → Settings → Calendars → Select your calendar → Export
-              </p>
-            </div>
-
-            {syncing && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                Processing calendar...
-              </div>
-            )}
-          </div>
+          )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setSyncDialogOpen(false)
-              setIcalUrl("")
-            }} disabled={syncing}>
-              Close
-            </Button>
+            <Button variant="outline" onClick={() => { setSyncDialogOpen(false); setSelectedPlatform(null) }} disabled={syncing} className="border-gray-600 text-gray-300 hover:bg-gray-700">Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

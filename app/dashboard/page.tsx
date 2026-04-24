@@ -25,7 +25,6 @@ import { useRouter } from "next/navigation"
 import { AuthGuard } from "@/components/auth-guard"
 import AIMusicRecommendations from "@/components/ai-music-recommendations"
 import CustomActivityPrograms from "@/components/custom-activity-programs"
-import PersonalizedPlaylists from "@/components/personalized-playlists"
 
 export default function Dashboard() {
   const { toast } = useToast()
@@ -39,7 +38,6 @@ export default function Dashboard() {
   // Load initial data
   useEffect(() => {
     setIsMounted(true)
-    // In a real app, you would fetch this from an API (client-side only)
     if (typeof window !== 'undefined') {
       const storedData = localStorage.getItem("userData")
       console.log("storedData", storedData)
@@ -53,7 +51,6 @@ export default function Dashboard() {
         }
       }
     }
-
     setLoading(false)
   }, [])
 
@@ -75,7 +72,6 @@ export default function Dashboard() {
   useEffect(() => {
     if (typeof window === 'undefined') return
 
-    // Sync moods from IndexedDB to localStorage (for moods saved while app was closed)
     const syncMoodsFromIndexedDB = async () => {
       try {
         const request = indexedDB.open('melodica-moods', 1)
@@ -98,7 +94,6 @@ export default function Dashboard() {
             const indexedDBMoods = getAllRequest.result
             
             if (indexedDBMoods.length > 0) {
-              // Load existing localStorage mood history
               const storedHistory = localStorage.getItem("moodHistory")
               let moodHistory: any[] = []
               if (storedHistory) {
@@ -110,7 +105,6 @@ export default function Dashboard() {
                 }
               }
               
-              // Convert IndexedDB moods to localStorage format and merge
               indexedDBMoods.forEach((entry: any) => {
                 const newEntry = {
                   mood: entry.mood,
@@ -118,7 +112,6 @@ export default function Dashboard() {
                   notes: entry.notes || ""
                 }
                 
-                // Check if entry already exists
                 const exists = moodHistory.some((existing: any) => {
                   const existingDate = new Date(existing.timestamp).toISOString()
                   const newDate = newEntry.timestamp.toISOString()
@@ -130,10 +123,8 @@ export default function Dashboard() {
                 }
               })
               
-              // Save merged history
               localStorage.setItem("moodHistory", JSON.stringify(moodHistory))
               
-              // Clear IndexedDB after syncing
               const clearTransaction = db.transaction(['moods'], 'readwrite')
               const clearStore = clearTransaction.objectStore('moods')
               clearStore.clear()
@@ -145,16 +136,13 @@ export default function Dashboard() {
       }
     }
 
-    // Sync on mount
     syncMoodsFromIndexedDB()
 
-    // Set up service worker message listener
     if ('serviceWorker' in navigator) {
       const messageHandler = (event: MessageEvent) => {
         if (event.data && event.data.type === 'QUICK_MOOD_LOG') {
           const moodEntry = event.data.mood
           
-          // Load existing mood history
           const storedHistory = localStorage.getItem("moodHistory")
           let moodHistory: any[] = []
           if (storedHistory) {
@@ -165,14 +153,12 @@ export default function Dashboard() {
             }
           }
           
-          // Add the new entry (avoid duplicates)
           const newEntry = {
             mood: moodEntry.mood,
             timestamp: new Date(moodEntry.timestamp),
             notes: moodEntry.notes || ""
           }
           
-          // Check if this entry already exists
           const exists = moodHistory.some((entry: any) => {
             const entryDate = new Date(entry.timestamp).toISOString()
             const newDate = newEntry.timestamp.toISOString()
@@ -184,7 +170,6 @@ export default function Dashboard() {
             localStorage.setItem("moodHistory", JSON.stringify(moodHistory))
             setMoodHistory(moodHistory)
             
-            // Show toast notification
             toast({
               title: "Mood logged! 💚",
               description: `Your ${moodEntry.mood}-star mood has been saved.`,
@@ -193,70 +178,13 @@ export default function Dashboard() {
         }
       }
 
-      // Listen for quick mood logs from notification actions (service worker)
       navigator.serviceWorker.addEventListener('message', messageHandler)
       
-      // Return cleanup function for service worker listener
       return () => {
         navigator.serviceWorker.removeEventListener('message', messageHandler)
       }
     }
   }, [toast])
-
-  // Separate useEffect for mood check reminders - disabled to prevent infinite loops
-  // useEffect(() => {
-  //   // Only set up timers after component is mounted and toast is ready
-  //   if (typeof window === 'undefined') return
-  //
-  //   // Set up hourly mood check reminder
-  //   const moodCheckInterval = setInterval(() => {
-  //     try {
-  //       toast({
-  //         title: "Time for a mood check-in",
-  //         description: "How are you feeling right now?",
-  //         action: (
-  //           <Link href="/dashboard">
-  //             <Button variant="outline" size="sm">
-  //               Check in
-  //             </Button>
-  //           </Link>
-  //         ),
-  //       })
-  //     } catch (error) {
-  //       console.error('Error showing mood check toast:', error)
-  //     }
-  //   }, 3600000) // Every hour
-  //
-  //   // For demo purposes, show a mood check prompt after 30 seconds
-  //   const demoPrompt = setTimeout(() => {
-  //     try {
-  //       toast({
-  //         title: "Time for a mood check-in",
-  //         description: "How are you feeling right now?",
-  //         action: (
-  //           <Button
-  //             variant="outline"
-  //             size="sm"
-  //             onClick={() => {
-  //               if (typeof window !== 'undefined') {
-  //                 document.getElementById("mood-tracker")?.scrollIntoView({ behavior: "smooth" })
-  //               }
-  //             }}
-  //           >
-  //             Check in
-  //           </Button>
-  //         ),
-  //       })
-  //     } catch (error) {
-  //       console.error('Error showing demo mood check toast:', error)
-  //     }
-  //   }, 30000)
-  //
-  //   return () => {
-  //     clearInterval(moodCheckInterval)
-  //     clearTimeout(demoPrompt)
-  //   }
-  // }, []) // Removed toast dependency
 
   if (loading || !isMounted) {
     return (
@@ -502,10 +430,6 @@ export default function Dashboard() {
                           userData={userData} 
                           currentMood={moodHistory.length > 0 ? moodHistory[moodHistory.length - 1].mood : 5}
                           moodHistory={moodHistory}
-                        />
-                        <PersonalizedPlaylists 
-                          userData={userData}
-                          currentMood={moodHistory.length > 0 ? moodHistory[moodHistory.length - 1].mood : 5}
                         />
                         <Recommendations userData={userData} />
                       </div>

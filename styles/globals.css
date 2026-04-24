@@ -103,14 +103,8 @@ body.dark {
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fadeIn {
@@ -162,76 +156,29 @@ body.dark {
   100% { transform: rotate(360deg); }
 }
 
-.toast-success {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
-}
+.toast-success { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+.toast-error { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+.toast-info { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
 
-.toast-error {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: white;
-}
+.input-focus { @apply focus:ring-2 focus:ring-blue-500 focus:border-blue-500; }
+.badge-gradient { background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; }
+.progress-gradient { background: linear-gradient(135deg, #3b82f6, #8b5cf6); }
+.tab-active { background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; }
+.modal-backdrop { background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); }
+.bg-gradient-calm { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.bg-gradient-peaceful { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.bg-gradient-nature { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
 
-.toast-info {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: white;
-}
-
-.input-focus {
-  @apply focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
-}
-
-.badge-gradient {
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-  color: white;
-}
-
-.progress-gradient {
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-}
-
-.tab-active {
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-  color: white;
-}
-
-.modal-backdrop {
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-}
-
-.bg-gradient-calm {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.bg-gradient-peaceful {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-}
-
-.bg-gradient-nature {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-}
-
-button {
-  transition: all 0.2s ease;
-}
-
-button:hover {
-  transform: translateY(-1px);
-}
-
-button:active {
-  transform: translateY(0);
-}
+button { transition: all 0.2s ease; }
+button:hover { transform: translateY(-1px); }
+button:active { transform: translateY(0); }
 
 *:focus-visible {
   outline: 2px solid rgba(147, 197, 253, 0.5);
   outline-offset: 2px;
 }
 
-html {
-  scroll-behavior: smooth;
-}
+html { scroll-behavior: smooth; }
 
 .card, [class*="Card"] {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
@@ -242,6 +189,13 @@ html {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
+/* Hide scrollbar but keep functionality */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* iOS-specific fixes */
 @supports (-webkit-touch-callout: none) {
   html {
@@ -249,9 +203,7 @@ html {
     -webkit-tap-highlight-color: transparent;
   }
 
-  input, textarea, select {
-    font-size: 16px !important;
-  }
+  input, textarea, select { font-size: 16px !important; }
 
   button, a {
     min-height: 44px;
@@ -259,9 +211,7 @@ html {
   }
 
   @media (max-width: 768px) {
-    .md\\:hidden {
-      display: none !important;
-    }
+    .md\\:hidden { display: none !important; }
   }
 
   body {
@@ -279,39 +229,32 @@ html {
     color: #f1f5f9 !important;
   }
 
-  * {
-    -webkit-text-size-adjust: 100%;
-  }
+  * { -webkit-text-size-adjust: 100%; }
 
-  /* Fix yellow text on iOS Safari - explicitly set teal colors */
+  /* Fix yellow text on iOS Safari */
   .text-teal-400 { color: #2dd4bf !important; -webkit-text-fill-color: #2dd4bf !important; }
   .text-teal-500 { color: #14b8a6 !important; -webkit-text-fill-color: #14b8a6 !important; }
   .text-teal-600 { color: #0d9488 !important; -webkit-text-fill-color: #0d9488 !important; }
   .text-teal-700 { color: #0f766e !important; -webkit-text-fill-color: #0f766e !important; }
+  .text-white { color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; }
+  .text-gray-200 { color: #e5e7eb !important; -webkit-text-fill-color: #e5e7eb !important; }
+  .text-gray-300 { color: #d1d5db !important; -webkit-text-fill-color: #d1d5db !important; }
+  .text-gray-400 { color: #9ca3af !important; -webkit-text-fill-color: #9ca3af !important; }
   .bg-teal-400 { background-color: #2dd4bf !important; }
   .bg-teal-500 { background-color: #14b8a6 !important; }
   .bg-teal-600 { background-color: #0d9488 !important; }
   .border-teal-400 { border-color: #2dd4bf !important; }
   .border-teal-500 { border-color: #14b8a6 !important; }
 
-  /* Fix gradient-text to keep transparent fill */
-  .gradient-text {
-    -webkit-text-fill-color: transparent !important;
-  }
+  /* Fix gradient-text */
+  .gradient-text { -webkit-text-fill-color: transparent !important; }
 
   /* Reset all other elements to inherit */
-  *:not(.gradient-text) {
-    -webkit-text-fill-color: inherit;
-  }
+  *:not(.gradient-text) { -webkit-text-fill-color: inherit; }
 }
 
 /* Safari-specific fixes */
 @supports (-webkit-appearance: none) {
-  body {
-    overscroll-behavior-y: contain;
-  }
-
-  [role="dialog"] {
-    position: fixed !important;
-  }
+  body { overscroll-behavior-y: contain; }
+  [role="dialog"] { position: fixed !important; }
 }

@@ -4,10 +4,8 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Music, Sparkles, ExternalLink, Loader2 } from "lucide-react"
+import { Sparkles, ExternalLink, Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { getUserPlan, hasFeatureAccess } from "@/lib/plan-features"
-import { UpgradePrompt } from "@/components/upgrade-prompt"
 
 interface MusicRecommendation {
   title: string
@@ -36,20 +34,13 @@ export default function AIMusicRecommendations({ userData, currentMood, moodHist
   const { toast } = useToast()
   const [recommendations, setRecommendations] = useState<MusicRecommendation[]>([])
   const [isGenerating, setIsGenerating] = useState(false)
-  const [userPlan, setUserPlan] = useState<string>("free")
-  const [showUpgrade, setShowUpgrade] = useState(false)
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const plan = getUserPlan()
-      setUserPlan(plan)
-      
-      // Load cached recommendations
       const cached = localStorage.getItem("aiMusicRecommendations")
       if (cached) {
         try {
           const parsed = JSON.parse(cached)
-          // Check if cached recommendations are still valid (less than 24 hours old)
           if (parsed.timestamp && Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000) {
             setRecommendations(parsed.recommendations || [])
           }
@@ -60,27 +51,14 @@ export default function AIMusicRecommendations({ userData, currentMood, moodHist
     }
   }, [])
 
-  // AI-powered recommendation engine
   const generateAIRecommendations = async () => {
-    if (!hasFeatureAccess(userPlan as any, "aiPoweredMusicRecommendations")) {
-      setShowUpgrade(true)
-      return
-    }
-
     setIsGenerating(true)
 
     try {
-      // Analyze user's mood patterns
-      const avgMood = moodHistory.length > 0
-        ? moodHistory.reduce((sum, entry) => sum + entry.mood, 0) / moodHistory.length
-        : currentMood
-
       const favoriteArtists = userData.favoriteArtists?.split(',').map(a => a.trim()).filter(Boolean) || []
       const musicGenres = (userData.musicGenres || "").split(',').map(g => g.trim().toLowerCase()).filter(Boolean)
       const hasMentalHealthConsideration = userData.mentalIllnesses && userData.mentalIllnesses !== "No"
-      const preferences = userData.musicPreferences || {}
-      
-      // Determine mood category
+
       let moodCategory: "low" | "neutral" | "high"
       if (currentMood <= 3) {
         moodCategory = "low"
@@ -90,10 +68,8 @@ export default function AIMusicRecommendations({ userData, currentMood, moodHist
         moodCategory = "high"
       }
 
-      // AI-powered recommendation logic
       const aiRecommendations: MusicRecommendation[] = []
 
-      // Generate recommendations based on mood and preferences
       if (moodCategory === "low") {
         const upliftingSongs = [
           { title: "Here Comes The Sun", artist: "The Beatles", mood: "uplifting", reasoning: "Classic uplifting melody proven to boost mood" },
@@ -102,7 +78,6 @@ export default function AIMusicRecommendations({ userData, currentMood, moodHist
           { title: "Happy", artist: "Pharrell Williams", mood: "joyful", reasoning: "Scientifically designed to trigger positive emotions" },
           { title: "Shake It Off", artist: "Taylor Swift", mood: "energetic", reasoning: "Empowering lyrics help shift perspective" },
         ]
-        
         const genreMap: Record<string, string[]> = {
           classical: ["Erik Satie", "Claude Debussy", "Ludovico Einaudi", "Yiruma", "Chopin"],
           jazz: ["Louis Armstrong", "Bill Withers", "Marvin Gaye"],
@@ -173,30 +148,26 @@ export default function AIMusicRecommendations({ userData, currentMood, moodHist
         aiRecommendations.push(...scored.slice(0, 5).map(({ _score, ...s }) => s))
       }
 
-      // Analyze mood trends for additional insights
       if (moodHistory.length >= 7) {
         const recentMoods = moodHistory.slice(-7).map(e => e.mood)
         const trend = recentMoods[recentMoods.length - 1] - recentMoods[0]
-        
         if (trend < -1) {
-          // Mood declining - add supportive songs
           aiRecommendations.unshift({
-            title: "Lean On Me", 
-            artist: "Bill Withers", 
+            title: "Lean On Me",
+            artist: "Bill Withers",
             mood: "supportive",
             reasoning: "Your mood has been declining. This supportive song can help provide emotional comfort."
           })
         }
       }
 
-      // Cache recommendations
       localStorage.setItem("aiMusicRecommendations", JSON.stringify({
         recommendations: aiRecommendations,
         timestamp: Date.now()
       }))
 
       setRecommendations(aiRecommendations)
-      
+
       toast({
         title: "AI Recommendations Generated!",
         description: `Created ${aiRecommendations.length} personalized recommendations based on your mood and preferences.`,
@@ -211,65 +182,6 @@ export default function AIMusicRecommendations({ userData, currentMood, moodHist
     } finally {
       setIsGenerating(false)
     }
-  }
-
-  if (!hasFeatureAccess(userPlan as any, "aiPoweredMusicRecommendations")) {
-    return (
-      <>
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-purple-500" />
-              AI-Powered Music Recommendations
-            </CardTitle>
-            <CardDescription className="text-gray-300">
-              Get intelligent music suggestions based on your mood patterns and preferences
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="p-4 bg-gray-700/50 rounded-lg">
-                <p className="text-sm text-gray-300 mb-4">
-                  AI-powered recommendations analyze:
-                </p>
-                <ul className="space-y-2 text-sm text-gray-300">
-                  <li className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-purple-500" />
-                    Your current mood and mood history patterns
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-purple-500" />
-                    Favorite artists and music preferences
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-purple-500" />
-                    Activity correlations and mood trends
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-purple-500" />
-                    Scientific research on music and mood
-                  </li>
-                </ul>
-              </div>
-              <Button
-                onClick={() => setShowUpgrade(true)}
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
-              >
-                Upgrade to Ultimate for AI Recommendations
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-        {showUpgrade && (
-          <UpgradePrompt
-            feature="AI-Powered Music Recommendations"
-            requiredPlan="ultimate"
-            currentPlan={userPlan as any}
-            onClose={() => setShowUpgrade(false)}
-          />
-        )}
-      </>
-    )
   }
 
   return (
@@ -371,6 +283,3 @@ export default function AIMusicRecommendations({ userData, currentMood, moodHist
     </Card>
   )
 }
-
-
-

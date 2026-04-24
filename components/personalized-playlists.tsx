@@ -8,8 +8,6 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Music, Plus, Trash2, ExternalLink, Share2, Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { getUserPlan, hasFeatureAccess, getPlanLimits } from "@/lib/plan-features"
-import { UpgradePrompt } from "@/components/upgrade-prompt"
 import {
   Dialog,
   DialogContent,
@@ -45,8 +43,6 @@ export default function PersonalizedPlaylists({ userData, currentMood = 5 }: Per
   const { toast } = useToast()
   const [playlists, setPlaylists] = useState<Playlist[]>([])
   const [isCreating, setIsCreating] = useState(false)
-  const [userPlan, setUserPlan] = useState<string>("free")
-  const [showUpgrade, setShowUpgrade] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [newPlaylist, setNewPlaylist] = useState({
     name: "",
@@ -56,10 +52,6 @@ export default function PersonalizedPlaylists({ userData, currentMood = 5 }: Per
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const plan = getUserPlan()
-      setUserPlan(plan)
-      
-      // Load saved playlists
       const saved = localStorage.getItem("personalizedPlaylists")
       if (saved) {
         try {
@@ -114,17 +106,15 @@ export default function PersonalizedPlaylists({ userData, currentMood = 5 }: Per
       ]
     }
 
-    // Personalize based on favorite artists
     let songs = moodSongs[mood] || moodSongs.neutral
-    
+
     if (userData?.favoriteArtists) {
       const favoriteArtists = userData.favoriteArtists.split(',').map(a => a.trim())
-      // Prioritize songs from favorite artists
       songs = songs.sort((a, b) => {
-        const aMatches = favoriteArtists.some(artist => 
+        const aMatches = favoriteArtists.some(artist =>
           a.artist.toLowerCase().includes(artist.toLowerCase())
         )
-        const bMatches = favoriteArtists.some(artist => 
+        const bMatches = favoriteArtists.some(artist =>
           b.artist.toLowerCase().includes(artist.toLowerCase())
         )
         if (aMatches && !bMatches) return -1
@@ -133,25 +123,10 @@ export default function PersonalizedPlaylists({ userData, currentMood = 5 }: Per
       })
     }
 
-    return songs.slice(0, 10) // Return up to 10 songs
+    return songs.slice(0, 10)
   }
 
   const handleCreatePlaylist = async () => {
-    if (!hasFeatureAccess(userPlan as any, "unlimitedPersonalizedPlaylists")) {
-      setShowUpgrade(true)
-      return
-    }
-
-    const limits = getPlanLimits(userPlan as any)
-    if (userPlan === "premium" && playlists.length >= limits.maxPlaylistsPerWeek) {
-      toast({
-        title: "Playlist Limit Reached",
-        description: `Premium plans allow ${limits.maxPlaylistsPerWeek} playlists per week. Upgrade to Ultimate for unlimited playlists.`,
-        variant: "destructive",
-      })
-      return
-    }
-
     if (!newPlaylist.name.trim()) {
       toast({
         title: "Missing Playlist Name",
@@ -164,7 +139,6 @@ export default function PersonalizedPlaylists({ userData, currentMood = 5 }: Per
     setIsGenerating(true)
 
     try {
-      // Generate songs based on mood
       const songs = generatePlaylistSongs(newPlaylist.mood)
 
       const playlist: Playlist = {
@@ -178,15 +152,10 @@ export default function PersonalizedPlaylists({ userData, currentMood = 5 }: Per
       }
 
       savePlaylists([...playlists, playlist])
-      
-      // Reset form
-      setNewPlaylist({
-        name: "",
-        description: "",
-        mood: "neutral"
-      })
+
+      setNewPlaylist({ name: "", description: "", mood: "neutral" })
       setIsCreating(false)
-      
+
       toast({
         title: "Playlist Created!",
         description: `"${playlist.name}" has been created with ${playlist.songs.length} songs.`,
@@ -214,12 +183,11 @@ export default function PersonalizedPlaylists({ userData, currentMood = 5 }: Per
       return
     }
 
-    // In a real implementation, this would sync to Spotify API
     const updated = playlists.map(p =>
       p.id === playlistId ? { ...p, spotifySynced: true } : p
     )
     savePlaylists(updated)
-    
+
     toast({
       title: "Synced to Spotify!",
       description: "Your playlist has been synced to Spotify.",
@@ -228,98 +196,25 @@ export default function PersonalizedPlaylists({ userData, currentMood = 5 }: Per
 
   const handleSharePlaylist = (playlist: Playlist) => {
     const shareText = `Check out my "${playlist.name}" playlist on Melodica!\n\n${playlist.songs.slice(0, 5).map(s => `• ${s.title} - ${s.artist}`).join('\n')}\n\n...and more!`
-    
+
     if (navigator.share) {
       navigator.share({
         title: playlist.name,
         text: shareText,
       }).catch(() => {
-        // Fallback to clipboard
         navigator.clipboard.writeText(shareText)
-        toast({
-          title: "Copied to Clipboard",
-          description: "Playlist details have been copied.",
-        })
+        toast({ title: "Copied to Clipboard", description: "Playlist details have been copied." })
       })
     } else {
       navigator.clipboard.writeText(shareText)
-      toast({
-        title: "Copied to Clipboard",
-        description: "Playlist details have been copied.",
-      })
+      toast({ title: "Copied to Clipboard", description: "Playlist details have been copied." })
     }
   }
 
   const handleDeletePlaylist = (playlistId: string) => {
     const updated = playlists.filter(p => p.id !== playlistId)
     savePlaylists(updated)
-    
-    toast({
-      title: "Playlist Deleted",
-      description: "The playlist has been removed.",
-    })
-  }
-
-  const limits = getPlanLimits(userPlan as any)
-  const canCreateMore = userPlan === "ultimate" || userPlan === "lifetime" || playlists.length < limits.maxPlaylistsPerWeek
-
-  if (!hasFeatureAccess(userPlan as any, "unlimitedPersonalizedPlaylists") && userPlan !== "premium") {
-    return (
-      <>
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Music className="h-5 w-5 text-purple-500" />
-              Personalized Playlists
-            </CardTitle>
-            <CardDescription className="text-gray-300">
-              Create unlimited mood-based playlists tailored to your preferences
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="p-4 bg-gray-700/50 rounded-lg">
-                <p className="text-sm text-gray-300 mb-4">
-                  With personalized playlists, you can:
-                </p>
-                <ul className="space-y-2 text-sm text-gray-300">
-                  <li className="flex items-center gap-2">
-                    <Music className="h-4 w-4 text-purple-500" />
-                    Create unlimited mood-based playlists
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Music className="h-4 w-4 text-purple-500" />
-                    Sync playlists to Spotify
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Music className="h-4 w-4 text-purple-500" />
-                    Share playlists with friends
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Music className="h-4 w-4 text-purple-500" />
-                    Get AI-powered song suggestions
-                  </li>
-                </ul>
-              </div>
-              <Button
-                onClick={() => setShowUpgrade(true)}
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
-              >
-                Upgrade for Personalized Playlists
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-        {showUpgrade && (
-          <UpgradePrompt
-            feature="Unlimited Personalized Playlists"
-            requiredPlan="premium"
-            currentPlan={userPlan as any}
-            onClose={() => setShowUpgrade(false)}
-          />
-        )}
-      </>
-    )
+    toast({ title: "Playlist Deleted", description: "The playlist has been removed." })
   }
 
   return (
@@ -332,17 +227,12 @@ export default function PersonalizedPlaylists({ userData, currentMood = 5 }: Per
               Personalized Playlists
             </CardTitle>
             <CardDescription className="text-gray-300">
-              {userPlan === "ultimate" || userPlan === "lifetime" 
-                ? "Create unlimited playlists"
-                : `${limits.maxPlaylistsPerWeek - playlists.length} playlists remaining this week`}
+              Create unlimited mood-based playlists tailored to your preferences
             </CardDescription>
           </div>
           <Dialog open={isCreating} onOpenChange={setIsCreating}>
             <DialogTrigger asChild>
-              <Button 
-                className="bg-purple-600 hover:bg-purple-700 text-white"
-                disabled={!canCreateMore}
-              >
+              <Button className="bg-purple-600 hover:bg-purple-700 text-white">
                 <Plus className="h-4 w-4 mr-2" />
                 New Playlist
               </Button>
@@ -529,6 +419,3 @@ export default function PersonalizedPlaylists({ userData, currentMood = 5 }: Per
     </Card>
   )
 }
-
-
-

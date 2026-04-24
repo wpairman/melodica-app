@@ -1,59 +1,7 @@
 /**
  * API Utility Functions
- * Handles API calls with support for both development and production environments
- * 
- * For production (static export), API routes must be deployed separately.
- * Set NEXT_PUBLIC_API_URL to your backend URL (e.g., https://your-api.vercel.app)
+ * Calls Netlify functions directly for all server-side operations.
  */
-
-/**
- * Get the base API URL
- * For Netlify with co-located functions: leave NEXT_PUBLIC_API_URL unset so requests
- * go to /api/* on the same origin. Only set it if using a separate API backend.
- */
-export function getApiUrl(): string {
-  if (typeof window === 'undefined') {
-    return process.env.NEXT_PUBLIC_API_URL || '/api'
-  }
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL
-  if (apiUrl) {
-    return apiUrl
-  }
-  return '/api'
-}
-
-/**
- * Make an API request
- */
-export async function apiRequest<T = any>(
-  endpoint: string,
-  options?: RequestInit
-): Promise<T> {
-  const apiUrl = getApiUrl()
-  const url = `${apiUrl}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`
-  
-  let response: Response
-  try {
-    response = await fetch(url, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
-    })
-  } catch (fetchError: any) {
-    throw new Error(`Network error (${url}): ${fetchError?.message || 'Failed to fetch'}`)
-  }
-
-  const body = await response.json().catch(() => null)
-
-  if (!response.ok) {
-    const serverError = body?.error || `HTTP ${response.status}: ${response.statusText}`
-    throw new Error(serverError)
-  }
-
-  return body
-}
 
 /**
  * Stripe Checkout API
@@ -64,30 +12,69 @@ export async function createStripeCheckoutSession(
   tier: string,
   customerEmail?: string
 ): Promise<{ url: string; error?: string }> {
+  let response: Response
   try {
-    return await apiRequest<{ url: string; error?: string }>('/stripe/checkout', {
-      method: 'POST',
+    response = await fetch("/.netlify/functions/stripe-checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ tier, customer_email: customerEmail }),
     })
-  } catch (error: any) {
-    throw error
+  } catch (fetchError: any) {
+    throw new Error(`Network error: ${fetchError?.message || "Failed to fetch"}`)
   }
+
+  const body = await response.json().catch(() => null)
+
+  if (!response.ok) {
+    throw new Error(body?.error || `HTTP ${response.status}: ${response.statusText}`)
+  }
+
+  return body
 }
 
 /**
  * Calendar Sync API
  */
 export async function syncCalendar(url: string): Promise<{ success: boolean; data: string }> {
-  return apiRequest<{ success: boolean; data: string }>('/calendar-sync', {
-    method: 'POST',
-    body: JSON.stringify({ url }),
-  })
+  let response: Response
+  try {
+    response = await fetch("/.netlify/functions/calendar-sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url }),
+    })
+  } catch (fetchError: any) {
+    throw new Error(`Network error: ${fetchError?.message || "Failed to fetch"}`)
+  }
+
+  const body = await response.json().catch(() => null)
+
+  if (!response.ok) {
+    throw new Error(body?.error || `HTTP ${response.status}: ${response.statusText}`)
+  }
+
+  return body
 }
 
 /**
  * Verify Stripe Session API
  */
 export async function verifyStripeSession(sessionId: string): Promise<any> {
-  return apiRequest(`/stripe/verify-session?session_id=${sessionId}`)
-}
+  let response: Response
+  try {
+    response = await fetch(
+      `/.netlify/functions/stripe-verify-session?session_id=${sessionId}`,
+      { headers: { "Content-Type": "application/json" } }
+    )
+  } catch (fetchError: any) {
+    throw new Error(`Network error: ${fetchError?.message || "Failed to fetch"}`)
+  }
 
+  const body = await response.json().catch(() => null)
+
+  if (!response.ok) {
+    throw new Error(body?.error || `HTTP ${response.status}: ${response.statusText}`)
+  }
+
+  return body
+}

@@ -15,6 +15,8 @@ import { PWALifecycle } from "@/app/pwa"
 import { LocationPermissionDialog } from "@/components/location-permission-dialog"
 import { NotificationPermissionDialog } from "@/components/notification-permission-dialog"
 
+// Force dynamic rendering to avoid SSR issues
+
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
@@ -37,7 +39,7 @@ export const metadata: Metadata = {
     description: "AI-driven music therapy app that helps you manage your mood through personalized music recommendations, mood tracking, and mental health insights.",
     images: [
       {
-        url: "/og-image.png",
+        url: "/og-image.png", // You'll need to create this
         width: 1200,
         height: 630,
         alt: "Melodica - Music for Your Mood",
@@ -62,6 +64,11 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  verification: {
+    // Add your verification codes here when you set up search console
+    // google: "your-google-verification-code",
+    // yandex: "your-yandex-verification-code",
+  },
 }
 
 export const viewport: Viewport = {
@@ -78,9 +85,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Force dark color scheme to prevent iOS Safari yellow text */}
-        <meta name="color-scheme" content="dark" />
-
         {/* Google Analytics */}
         {process.env.NEXT_PUBLIC_GA_ID && (
           <>
@@ -107,7 +111,7 @@ export default function RootLayout({
         <AppErrorBoundary>
           <AuthProvider>
             <ColorCustomizationProvider>
-              <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
+              <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
                 <ToastProvider>
                   {children}
                   <PWALifecycle />

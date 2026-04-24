@@ -15,10 +15,7 @@ export type FeatureName =
   | "activitySuggestions"
   | "personalizedActivitySuggestions"
   | "customActivityPrograms"
-  | "adSupported"
   | "adFree"
-  | "spotifyPreviews30Sec"
-  | "spotifyPreviewsFull"
   | "fullSpotifyIntegration"
   | "calendarIntegration"
   | "musicPreferenceQuiz"
@@ -37,8 +34,6 @@ export const planFeatures: Record<PlanType, FeatureName[]> = {
     "basicMoodTracking",
     "limitedMusicRecommendations",
     "activitySuggestions",
-    "adSupported",
-    "spotifyPreviews30Sec",
     "calendarIntegration",
   ],
   premium: [
@@ -46,7 +41,6 @@ export const planFeatures: Record<PlanType, FeatureName[]> = {
     "unlimitedMusicRecommendations",
     "personalizedActivitySuggestions",
     "adFree",
-    "spotifyPreviewsFull",
     "calendarIntegration",
     "musicPreferenceQuiz",
     "personalizedPlaylists3Weekly",
@@ -85,6 +79,19 @@ export const planFeatures: Record<PlanType, FeatureName[]> = {
 }
 
 /**
+ * Normalize plan string from Firestore to PlanType
+ * Handles capitalization differences e.g. "Premium" -> "premium"
+ */
+export function normalizePlan(raw: string | undefined | null): PlanType {
+  if (!raw) return "free"
+  const lower = raw.toLowerCase().trim()
+  if (lower === "premium") return "premium"
+  if (lower === "ultimate") return "ultimate"
+  if (lower === "lifetime") return "lifetime"
+  return "free"
+}
+
+/**
  * Check if a user's plan has access to a specific feature
  */
 export function hasFeatureAccess(userPlan: PlanType, feature: FeatureName): boolean {
@@ -109,7 +116,7 @@ export function getUpgradeMessage(feature: FeatureName): {
   requiredPlan: PlanType
 } {
   const requiredPlan = getMinimumPlanForFeature(feature)
-  
+
   const messages: Record<PlanType, { title: string; message: string }> = {
     free: {
       title: "Feature Available in Premium Plans",
@@ -141,16 +148,14 @@ export function getUpgradeMessage(feature: FeatureName): {
 export function getPlanLimits(plan: PlanType): {
   maxMusicRecommendations: number
   maxPlaylistsPerWeek: number
-  musicPreviewLength: number
   canExportData: boolean
   canShareProfile: boolean
   hasAdvancedAnalytics: boolean
 } {
   const limits = {
     free: {
-      maxMusicRecommendations: 10, // Limited
+      maxMusicRecommendations: 10,
       maxPlaylistsPerWeek: 0,
-      musicPreviewLength: 30, // seconds
       canExportData: false,
       canShareProfile: false,
       hasAdvancedAnalytics: false,
@@ -158,7 +163,6 @@ export function getPlanLimits(plan: PlanType): {
     premium: {
       maxMusicRecommendations: Infinity,
       maxPlaylistsPerWeek: 3,
-      musicPreviewLength: Infinity, // full length
       canExportData: false,
       canShareProfile: false,
       hasAdvancedAnalytics: false,
@@ -166,7 +170,6 @@ export function getPlanLimits(plan: PlanType): {
     ultimate: {
       maxMusicRecommendations: Infinity,
       maxPlaylistsPerWeek: Infinity,
-      musicPreviewLength: Infinity,
       canExportData: true,
       canShareProfile: true,
       hasAdvancedAnalytics: true,
@@ -174,7 +177,6 @@ export function getPlanLimits(plan: PlanType): {
     lifetime: {
       maxMusicRecommendations: Infinity,
       maxPlaylistsPerWeek: Infinity,
-      musicPreviewLength: Infinity,
       canExportData: true,
       canShareProfile: true,
       hasAdvancedAnalytics: true,
@@ -185,28 +187,53 @@ export function getPlanLimits(plan: PlanType): {
 }
 
 /**
- * Get user's current plan from localStorage
+ * Get user's current plan from auth context user object
+ * Pass the subscription object directly from Firestore
+ */
+export function getUserPlanFromSubscription(
+  subscription: { plan?: string; status?: string } | null | undefined
+): PlanType {
+  if (!subscription) return "free"
+
+  const status = subscription.status?.toLowerCase()
+
+  // Only grant access if subscription is active or trialing
+  if (status !== "active" && status !== "trialing") return "free"
+
+  return normalizePlan(subscription.plan)
+}
+
+/**
+ * Client helper: resolve plan from localStorage (userData or legacy subscription key).
+ * Uses subscription status when present; falls back to selectedPlan for older payloads.
  */
 export function getUserPlan(): PlanType {
-  if (typeof window === 'undefined') return 'free'
-  
+  if (typeof window === "undefined") return "free"
+
   try {
-    const userData = localStorage.getItem("userData")
-    if (userData) {
-      const parsed = JSON.parse(userData)
-      return parsed.selectedPlan || 'free'
+    const userDataRaw = localStorage.getItem("userData")
+    if (userDataRaw) {
+      const parsed = JSON.parse(userDataRaw) as {
+        subscription?: { plan?: string; status?: string }
+        selectedPlan?: string
+      }
+      if (parsed.subscription) {
+        return getUserPlanFromSubscription(parsed.subscription)
+      }
+      if (parsed.selectedPlan) {
+        return normalizePlan(parsed.selectedPlan)
+      }
     }
 
-    // Also check subscription status
-    const subscription = localStorage.getItem("subscription")
-    if (subscription) {
-      const parsed = JSON.parse(subscription)
-      return parsed.plan || 'free'
+    const subRaw = localStorage.getItem("subscription")
+    if (subRaw) {
+      return getUserPlanFromSubscription(
+        JSON.parse(subRaw) as { plan?: string; status?: string }
+      )
     }
   } catch (error) {
     console.error("Error getting user plan:", error)
   }
 
-  return 'free'
+  return "free"
 }
-

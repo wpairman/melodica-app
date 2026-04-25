@@ -7,6 +7,8 @@ import { ChevronLeft, ChevronRight, Plus, CalendarIcon, Clock, MapPin, Trash2 } 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import CalendarNotifications from "@/components/calendar-notifications"
+import CalendarIntegration from "@/components/calendar-integration"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
 import { MenuButton } from "@/components/navigation-sidebar"
 import { AuthGuard } from "@/components/auth-guard"
@@ -200,6 +202,7 @@ export default function CalendarPage() {
   return (
     <AuthGuard>
       <DashboardLayout>
+        <CalendarNotifications />
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
           <div className="sticky top-0 z-50 bg-white border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4 flex items-center gap-2 sm:gap-4">
             <MenuButton />
@@ -343,6 +346,10 @@ export default function CalendarPage() {
                     </CardContent>
                   </Card>
                 </div>
+              </div>
+
+              <div className="mt-6">
+                <CalendarIntegration />
               </div>
 
               {/* Add Event Dialog */}

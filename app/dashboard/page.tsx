@@ -14,8 +14,6 @@ import Recommendations from "@/components/recommendations"
 import MoodAnalysis from "@/components/mood-analysis"
 import PeriodTracker from "@/components/period-tracker"
 import TherapistFinder from "@/components/therapist-finder"
-import CalendarIntegration from "@/components/calendar-integration"
-import CalendarNotifications from "@/components/calendar-notifications"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
 import { useToast } from "@/hooks/use-toast"
 import { DarkModeToggle } from "@/components/dark-mode-toggle"
@@ -221,7 +219,6 @@ export default function Dashboard() {
   const tabsConfig = userData.gender === "female"
     ? [
         { value: "mood", label: "Home" },
-        { value: "calendar", label: "Calendar" },
         { value: "recommendations", label: "Recommendations" },
         { value: "activities", label: "Activities" },
         { value: "period", label: "Period Tracking" },
@@ -229,7 +226,6 @@ export default function Dashboard() {
       ]
     : [
         { value: "mood", label: "Home" },
-        { value: "calendar", label: "Calendar" },
         { value: "recommendations", label: "Recommendations" },
         { value: "activities", label: "Activities" },
         { value: "therapists", label: "Find Therapists" },
@@ -240,7 +236,6 @@ export default function Dashboard() {
       <DashboardLayout>
         <>
           <div className="flex min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
-            <CalendarNotifications />
             <div className="hidden md:flex w-64 flex-col fixed inset-y-0 z-50 border-r bg-gray-900 border-gray-700">
               <div className="flex h-14 items-center border-b border-gray-700 px-4 justify-between">
                 <Link href="/" className="flex items-center gap-2 font-semibold text-white">
@@ -400,29 +395,6 @@ export default function Dashboard() {
                       </div>
                     </TabsContent>
 
-                    <TabsContent value="calendar" className="mt-6">
-                      <div className="space-y-4">
-                        <CalendarIntegration />
-                        <Card className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 border-blue-800">
-                          <CardHeader>
-                            <CardTitle className="flex items-center gap-2 text-white">
-                              <Calendar className="h-5 w-5 text-blue-400" />
-                              Full Calendar View
-                            </CardTitle>
-                            <CardDescription className="text-gray-300">
-                              View and manage all your events, appointments, and mood check-ins in a comprehensive calendar
-                            </CardDescription>
-                          </CardHeader>
-                          <CardFooter>
-                            <Link href="/calendar" className="w-full">
-                              <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600">
-                                Open Full Calendar
-                              </Button>
-                            </Link>
-                          </CardFooter>
-                        </Card>
-                      </div>
-                    </TabsContent>
 
                     <TabsContent value="recommendations" className="mt-6">
                       <div className="space-y-6">

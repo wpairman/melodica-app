@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -384,43 +384,63 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
   return R * c
 }
 
+const NOMINATIM_HEADERS = {
+  "User-Agent": "MelodicaTherapistFinder/1.0 (https://github.com/wpairman/melodica-app)",
+} as const
+
+function formatResolvedArea(
+  info: { city?: string; state?: string; country?: string; zipCode?: string },
+  searchTerm: string,
+): string {
+  const zip = info.zipCode?.trim()
+  const cityState = [info.city?.trim(), info.state?.trim()].filter(Boolean).join(", ")
+  const country = info.country?.trim()
+  if (cityState && country) return `${cityState} · ${country}`
+  if (cityState) return cityState
+  if (country) return country
+  if (zip) return zip
+  return searchTerm.trim() || searchTerm
+}
+
 // Lookup location by zip code, city, or country name
-const lookupLocation = async (searchTerm: string): Promise<{ city?: string; state?: string; country?: string; zipCode?: string }> => {
+const lookupLocation = async (
+  searchTerm: string,
+  signal?: AbortSignal,
+): Promise<{ city?: string; state?: string; country?: string; zipCode?: string }> => {
   try {
     // Check if it's a zip code pattern
     const isZipCode = /^[0-9A-Za-z\s-]{3,10}$/.test(searchTerm) && /[0-9]/.test(searchTerm)
-    
+
     if (isZipCode) {
       // Try US zip code API first for US zip codes
       if (/^\d{5}(-\d{4})?$/.test(searchTerm)) {
         try {
-          const response = await fetch(`https://api.zippopotam.us/us/${searchTerm.split('-')[0]}`)
+          const response = await fetch(`https://api.zippopotam.us/us/${searchTerm.split("-")[0]}`, { signal })
+          if (signal?.aborted) return {}
           if (response.ok) {
             const data = await response.json()
             if (data.places && data.places.length > 0) {
               return {
-                city: `${data.places[0]['place name']}, ${data.places[0]['state abbreviation']}`,
-                state: data.places[0]['state abbreviation'],
+                city: `${data.places[0]["place name"]}, ${data.places[0]["state abbreviation"]}`,
+                state: data.places[0]["state abbreviation"],
                 country: data.country,
                 zipCode: searchTerm,
               }
             }
           }
         } catch (e) {
+          if (signal?.aborted) return {}
           // Fall through to Nominatim
         }
       }
-      
+
       // For international zip codes, use Nominatim
       const zipResponse = await fetch(
         `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(searchTerm)}&format=json&limit=1&addressdetails=1`,
-        {
-          headers: {
-            'User-Agent': 'Melodica Mental Health App',
-          },
-        }
+        { headers: NOMINATIM_HEADERS, signal },
       )
-      
+
+      if (signal?.aborted) return {}
       if (zipResponse.ok) {
         const zipData = await zipResponse.json()
         if (zipData.length > 0) {
@@ -438,13 +458,10 @@ const lookupLocation = async (searchTerm: string): Promise<{ city?: string; stat
       // It's a city or country name - use Nominatim to find it
       const geoResponse = await fetch(
         `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchTerm)}&format=json&limit=1&addressdetails=1`,
-        {
-          headers: {
-            'User-Agent': 'Melodica Mental Health App',
-          },
-        }
+        { headers: NOMINATIM_HEADERS, signal },
       )
-      
+
+      if (signal?.aborted) return {}
       if (geoResponse.ok) {
         const geoData = await geoResponse.json()
         if (geoData.length > 0) {
@@ -460,9 +477,10 @@ const lookupLocation = async (searchTerm: string): Promise<{ city?: string; stat
       }
     }
   } catch (error) {
+    if (signal?.aborted) return {}
     console.error("Error looking up location:", error)
   }
-  
+
   // Return search term as city/country if lookup fails
   const fallbackDetails = extractLocationDetails(undefined, searchTerm)
   return {
@@ -473,15 +491,100 @@ const lookupLocation = async (searchTerm: string): Promise<{ city?: string; stat
 }
 
 export default function TherapistFinder() {
-  const [locationGranted, setLocationGranted] = useState(false)
   const [loadingGeo, setLoadingGeo] = useState(false)
   const [loadingTherapists, setLoadingTherapists] = useState(false)
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<Therapist[]>([])
   const [hasSearched, setHasSearched] = useState(false)
+  const [resolvedAreaLabel, setResolvedAreaLabel] = useState<string | null>(null)
   const [showManualLocation, setShowManualLocation] = useState(false)
   const [manualLocation, setManualLocation] = useState({ city: "", state: "", country: "", zipCode: "" })
   const [manualError, setManualError] = useState("")
+  /** Bumps when the user changes the query or clears; in-flight searches ignore stale completions. */
+  const searchGenerationRef = useRef(0)
+  /** Suppress debounced search right after programmatic `setQuery` (locate / manual modal). */
+  const suppressDebouncedSearchRef = useRef<{ q: string; until: number } | null>(null)
+
+  type RunSearchOpts = {
+    latitude?: number
+    longitude?: number
+    /** Skip geocoding lookup; use these fields for NPI / directory search */
+    direct?: { zipCode: string; city: string; state?: string; country: string; label: string }
+  }
+
+  const runTherapistSearch = useCallback(async (searchTerm: string, opts?: RunSearchOpts) => {
+    const term = searchTerm.trim()
+    if (!term) {
+      searchGenerationRef.current += 1
+      setResults([])
+      setHasSearched(false)
+      setResolvedAreaLabel(null)
+      setLoadingTherapists(false)
+      return
+    }
+
+    const myGen = ++searchGenerationRef.current
+    setHasSearched(true)
+    setLoadingTherapists(true)
+
+    try {
+      if (opts?.direct) {
+        if (myGen !== searchGenerationRef.current) return
+        setResolvedAreaLabel(opts.direct.label)
+        const { zipCode, city, state, country } = opts.direct
+        const therapists = await fetchRealTherapists(
+          zipCode,
+          city,
+          state,
+          country,
+          opts.latitude,
+          opts.longitude,
+        )
+        if (myGen !== searchGenerationRef.current) return
+        setResults(therapists)
+        return
+      }
+
+      const locationInfo = await lookupLocation(term)
+      if (myGen !== searchGenerationRef.current) return
+
+      setResolvedAreaLabel(formatResolvedArea(locationInfo, term))
+
+      const city = locationInfo.city || term
+      const state = locationInfo.state
+      const country = locationInfo.country || term
+      const zipCode = locationInfo.zipCode || (locationInfo.city ? "" : term) || term
+
+      const therapists = await fetchRealTherapists(
+        zipCode,
+        city,
+        state,
+        country,
+        opts?.latitude,
+        opts?.longitude,
+      )
+      if (myGen !== searchGenerationRef.current) return
+      setResults(therapists)
+    } catch (error) {
+      console.error("Error searching therapists:", error)
+      if (myGen !== searchGenerationRef.current) return
+      try {
+        const therapists = await fetchRealTherapists(term, term, undefined, term, opts?.latitude, opts?.longitude)
+        if (myGen !== searchGenerationRef.current) return
+        setResults(therapists)
+        setResolvedAreaLabel((prev) => prev ?? term)
+      } catch {
+        if (myGen === searchGenerationRef.current) {
+          setResults([])
+          setResolvedAreaLabel(term)
+        }
+      }
+    } finally {
+      if (myGen === searchGenerationRef.current) {
+        setLoadingTherapists(false)
+      }
+    }
+  }, [])
 
   // Ask for location and (in real app) fetch therapists by coords
   const handleLocate = () => {
@@ -489,7 +592,6 @@ export default function TherapistFinder() {
     setLoadingGeo(true)
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
-        setLocationGranted(true)
         setLoadingGeo(true)
         
         try {
@@ -499,7 +601,8 @@ export default function TherapistFinder() {
           
           // Using Nominatim (OpenStreetMap) for reverse geocoding
           const geoResponse = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`
+            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`,
+            { headers: NOMINATIM_HEADERS },
           )
           const geoData = await geoResponse.json()
           
@@ -523,44 +626,41 @@ export default function TherapistFinder() {
           }
 
           const locationQuery = zipCode || normalizedCity || details.country
-          
-          // Search with the found location
+
           if (locationQuery) {
+            suppressDebouncedSearchRef.current = { q: locationQuery, until: Date.now() + 2800 }
             setQuery(locationQuery)
-            
-            // Fetch real registered therapists for this location
-            setLoadingTherapists(true)
-            try {
-              const therapists = await fetchRealTherapists(
-                zipCode || locationQuery,
-                normalizedCity || details.city,
-                details.state,
-                details.country || "USA",
-                lat,
-                lon
-              )
-              setResults(therapists)
-              setHasSearched(true)
-            } finally {
-              setLoadingTherapists(false)
-            }
+            const areaLabel = formatResolvedArea(
+              {
+                city: normalizedCity || details.city,
+                state: details.state,
+                country: details.country || "USA",
+                zipCode: zipCode || undefined,
+              },
+              locationQuery,
+            )
+            void runTherapistSearch(locationQuery, {
+              latitude: lat,
+              longitude: lon,
+              direct: {
+                zipCode: zipCode || locationQuery,
+                city: normalizedCity || details.city || locationQuery,
+                state: details.state,
+                country: details.country || "USA",
+                label: areaLabel,
+              },
+            })
           } else {
-            // If can't determine location, try to fetch with coordinates
-            setLoadingTherapists(true)
-            try {
-              const therapists = await fetchRealTherapists(
-                "",
-                "Your Area",
-                undefined,
-                "USA",
-                lat,
-                lon
-              )
-              setResults(therapists)
-              setHasSearched(true)
-            } finally {
-              setLoadingTherapists(false)
-            }
+            void runTherapistSearch("near me", {
+              latitude: lat,
+              longitude: lon,
+              direct: {
+                zipCode: "",
+                city: "Your Area",
+                country: "USA",
+                label: "Near your current location",
+              },
+            })
           }
         } catch (error) {
           console.error("Error getting location:", error)
@@ -578,70 +678,44 @@ export default function TherapistFinder() {
     )
   }
 
-  // Search by zip code, city, or country - works for ANY location worldwide
-  const handleSearch = async () => {
-    if (!query.trim()) {
-      setResults([])
-      setHasSearched(false)
-      return
-    }
-
-    const searchTerm = query.trim()
-    setHasSearched(true)
-    setLoadingTherapists(true)
-    
-    try {
-      // Lookup the location (works for zip codes, cities, or countries)
-      const locationInfo = await lookupLocation(searchTerm)
-      
-      // Use the found location or fallback to search term
-      const city = locationInfo.city || searchTerm
-      const state = locationInfo.state
-      const country = locationInfo.country || searchTerm
-      const zipCode = locationInfo.zipCode || (locationInfo.city ? "" : searchTerm) || searchTerm
-
-      // Fetch real registered therapists for this location
-      const therapists = await fetchRealTherapists(
-        zipCode,
-        city,
-        state,
-        country
-      )
-
-      setResults(therapists)
-    } catch (error) {
-      console.error("Error searching therapists:", error)
-      // Try to fetch real therapists with the search term as location
-      const therapists = await fetchRealTherapists(searchTerm, searchTerm, undefined, searchTerm)
-      setResults(therapists)
-    } finally {
-      setLoadingTherapists(false)
-    }
+  const handleSearch = () => {
+    void runTherapistSearch(query.trim())
   }
 
-  // Auto-search as user types (debounced) - only for zip codes
+  // Live recommendations: debounced search while typing (zip/postal or city/country, 3+ chars)
   useEffect(() => {
-    if (!query.trim()) {
+    const q = query.trim()
+    if (!q) {
+      searchGenerationRef.current += 1
       setResults([])
       setHasSearched(false)
+      setResolvedAreaLabel(null)
+      setLoadingTherapists(false)
       return
     }
 
-    // Only auto-search if it looks like a zip code (avoid API calls for partial city names)
-    const isZipCode = /^[0-9A-Za-z\s-]{3,10}$/.test(query.trim()) && /[0-9]/.test(query.trim())
-    
-    if (!isZipCode && query.length < 5) {
-      // Don't search until user has typed more or it's clearly a zip code
+    const isLikelyPostal = /^[0-9A-Za-z\s-]{3,12}$/.test(q) && /[0-9]/.test(q)
+    if (!isLikelyPostal && q.length < 3) {
+      searchGenerationRef.current += 1
+      setResults([])
+      setHasSearched(false)
+      setResolvedAreaLabel(null)
+      setLoadingTherapists(false)
       return
     }
 
-    const timeoutId = setTimeout(async () => {
-      await handleSearch()
-    }, 500) // Debounce search by 500ms for API calls
+    const suppress = suppressDebouncedSearchRef.current
+    if (suppress && suppress.q === q && Date.now() < suppress.until) {
+      return
+    }
+
+    const debounceMs = isLikelyPostal ? 350 : 600
+    const timeoutId = setTimeout(() => {
+      void runTherapistSearch(q)
+    }, debounceMs)
 
     return () => clearTimeout(timeoutId)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query])
+  }, [query, runTherapistSearch])
 
   const handleManualSubmit = async () => {
     const city = manualLocation.city.trim()
@@ -655,22 +729,24 @@ export default function TherapistFinder() {
     }
 
     setManualError("")
+    const searchPhrase = [city, state, country].filter(Boolean).join(", ")
+    suppressDebouncedSearchRef.current = { q: searchPhrase, until: Date.now() + 2800 }
+    setQuery(searchPhrase)
+
+    const myGen = ++searchGenerationRef.current
+    setHasSearched(true)
+    setResolvedAreaLabel(formatResolvedArea({ city, state, country, zipCode: zipCode || undefined }, searchPhrase))
     setLoadingTherapists(true)
 
     try {
-      const therapists = await fetchRealTherapists(
-        zipCode || city,
-        city,
-        state || undefined,
-        country
-      )
-
+      const therapists = await fetchRealTherapists(zipCode || city, city, state || undefined, country)
+      if (myGen !== searchGenerationRef.current) return
       setResults(therapists)
-      setQuery(zipCode || city)
-      setHasSearched(true)
       setShowManualLocation(false)
     } finally {
-      setLoadingTherapists(false)
+      if (myGen === searchGenerationRef.current) {
+        setLoadingTherapists(false)
+      }
     }
   }
 
@@ -686,10 +762,10 @@ export default function TherapistFinder() {
           <div>
             <CardTitle className="text-xl">Find a Therapist Near You</CardTitle>
             <CardDescription>
-              Search by zip code, city, or country anywhere in the world. Use the location button to find therapists near you.
+              Results update as you type (after a short pause). Search by zip, city, or country, or use the location button for your current area.
             </CardDescription>
           </div>
-          <div className="flex gap-2 mt-2 sm:mt-0">
+          <div className="flex flex-wrap items-center gap-2 mt-2 sm:mt-0">
             <Input
               placeholder="Zip code, City, or Country"
               value={query}
@@ -699,7 +775,7 @@ export default function TherapistFinder() {
                   handleSearch()
                 }
               }}
-              className="w-40 sm:w-52"
+              className="min-w-[10rem] flex-1 sm:max-w-md"
             />
             <Button onClick={handleSearch} variant="default" size="sm" disabled={loadingTherapists}>
               {loadingTherapists ? (
@@ -716,12 +792,22 @@ export default function TherapistFinder() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <CardContent className="space-y-4">
+          {hasSearched && resolvedAreaLabel && (
+            <div className="rounded-lg border bg-muted/30 px-4 py-3">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Recommendations for</p>
+              <p className="text-lg font-semibold leading-snug">{resolvedAreaLabel}</p>
+            </div>
+          )}
+          {hasSearched && loadingTherapists && !resolvedAreaLabel && (
+            <p className="text-sm text-muted-foreground">Resolving your area…</p>
+          )}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {loadingTherapists && (
             <div className="col-span-full text-center py-8">
               <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2 text-muted-foreground" />
-              <p className="text-muted-foreground">Searching for registered therapists...</p>
-              <p className="text-sm text-muted-foreground mt-1">This may take a few moments</p>
+              <p className="text-muted-foreground">Finding registered therapists in this area…</p>
+              <p className="text-sm text-muted-foreground mt-1">This can take a few moments</p>
             </div>
           )}
           {!loadingTherapists && results.map((th) => (
@@ -748,7 +834,8 @@ export default function TherapistFinder() {
                 <CardHeader>
                   <CardTitle className="text-lg">No Registered Therapists Found</CardTitle>
                   <CardDescription>
-                    We couldn't find registered therapists in our database for "{query}".
+                    {"We couldn't find registered therapists in our database for "}
+                    <span className="font-medium">{resolvedAreaLabel || query}</span>.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="text-left space-y-4">
@@ -817,10 +904,11 @@ export default function TherapistFinder() {
           )}
           {!loadingTherapists && !hasSearched && (
             <div className="col-span-full text-center py-8">
-              <p className="text-muted-foreground">Enter a zip code, city, or country to search for therapists</p>
-              <p className="text-sm text-muted-foreground mt-2">Or click the location button to find therapists near you</p>
+              <p className="text-muted-foreground">Enter at least 3 letters for a city, or a zip / postal code — results appear as you type</p>
+              <p className="text-sm text-muted-foreground mt-2">Or use the location button for therapists near you right now</p>
             </div>
           )}
+          </div>
         </CardContent>
       </Card>
       {showManualLocation && (

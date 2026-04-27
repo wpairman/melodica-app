@@ -3,13 +3,13 @@ import Stripe from "stripe"
 
 const priceMap: Record<string, Record<string, string>> = {
   premium: {
-    monthly: "price_1Rgy9yHc0HPmM6HNPf15gTLT",
-    yearly: "price_1RgyAzHc0HPmM6HNaJ2zl66e",
+    monthly: "price_1TQupuHc0HPmM6HNgBeXT9vW",
+    yearly: "price_1TQuuwHc0HPmM6HNn3SWap4a",
     lifetime: "price_1RgyBuHc0HPmM6HNeljL7yLP",
   },
   ultimate: {
-    monthly: "price_1RgyALHc0HPmM6HNrgM1PIjS",
-    yearly: "price_1RgyBSHc0HPmM6HN9aSZs616",
+    monthly: "price_1TQuwKHc0HPmM6HNbCwZXgPf",
+    yearly: "price_1TQutxHc0HPmM6HN1C7Bx7Ab",
     lifetime: "price_1RgyBuHc0HPmM6HNeljL7yLP",
   },
 }
@@ -61,7 +61,7 @@ export const handler: Handler = async (event) => {
       }
     }
 
-    const origin = event.headers["origin"] || event.headers["referer"] || process.env.URL || "https://melodica1.netlify.app"
+    const origin = event.headers["origin"] || event.headers["referer"] || process.env.URL || "https://melodicaapp.com"
     const baseUrl = (origin.startsWith("http") ? origin : `https://${origin}`).replace(/\/$/, "").split("?")[0]
 
     const session = await stripe.checkout.sessions.create({

@@ -25,11 +25,11 @@ const PLAN_LABELS: Record<string, string> = {
 }
 
 const SUBSCRIPTION_OPTIONS = [
-  { plan: "premium", interval: "monthly", label: "Premium Monthly", price: "$1.99/mo", popular: true, icon: Music },
-  { plan: "premium", interval: "yearly", label: "Premium Yearly", price: "$19.99/yr", popular: false, icon: Music },
-  { plan: "ultimate", interval: "monthly", label: "Ultimate Monthly", price: "$2.99/mo", popular: false, icon: Sparkles },
-  { plan: "ultimate", interval: "yearly", label: "Ultimate Yearly", price: "$29.99/yr", popular: false, icon: Sparkles },
-  { plan: "ultimate", interval: "lifetime", label: "Lifetime", price: "$99.99 once", popular: false, icon: Zap },
+  { plan: "premium", interval: "monthly", label: "Premium Monthly", price: "$2.99/mo", popular: true, icon: Music },
+  { plan: "premium", interval: "yearly", label: "Premium Yearly", price: "$29.99/yr", popular: false, icon: Music },
+  { plan: "ultimate", interval: "monthly", label: "Ultimate Monthly", price: "$4.99/mo", popular: false, icon: Sparkles },
+  { plan: "ultimate", interval: "yearly", label: "Ultimate Yearly", price: "$49.99/yr", popular: false, icon: Sparkles },
+  { plan: "ultimate", interval: "lifetime", label: "Lifetime", price: "$199.99 once", popular: false, icon: Zap },
 ]
 
 const MUSIC_GENRES = [
@@ -130,7 +130,6 @@ export default function RegisterPage() {
     try {
       const normalizedEmail = form.email.toLowerCase().trim()
 
-      // ✅ FIXED: Calling Netlify function directly instead of Next.js API route
       const response = await fetch("/.netlify/functions/auth-register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -262,39 +261,19 @@ export default function RegisterPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Basic info */}
               <div className="space-y-4">
                 <h3 className="text-sm font-medium text-teal-400">Basic information</h3>
                 <div>
                   <Label htmlFor="name" className="text-white">Full name</Label>
-                  <Input
-                    id="name"
-                    required
-                    placeholder="Your name"
-                    value={form.name}
-                    onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                    className="mt-1 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
-                  />
+                  <Input id="name" required placeholder="Your name" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} className="mt-1 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400" />
                 </div>
                 <div>
                   <Label htmlFor="email" className="text-white">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    required
-                    placeholder="you@example.com"
-                    value={form.email}
-                    onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
-                    className="mt-1 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
-                  />
+                  <Input id="email" type="email" required placeholder="you@example.com" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} className="mt-1 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400" />
                 </div>
                 <div>
                   <Label className="text-white">Gender</Label>
-                  <RadioGroup
-                    value={form.gender}
-                    onValueChange={(v) => setForm((p) => ({ ...p, gender: v as typeof form.gender }))}
-                    className="mt-2 flex flex-wrap gap-4"
-                  >
+                  <RadioGroup value={form.gender} onValueChange={(v) => setForm((p) => ({ ...p, gender: v as typeof form.gender }))} className="mt-2 flex flex-wrap gap-4">
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="male" id="gender-male" className="border-gray-500" />
                       <Label htmlFor="gender-male" className="text-gray-300 cursor-pointer">Male</Label>
@@ -312,94 +291,50 @@ export default function RegisterPage() {
                 </div>
                 <div>
                   <Label htmlFor="password" className="text-white">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    required
-                    minLength={6}
-                    placeholder="At least 6 characters"
-                    value={form.password}
-                    onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
-                    className="mt-1 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
-                  />
+                  <Input id="password" type="password" required minLength={6} placeholder="At least 6 characters" value={form.password} onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))} className="mt-1 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400" />
                 </div>
                 <div>
                   <Label htmlFor="confirmPassword" className="text-white">Confirm password</Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    required
-                    placeholder="Confirm your password"
-                    value={form.confirmPassword}
-                    onChange={(e) => setForm((p) => ({ ...p, confirmPassword: e.target.value }))}
-                    className="mt-1 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
-                  />
+                  <Input id="confirmPassword" type="password" required placeholder="Confirm your password" value={form.confirmPassword} onChange={(e) => setForm((p) => ({ ...p, confirmPassword: e.target.value }))} className="mt-1 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400" />
                 </div>
               </div>
 
-              {/* Music preferences */}
               <div className="space-y-3">
                 <h3 className="text-sm font-medium text-teal-400">Music preferences</h3>
                 <p className="text-xs text-gray-400">Select genres you enjoy (optional)</p>
                 <div className="grid grid-cols-2 gap-2">
                   {MUSIC_GENRES.map((genre) => (
                     <div key={genre} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`genre-${genre}`}
-                        checked={form.musicGenres.includes(genre)}
-                        onCheckedChange={(checked) => handleMusicGenreChange(genre, checked === true)}
-                        className="border-gray-500 data-[state=checked]:bg-teal-600"
-                      />
-                      <Label htmlFor={`genre-${genre}`} className="text-sm text-gray-300 cursor-pointer">
-                        {genre}
-                      </Label>
+                      <Checkbox id={`genre-${genre}`} checked={form.musicGenres.includes(genre)} onCheckedChange={(checked) => handleMusicGenreChange(genre, checked === true)} className="border-gray-500 data-[state=checked]:bg-teal-600" />
+                      <Label htmlFor={`genre-${genre}`} className="text-sm text-gray-300 cursor-pointer">{genre}</Label>
                     </div>
                   ))}
                 </div>
                 <div>
                   <Label htmlFor="favoriteArtists" className="text-white text-sm">Favorite artists (optional)</Label>
-                  <Input
-                    id="favoriteArtists"
-                    placeholder="e.g. Taylor Swift, Coldplay"
-                    value={form.favoriteArtists}
-                    onChange={(e) => setForm((p) => ({ ...p, favoriteArtists: e.target.value }))}
-                    className="mt-1 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
-                  />
+                  <Input id="favoriteArtists" placeholder="e.g. Taylor Swift, Coldplay" value={form.favoriteArtists} onChange={(e) => setForm((p) => ({ ...p, favoriteArtists: e.target.value }))} className="mt-1 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400" />
                 </div>
               </div>
 
-              {/* Activity preferences */}
               <div className="space-y-3">
                 <h3 className="text-sm font-medium text-teal-400">Activity preferences</h3>
                 <p className="text-xs text-gray-400">What activities do you enjoy? (optional)</p>
                 <div className="grid grid-cols-2 gap-2">
                   {ACTIVITY_OPTIONS.map((activity) => (
                     <div key={activity} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`activity-${activity}`}
-                        checked={form.activityPreferences.includes(activity)}
-                        onCheckedChange={(checked) => handleActivityChange(activity, checked === true)}
-                        className="border-gray-500 data-[state=checked]:bg-teal-600"
-                      />
-                      <Label htmlFor={`activity-${activity}`} className="text-sm text-gray-300 cursor-pointer">
-                        {activity}
-                      </Label>
+                      <Checkbox id={`activity-${activity}`} checked={form.activityPreferences.includes(activity)} onCheckedChange={(checked) => handleActivityChange(activity, checked === true)} className="border-gray-500 data-[state=checked]:bg-teal-600" />
+                      <Label htmlFor={`activity-${activity}`} className="text-sm text-gray-300 cursor-pointer">{activity}</Label>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Mental health */}
               <div className="space-y-3">
                 <h3 className="text-sm font-medium text-teal-400">Mental health</h3>
                 <p className="text-xs text-gray-400">This helps us tailor recommendations. Your answers are private and secure.</p>
                 <div>
                   <Label className="text-white text-sm">Do you have any mental health conditions?</Label>
-                  <RadioGroup
-                    value={form.mentalIllnesses}
-                    onValueChange={(v) => setForm((p) => ({ ...p, mentalIllnesses: v as "yes" | "no" }))}
-                    className="mt-2 flex gap-4"
-                  >
+                  <RadioGroup value={form.mentalIllnesses} onValueChange={(v) => setForm((p) => ({ ...p, mentalIllnesses: v as "yes" | "no" }))} className="mt-2 flex gap-4">
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="no" id="mental-no" className="border-gray-500" />
                       <Label htmlFor="mental-no" className="text-gray-300 cursor-pointer">No</Label>
@@ -410,21 +345,12 @@ export default function RegisterPage() {
                     </div>
                   </RadioGroup>
                   {form.mentalIllnesses === "yes" && (
-                    <Textarea
-                      placeholder="If you're comfortable sharing, list any conditions (e.g. anxiety, depression)"
-                      value={form.mentalIllnessesDetails}
-                      onChange={(e) => setForm((p) => ({ ...p, mentalIllnessesDetails: e.target.value }))}
-                      className="mt-2 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400 min-h-[80px]"
-                    />
+                    <Textarea placeholder="If you're comfortable sharing, list any conditions (e.g. anxiety, depression)" value={form.mentalIllnessesDetails} onChange={(e) => setForm((p) => ({ ...p, mentalIllnessesDetails: e.target.value }))} className="mt-2 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400 min-h-[80px]" />
                   )}
                 </div>
                 <div>
                   <Label className="text-white text-sm">Are you currently taking any medication for mental health?</Label>
-                  <RadioGroup
-                    value={form.medication}
-                    onValueChange={(v) => setForm((p) => ({ ...p, medication: v as "yes" | "no" }))}
-                    className="mt-2 flex gap-4"
-                  >
+                  <RadioGroup value={form.medication} onValueChange={(v) => setForm((p) => ({ ...p, medication: v as "yes" | "no" }))} className="mt-2 flex gap-4">
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="no" id="med-no" className="border-gray-500" />
                       <Label htmlFor="med-no" className="text-gray-300 cursor-pointer">No</Label>
@@ -435,39 +361,22 @@ export default function RegisterPage() {
                     </div>
                   </RadioGroup>
                   {form.medication === "yes" && (
-                    <Textarea
-                      placeholder="If you're comfortable sharing, list any medications"
-                      value={form.medicationDetails}
-                      onChange={(e) => setForm((p) => ({ ...p, medicationDetails: e.target.value }))}
-                      className="mt-2 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400 min-h-[80px]"
-                    />
+                    <Textarea placeholder="If you're comfortable sharing, list any medications" value={form.medicationDetails} onChange={(e) => setForm((p) => ({ ...p, medicationDetails: e.target.value }))} className="mt-2 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400 min-h-[80px]" />
                   )}
                 </div>
               </div>
 
-              <Button
-                type="submit"
-                className="w-full bg-teal-600 hover:bg-teal-700"
-                disabled={loading}
-              >
+              <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700" disabled={loading}>
                 {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating account...
-                  </>
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating account...</>
                 ) : (
-                  <>
-                    Continue to payment
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </>
+                  <>Continue to payment<ArrowRight className="ml-2 h-4 w-4" /></>
                 )}
               </Button>
             </form>
             <p className="mt-4 text-center text-sm text-gray-400">
               Already have an account?{" "}
-              <Link href="/login" className="text-teal-400 hover:underline">
-                Log in
-              </Link>
+              <Link href="/login" className="text-teal-400 hover:underline">Log in</Link>
             </p>
           </CardContent>
         </Card>

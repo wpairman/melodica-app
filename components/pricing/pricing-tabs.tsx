@@ -29,8 +29,8 @@ export default function PricingTabs() {
     {
       name: "Premium",
       description: "Enhanced features for music therapy",
-      monthlyPrice: "$1.99",
-      yearlyPrice: "$19.99",
+      monthlyPrice: "$2.99",
+      yearlyPrice: "$29.99",
       features: [
         { name: "Advanced mood tracking", included: true },
         { name: "Unlimited music recommendations", included: true },
@@ -53,8 +53,8 @@ export default function PricingTabs() {
     {
       name: "Ultimate",
       description: "Complete mental wellbeing solution",
-      monthlyPrice: "$2.99",
-      yearlyPrice: "$29.99",
+      monthlyPrice: "$4.99",
+      yearlyPrice: "$49.99",
       features: [
         { name: "Comprehensive mood tracking", included: true },
         { name: "AI-powered music recommendations", included: true },
@@ -79,7 +79,7 @@ export default function PricingTabs() {
     {
       name: "Lifetime",
       description: "One-time payment for unlimited access",
-      oneTimePrice: "$99.99",
+      oneTimePrice: "$199.99",
       features: [
         { name: "All Ultimate plan features", included: true },
         { name: "Calendar integration & event reminders", included: true },
@@ -148,7 +148,7 @@ export default function PricingTabs() {
       <div className="space-y-4">
         <div className="text-center mb-6">
           <h3 className="text-xl font-semibold text-black mb-2">Yearly Billing</h3>
-          <p className="text-gray-600">Save 15% with annual billing</p>
+          <p className="text-gray-600">Save with annual billing</p>
         </div>
         <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-4">
           {plans

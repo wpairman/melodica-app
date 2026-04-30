@@ -1,9 +1,31 @@
+"use client"
+
 import Link from "next/link"
 import { Heart } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import PricingHeader from "@/components/pricing/pricing-header"
 import PricingTabs from "@/components/pricing/pricing-tabs"
+import { useIsNative } from "@/hooks/use-is-native"
 
 export default function PricingPage() {
+  const { isNative, isLoading } = useIsNative()
+
+  if (!isLoading && isNative) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-gray-800 p-6">
+        <Heart className="h-12 w-12 text-rose-500 mb-4" />
+        <h1 className="text-2xl font-bold text-white mb-2">Subscribe to Melodica</h1>
+        <p className="text-gray-300 text-center mb-6">
+          To view plans and subscribe, visit our website. Then log in here with your account.
+        </p>
+        <p className="text-teal-400 font-medium text-lg mb-8">melodica.app</p>
+        <Link href="/login">
+          <Button className="w-full bg-teal-600 hover:bg-teal-700">Already have an account? Log in</Button>
+        </Link>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-50 to-green-50">
       <header className="px-4 lg:px-6 h-16 flex items-center border-b bg-white">

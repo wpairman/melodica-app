@@ -41,7 +41,7 @@ export default function Home() {
       const signups = JSON.parse(existing)
       signups.push({ email, date: new Date().toISOString() })
       localStorage.setItem("beta_signups", JSON.stringify(signups))
-      toast({ title: "Thanks for signing up!", description: "We'll notify you when Melodica launches on the App Store and Google Play." })
+      toast({ title: "Thanks for signing up!", description: "We'll notify you when Melodica launches on the App Store." })
       setEmail("")
     } catch (error) {
       toast({ title: "Error", description: "Something went wrong. Please try again.", variant: "destructive" })
@@ -150,18 +150,14 @@ export default function Home() {
               )}
 
               <div className="pt-6">
-                <p className="text-sm text-gray-500 mb-4">Download Coming Soon</p>
+                <p className="text-sm text-gray-500 mb-4">Now Available on iOS</p>
                 <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
                   <Button variant="outline" size="lg" className="border-2 border-gray-300 hover:border-gray-400 bg-white px-6 py-4" disabled>
                     <Apple className="h-6 w-6 mr-2" />
                     <div className="text-left"><div className="text-xs text-gray-500">Download on the</div><div className="text-sm font-semibold">App Store</div></div>
                   </Button>
-                  <Button variant="outline" size="lg" className="border-2 border-gray-300 hover:border-gray-400 bg-white px-6 py-4" disabled>
-                    <Play className="h-6 w-6 mr-2" />
-                    <div className="text-left"><div className="text-xs text-gray-500">Get it on</div><div className="text-sm font-semibold">Google Play</div></div>
-                  </Button>
                 </div>
-                <p className="text-xs text-gray-400 mt-2">Available soon on iOS and Android</p>
+                <p className="text-xs text-gray-400 mt-2">Available on iPhone and iPad</p>
               </div>
 
               <div className="mt-10 pt-10 border-t border-gray-200 w-full max-w-2xl">
@@ -181,7 +177,7 @@ export default function Home() {
                     </ol>
                   </div>
                   <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-                    <div className="flex items-center gap-2 mb-2"><Play className="h-5 w-5 text-gray-700" /><span className="font-medium text-gray-900">Android</span></div>
+                    <div className="flex items-center gap-2 mb-2"><Smartphone className="h-5 w-5 text-gray-700" /><span className="font-medium text-gray-900">Android / Other</span></div>
                     <ol className="text-sm text-gray-600 space-y-1 list-decimal list-inside">
                       <li>Open in <strong>Chrome</strong></li>
                       <li>Tap the <strong>⋮</strong> menu (top right)</li>
@@ -422,7 +418,7 @@ export default function Home() {
           <div className="container px-4 md:px-6 mx-auto max-w-2xl">
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">Join the Beta Waitlist</h2>
-              <p className="text-lg text-gray-600">Be the first to know when Melodica launches on the App Store and Google Play. Get exclusive early access and special launch pricing.</p>
+              <p className="text-lg text-gray-600">Be the first to know about new Melodica features and updates. Get exclusive early access and special pricing.</p>
             </div>
             <Card className="border-gray-200 shadow-lg bg-white">
               <CardContent className="pt-6">

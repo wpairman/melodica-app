@@ -29,6 +29,7 @@ import { MenuButton } from "@/components/navigation-sidebar"
 import { AuthGuard } from "@/components/auth-guard"
 import { getUserPlan, type PlanType } from "@/lib/plan-features"
 import { UpgradePrompt } from "@/components/upgrade-prompt"
+import { useIsNative } from "@/hooks/use-is-native"
 import Link from "next/link"
 
 interface PeriodData {
@@ -88,6 +89,7 @@ const moodOptions = ["Happy", "Sad", "Irritable", "Anxious", "Calm", "Energetic"
 export default function PeriodTrackerPage() {
   const { toast } = useToast()
   const { user } = useAuth()
+  const { isNative } = useIsNative()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [userPlan, setUserPlan] = useState<PlanType>("free")
   const [periodData, setPeriodData] = useState<PeriodData>({
@@ -504,11 +506,17 @@ export default function PeriodTrackerPage() {
                   </div>
                 </div>
               </div>
-              <Link href="/pricing" className="block">
-                <Button className="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white">
-                  Upgrade to Ultimate
-                </Button>
-              </Link>
+              {!isNative ? (
+                <Link href="/pricing" className="block">
+                  <Button className="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white">
+                    Upgrade to Ultimate
+                  </Button>
+                </Link>
+              ) : (
+                <p className="text-sm text-center text-purple-700">
+                  Upgrade to Ultimate at <span className="text-teal-600 font-medium">melodica.app</span>
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>

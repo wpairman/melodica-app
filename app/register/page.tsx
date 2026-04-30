@@ -15,6 +15,7 @@ import { signInWithCustomToken } from "firebase/auth"
 import { auth } from "@/lib/firebase-config"
 import { createStripeCheckoutSession } from "@/lib/api-utils"
 import { useToast } from "@/hooks/use-toast"
+import { useIsNative } from "@/hooks/use-is-native"
 
 const PLAN_LABELS: Record<string, string> = {
   premium_monthly: "Premium (Monthly)",
@@ -47,6 +48,7 @@ const ACTIVITY_OPTIONS = [
 export default function RegisterPage() {
   const searchParams = useSearchParams()
   const { toast } = useToast()
+  const { isNative, isLoading: nativeLoading } = useIsNative()
   const [loading, setLoading] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState<string>("")
   const [selectedInterval, setSelectedInterval] = useState<string>("")
@@ -198,6 +200,22 @@ export default function RegisterPage() {
       })
       setLoading(false)
     }
+  }
+
+  if (!nativeLoading && isNative) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-gray-800 p-6">
+        <Heart className="h-12 w-12 text-rose-500 mb-4" />
+        <h1 className="text-2xl font-bold text-white mb-2">Create your account</h1>
+        <p className="text-gray-300 text-center mb-6">
+          Sign up and subscribe at our website, then log in here to access your account.
+        </p>
+        <p className="text-teal-400 font-medium text-lg mb-8">melodica.app</p>
+        <Link href="/login">
+          <Button className="w-full bg-teal-600 hover:bg-teal-700">Already have an account? Log in</Button>
+        </Link>
+      </div>
+    )
   }
 
   return (

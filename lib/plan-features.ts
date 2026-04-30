@@ -16,6 +16,7 @@ export type FeatureName =
   | "personalizedActivitySuggestions"
   | "customActivityPrograms"
   | "adFree"
+  | "spotifySongPreviews"
   | "fullSpotifyIntegration"
   | "calendarIntegration"
   | "musicPreferenceQuiz"
@@ -28,6 +29,7 @@ export type FeatureName =
   | "profileSharing"
   | "exportMoodData"
   | "prioritySupport"
+  | "lifetimeBadge"
 
 export const planFeatures: Record<PlanType, FeatureName[]> = {
   free: [
@@ -41,6 +43,7 @@ export const planFeatures: Record<PlanType, FeatureName[]> = {
     "unlimitedMusicRecommendations",
     "personalizedActivitySuggestions",
     "adFree",
+    "spotifySongPreviews",
     "calendarIntegration",
     "musicPreferenceQuiz",
     "personalizedPlaylists3Weekly",
@@ -51,6 +54,7 @@ export const planFeatures: Record<PlanType, FeatureName[]> = {
     "aiPoweredMusicRecommendations",
     "customActivityPrograms",
     "adFree",
+    "spotifySongPreviews",
     "fullSpotifyIntegration",
     "calendarIntegration",
     "advancedMusicAnalysis",
@@ -66,6 +70,7 @@ export const planFeatures: Record<PlanType, FeatureName[]> = {
     "aiPoweredMusicRecommendations",
     "customActivityPrograms",
     "adFree",
+    "spotifySongPreviews",
     "fullSpotifyIntegration",
     "calendarIntegration",
     "advancedMusicAnalysis",
@@ -75,6 +80,7 @@ export const planFeatures: Record<PlanType, FeatureName[]> = {
     "profileSharing",
     "exportMoodData",
     "prioritySupport",
+    "lifetimeBadge",
   ],
 }
 

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Music, Plus, Trash2, ExternalLink, Share2, Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { getUserPlan, getPlanLimits } from "@/lib/plan-features"
 import {
   Dialog,
   DialogContent,
@@ -44,6 +45,7 @@ export default function PersonalizedPlaylists({ userData, currentMood = 5 }: Per
   const [playlists, setPlaylists] = useState<Playlist[]>([])
   const [isCreating, setIsCreating] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [userPlan, setUserPlan] = useState<ReturnType<typeof getUserPlan>>("free")
   const [newPlaylist, setNewPlaylist] = useState({
     name: "",
     description: "",
@@ -52,6 +54,7 @@ export default function PersonalizedPlaylists({ userData, currentMood = 5 }: Per
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      setUserPlan(getUserPlan())
       const saved = localStorage.getItem("personalizedPlaylists")
       if (saved) {
         try {
@@ -66,6 +69,12 @@ export default function PersonalizedPlaylists({ userData, currentMood = 5 }: Per
       }
     }
   }, [])
+
+  const getWeeklyPlaylistCount = () => {
+    const oneWeekAgo = new Date()
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
+    return playlists.filter(p => new Date(p.createdAt) >= oneWeekAgo).length
+  }
 
   const savePlaylists = (updatedPlaylists: Playlist[]) => {
     setPlaylists(updatedPlaylists)
@@ -134,6 +143,19 @@ export default function PersonalizedPlaylists({ userData, currentMood = 5 }: Per
         variant: "destructive",
       })
       return
+    }
+
+    const limits = getPlanLimits(userPlan)
+    if (limits.maxPlaylistsPerWeek !== Infinity) {
+      const weeklyCount = getWeeklyPlaylistCount()
+      if (weeklyCount >= limits.maxPlaylistsPerWeek) {
+        toast({
+          title: "Weekly Playlist Limit Reached",
+          description: `Your ${userPlan} plan allows ${limits.maxPlaylistsPerWeek} playlist${limits.maxPlaylistsPerWeek === 1 ? "" : "s"} per week. Upgrade to Ultimate for unlimited playlists.`,
+          variant: "destructive",
+        })
+        return
+      }
     }
 
     setIsGenerating(true)

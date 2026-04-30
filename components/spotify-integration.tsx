@@ -40,8 +40,7 @@ export default function SpotifyIntegration() {
   }, [])
 
   const handleConnectSpotify = async () => {
-    // Check if user has Ultimate plan
-    if (!hasFeatureAccess(userPlan as any, "fullSpotifyIntegration")) {
+    if (!hasFeatureAccess(userPlan as any, "spotifySongPreviews") && !hasFeatureAccess(userPlan as any, "fullSpotifyIntegration")) {
       setShowUpgrade(true)
       return
     }
@@ -113,7 +112,7 @@ export default function SpotifyIntegration() {
     })
   }
 
-  if (!hasFeatureAccess(userPlan as any, "fullSpotifyIntegration")) {
+  if (!hasFeatureAccess(userPlan as any, "spotifySongPreviews") && !hasFeatureAccess(userPlan as any, "fullSpotifyIntegration")) {
     return (
       <>
         <Card className="bg-gray-800 border-gray-700">
@@ -123,19 +122,19 @@ export default function SpotifyIntegration() {
               Spotify Integration
             </CardTitle>
             <CardDescription className="text-gray-300">
-              Connect your Spotify account for seamless music playback and playlist management
+              Connect your Spotify account for music playback and playlist management
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="p-4 bg-gray-700/50 rounded-lg">
                 <p className="text-sm text-gray-300 mb-4">
-                  With full Spotify integration, you can:
+                  Upgrade to Premium or Ultimate to connect Spotify:
                 </p>
                 <ul className="space-y-2 text-sm text-gray-300">
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-green-500" />
-                    Play full songs directly in the app
+                    Play full song previews (Premium+)
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-green-500" />

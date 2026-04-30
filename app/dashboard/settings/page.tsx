@@ -14,6 +14,7 @@ import { ColorCustomizationPanel } from "@/components/settings/color-customizati
 import { AccountSync } from "@/components/account-sync"
 import { useToast } from "@/hooks/use-toast"
 import { useTheme } from "next-themes"
+import { useIsNative } from "@/hooks/use-is-native"
 import { MenuButton } from "@/components/navigation-sidebar"
 import { AuthGuard } from "@/components/auth-guard"
 import SpotifyIntegration from "@/components/spotify-integration"
@@ -23,6 +24,7 @@ import MoodDataExport from "@/components/mood-data-export"
 export default function SettingsPage() {
   const { toast } = useToast()
   const { theme, setTheme } = useTheme()
+  const { isNative } = useIsNative()
   const [userData, setUserData] = useState<any>(null)
   const [settings, setSettings] = useState({
     notifications: {
@@ -574,12 +576,18 @@ export default function SettingsPage() {
                         : `Current period ends ${new Date(userData.subscription.currentPeriodEnd).toLocaleDateString()}`}
                     </p>
                   )}
-                  <Link href="/pricing">
-                    <Button className="w-full sm:w-auto">
-                      Change plan
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </Link>
+                  {isNative ? (
+                    <p className="text-sm text-gray-400">
+                      To change your plan, visit <span className="text-teal-400">melodica.app</span>
+                    </p>
+                  ) : (
+                    <Link href="/pricing">
+                      <Button className="w-full sm:w-auto">
+                        Change plan
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </Link>
+                  )}
                 </>
               ) : (
                 <p className="text-gray-400">Loading...</p>

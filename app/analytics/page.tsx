@@ -18,6 +18,7 @@ import { MenuButton } from "@/components/navigation-sidebar"
 import { AuthGuard } from "@/components/auth-guard"
 import { getUserPlan, type PlanType } from "@/lib/plan-features"
 import { UpgradePrompt } from "@/components/upgrade-prompt"
+import { useIsNative } from "@/hooks/use-is-native"
 
 export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState("week")
@@ -25,6 +26,7 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true)
   const [userPlan, setUserPlan] = useState<PlanType>("free")
   const [showUpgrade, setShowUpgrade] = useState(false)
+  const { isNative } = useIsNative()
 
   useEffect(() => {
     // In a real app, you would fetch this from an API (client-side only)
@@ -188,14 +190,21 @@ export default function AnalyticsPage() {
                       </div>
                     </div>
                   </div>
-                  <Button 
-                    asChild
-                    className="w-full bg-gradient-to-r from-teal-600 to-purple-600 hover:from-teal-700 hover:to-purple-700 text-white"
-                  >
-                    <Link href="/pricing">
-                      Upgrade to See Analytics
-                    </Link>
-                  </Button>
+                  {!isNative && (
+                    <Button
+                      asChild
+                      className="w-full bg-gradient-to-r from-teal-600 to-purple-600 hover:from-teal-700 hover:to-purple-700 text-white"
+                    >
+                      <Link href="/pricing">
+                        Upgrade to See Analytics
+                      </Link>
+                    </Button>
+                  )}
+                  {isNative && (
+                    <p className="text-sm text-center text-gray-400">
+                      Upgrade at <span className="text-teal-400">melodica.app</span>
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             </div>

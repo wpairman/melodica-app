@@ -8,16 +8,22 @@ import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import Link from "next/link"
-import { Bell, Clock, Moon, Volume2, Palette, Eye, MapPin, Shield, Calendar, Music, Info, CreditCard, ArrowRight } from "lucide-react"
+import { Bell, Clock, Moon, Volume2, Palette, Eye, MapPin, Shield, Calendar, Music, Info, CreditCard, ArrowRight, Smartphone } from "lucide-react"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
 import { ColorCustomizationPanel } from "@/components/settings/color-customization-panel"
 import { AccountSync } from "@/components/account-sync"
 import { useToast } from "@/hooks/use-toast"
-import { useTheme } from "next-themes"
 import { useIsNative } from "@/hooks/use-is-native"
+import { useTheme } from "next-themes"
 import { MenuButton } from "@/components/navigation-sidebar"
 import { AuthGuard } from "@/components/auth-guard"
 import SpotifyIntegration from "@/components/spotify-integration"
+import {
+  requestNotificationPermission,
+  checkNotificationPermission,
+  scheduleDailyMoodReminder,
+  cancelDailyMoodReminder,
+} from "@/lib/native-notifications"
 import ProfileSharing from "@/components/profile-sharing"
 import MoodDataExport from "@/components/mood-data-export"
 
@@ -26,6 +32,9 @@ export default function SettingsPage() {
   const { theme, setTheme } = useTheme()
   const { isNative } = useIsNative()
   const [userData, setUserData] = useState<any>(null)
+  const [nativeNotificationsEnabled, setNativeNotificationsEnabled] = useState(false)
+  const [nativeReminderHour, setNativeReminderHour] = useState(9) // default 9 AM
+  const [nativeNotifPermission, setNativeNotifPermission] = useState(false)
   const [settings, setSettings] = useState({
     notifications: {
       enabled: true,
@@ -89,6 +98,15 @@ export default function SettingsPage() {
           console.error("Error parsing user data:", e)
         }
       }
+      // Load native notification settings
+      const storedNativeNotif = localStorage.getItem("nativeNotificationsEnabled")
+      const storedNativeHour = localStorage.getItem("nativeReminderHour")
+      if (storedNativeNotif === "true") setNativeNotificationsEnabled(true)
+      if (storedNativeHour) setNativeReminderHour(parseInt(storedNativeHour, 10))
+
+      // Check current native notification permission
+      checkNotificationPermission().then((granted) => setNativeNotifPermission(granted))
+
       const storedSettings = localStorage.getItem("appSettings")
       if (storedSettings) {
         const parsed = JSON.parse(storedSettings)
@@ -232,6 +250,49 @@ export default function SettingsPage() {
       )
     } else {
       resetCustomTheme()
+    }
+  }
+
+  const handleNativeNotificationToggle = async (enabled: boolean) => {
+    if (enabled) {
+      let granted = nativeNotifPermission
+      if (!granted) {
+        granted = await requestNotificationPermission()
+        setNativeNotifPermission(granted)
+      }
+      if (granted) {
+        const scheduled = await scheduleDailyMoodReminder(nativeReminderHour)
+        if (scheduled) {
+          setNativeNotificationsEnabled(true)
+          if (typeof window !== 'undefined') {
+            localStorage.setItem("nativeNotificationsEnabled", "true")
+            localStorage.setItem("nativeReminderHour", nativeReminderHour.toString())
+          }
+          toast({ title: "Daily reminder set", description: `You'll receive a mood check-in reminder every day at ${nativeReminderHour}:00.` })
+        } else {
+          toast({ title: "Scheduling failed", description: "Could not schedule the reminder. Please try again.", variant: "destructive" })
+        }
+      } else {
+        toast({ title: "Permission required", description: "Please allow notifications in iOS Settings to enable reminders.", variant: "destructive" })
+      }
+    } else {
+      await cancelDailyMoodReminder()
+      setNativeNotificationsEnabled(false)
+      if (typeof window !== 'undefined') {
+        localStorage.setItem("nativeNotificationsEnabled", "false")
+      }
+      toast({ title: "Reminders disabled", description: "Daily mood check-in reminders have been turned off." })
+    }
+  }
+
+  const handleNativeReminderHourChange = async (hour: number) => {
+    setNativeReminderHour(hour)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem("nativeReminderHour", hour.toString())
+    }
+    if (nativeNotificationsEnabled) {
+      await scheduleDailyMoodReminder(hour)
+      toast({ title: "Reminder time updated", description: `Daily check-in reminder updated to ${hour}:00.` })
     }
   }
 
@@ -829,6 +890,64 @@ export default function SettingsPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Native iOS Mood Reminders – only shown when running in Capacitor */}
+          {isNative && (
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <Smartphone className="h-5 w-5" />
+                  Daily Mood Reminders
+                </CardTitle>
+                <CardDescription className="text-gray-300">
+                  Receive native iOS notifications to check in with your mood each day
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-base text-white">Enable Daily Reminders</Label>
+                    <div className="text-sm text-gray-400">
+                      Get a native iOS notification once a day to log your mood
+                    </div>
+                  </div>
+                  <Switch
+                    checked={nativeNotificationsEnabled}
+                    onCheckedChange={handleNativeNotificationToggle}
+                  />
+                </div>
+                {nativeNotificationsEnabled && (
+                  <div className="space-y-3">
+                    <Label className="text-base flex items-center gap-2 text-white">
+                      <Clock className="h-4 w-4" />
+                      Reminder Time
+                    </Label>
+                    <Select
+                      value={nativeReminderHour.toString()}
+                      onValueChange={(v) => handleNativeReminderHourChange(parseInt(v, 10))}
+                    >
+                      <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                        <SelectValue placeholder="Select time" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-gray-700 border-gray-600" position="popper" side="bottom">
+                        {Array.from({ length: 24 }, (_, i) => {
+                          const label = i === 0 ? "12:00 AM" : i < 12 ? `${i}:00 AM` : i === 12 ? "12:00 PM" : `${i - 12}:00 PM`
+                          return (
+                            <SelectItem key={i} value={i.toString()} className="text-white hover:bg-gray-600">
+                              {label}
+                            </SelectItem>
+                          )
+                        })}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-gray-400">
+                      You will receive a native iOS notification at this time every day.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Notification Settings */}
           <Card>

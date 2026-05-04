@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Calendar, Clock, ArrowUpDown } from "lucide-react"
 import RewardsSystem from "./rewards-system"
 import VirtualGarden from "./virtual-garden"
+import { useHaptics } from "@/hooks/use-haptics"
 
 interface MoodTrackerProps {
   userData: {
@@ -21,6 +22,7 @@ interface MoodTrackerProps {
 
 export default function MoodTracker({ userData }: MoodTrackerProps) {
   const { toast } = useToast()
+  const haptics = useHaptics()
   const [selectedMood, setSelectedMood] = useState<number | null>(null)
   const [showFollowUp, setShowFollowUp] = useState(false)
   const [followUpResponse, setFollowUpResponse] = useState("")
@@ -50,6 +52,8 @@ export default function MoodTracker({ userData }: MoodTrackerProps) {
 
   const handleMoodSelection = (mood: number) => {
     setSelectedMood(mood)
+    // Provide native haptic feedback on mood button tap
+    haptics.impact("medium")
 
     // If mood is below 4, show follow-up question
     if (mood < 4) {
@@ -61,6 +65,7 @@ export default function MoodTracker({ userData }: MoodTrackerProps) {
 
   const handleFollowUpSubmit = () => {
     if (selectedMood !== null) {
+      haptics.success()
       saveMoodEntry(selectedMood, followUpResponse)
     }
     setShowFollowUp(false)
@@ -68,6 +73,9 @@ export default function MoodTracker({ userData }: MoodTrackerProps) {
   }
 
   const saveMoodEntry = (mood: number, notes?: string) => {
+    // Native haptic feedback when mood is saved
+    haptics.success()
+
     // In a real app, you would save this to a database
     const newEntry = { mood, timestamp: new Date(), notes }
     const updatedHistory = [...moodHistory, newEntry]

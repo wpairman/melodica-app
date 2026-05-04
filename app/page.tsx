@@ -5,10 +5,22 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Heart, Music, TrendingUp, Sparkles, Apple, Smartphone, CheckCircle2, ArrowRight, Play, BarChart3, ListMusic, LayoutDashboard } from "lucide-react"
+import { Heart, Music, TrendingUp, Sparkles, Apple, Smartphone, CheckCircle2, ArrowRight, BarChart3, ListMusic, LayoutDashboard } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
+
+// Detect native platform synchronously before first render to avoid flash.
+// Capacitor injects window.Capacitor in the WebView before JS runs.
+function isNativePlatform(): boolean {
+  if (typeof window === "undefined") return false
+  try {
+    // @ts-ignore
+    return !!(window.Capacitor && window.Capacitor.isNativePlatform())
+  } catch {
+    return false
+  }
+}
 
 export default function Home() {
   const { toast } = useToast()
@@ -16,13 +28,20 @@ export default function Home() {
   const { isAuthenticated, user, logout } = useAuth()
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
-  const [showSplash, setShowSplash] = useState(true)
-  const [isMounted, setIsMounted] = useState(false)
+  // On native platforms Capacitor already shows a splash screen, so skip the
+  // JS-level splash entirely to avoid a double-flash on iPad/iPhone.
+  const isNative = isNativePlatform()
+  const [showSplash, setShowSplash] = useState(!isNative)
+  // isMounted prevents hydration mismatches on web. In native WebViews there is
+  // no SSR, so we can treat as mounted immediately.
+  const [isMounted, setIsMounted] = useState(isNative)
 
   useEffect(() => {
     setIsMounted(true)
-    const timer = setTimeout(() => { setShowSplash(false) }, 800)
-    return () => clearTimeout(timer)
+    if (!isNative) {
+      const timer = setTimeout(() => { setShowSplash(false) }, 800)
+      return () => clearTimeout(timer)
+    }
   }, [])
 
   const handleEmailSignup = async (e: React.FormEvent) => {
@@ -166,7 +185,7 @@ export default function Home() {
                   <h3 className="text-lg font-semibold text-gray-900">Use Melodica Like an App</h3>
                 </div>
                 <p className="text-sm text-gray-600 mb-6 text-center">Add this website to your home screen for quick access — it works like a native app.</p>
-                <div className="grid gap-4 sm:grid-cols-3 text-left">
+                <div className="grid gap-4 sm:grid-cols-2 text-left">
                   <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
                     <div className="flex items-center gap-2 mb-2"><Apple className="h-5 w-5 text-gray-700" /><span className="font-medium text-gray-900">iPhone / iPad</span></div>
                     <ol className="text-sm text-gray-600 space-y-1 list-decimal list-inside">
@@ -174,15 +193,6 @@ export default function Home() {
                       <li>Tap the Share button (square with arrow)</li>
                       <li>Scroll and tap <strong>Add to Home Screen</strong></li>
                       <li>Tap <strong>Add</strong></li>
-                    </ol>
-                  </div>
-                  <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-                    <div className="flex items-center gap-2 mb-2"><Smartphone className="h-5 w-5 text-gray-700" /><span className="font-medium text-gray-900">Android / Other</span></div>
-                    <ol className="text-sm text-gray-600 space-y-1 list-decimal list-inside">
-                      <li>Open in <strong>Chrome</strong></li>
-                      <li>Tap the <strong>⋮</strong> menu (top right)</li>
-                      <li>Tap <strong>Add to Home screen</strong></li>
-                      <li>Confirm with <strong>Add</strong></li>
                     </ol>
                   </div>
                   <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">

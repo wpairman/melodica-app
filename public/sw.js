@@ -126,7 +126,7 @@ self.addEventListener("push", (event) => {
           url: "/dashboard",
           timestamp: Date.now()
         },
-        // For Android/iOS, the notification will expand to show more options
+        // On iOS, the notification will expand to show more options
         vibrate: [200, 100, 200],
         silent: false, // Ensure notification makes sound/alert
       })

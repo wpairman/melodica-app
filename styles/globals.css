@@ -57,6 +57,25 @@
 
 body {
   @apply bg-background text-foreground;
+  /* Improve base legibility */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* iPad / large tablet typography improvements (Guideline 4.0 fix)
+   Apple reviewers flag small, hard-to-read text on iPad screens.
+   Boost base font size on screens ≥768px (iPad mini portrait and above). */
+@media (min-width: 768px) {
+  html {
+    font-size: 17px;
+  }
+}
+
+@media (min-width: 1024px) {
+  html {
+    font-size: 18px;
+  }
 }
 
 /* Custom color utility classes */

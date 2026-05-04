@@ -9,11 +9,13 @@ import { Heart, Music, TrendingUp, Sparkles, Apple, Smartphone, CheckCircle2, Ar
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
+import { useIsNative } from "@/hooks/use-is-native"
 
 export default function Home() {
   const { toast } = useToast()
   const router = useRouter()
   const { isAuthenticated, user, logout } = useAuth()
+  const { isNative } = useIsNative()
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
   const [showSplash, setShowSplash] = useState(true)
@@ -149,6 +151,7 @@ export default function Home() {
                 </div>
               )}
 
+              {!isNative && (
               <div className="pt-6">
                 <p className="text-sm text-gray-500 mb-4">Now Available on iOS</p>
                 <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
@@ -159,7 +162,9 @@ export default function Home() {
                 </div>
                 <p className="text-xs text-gray-400 mt-2">Available on iPhone and iPad</p>
               </div>
+              )}
 
+              {!isNative && (
               <div className="mt-10 pt-10 border-t border-gray-200 w-full max-w-2xl">
                 <div className="flex items-center gap-2 justify-center mb-4">
                   <Smartphone className="h-5 w-5 text-teal-600" />
@@ -177,7 +182,7 @@ export default function Home() {
                     </ol>
                   </div>
                   <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-                    <div className="flex items-center gap-2 mb-2"><Smartphone className="h-5 w-5 text-gray-700" /><span className="font-medium text-gray-900">Android / Other</span></div>
+                    <div className="flex items-center gap-2 mb-2"><Smartphone className="h-5 w-5 text-gray-700" /><span className="font-medium text-gray-900">Other Mobile</span></div>
                     <ol className="text-sm text-gray-600 space-y-1 list-decimal list-inside">
                       <li>Open in <strong>Chrome</strong></li>
                       <li>Tap the <strong>⋮</strong> menu (top right)</li>
@@ -196,12 +201,13 @@ export default function Home() {
                   </div>
                 </div>
               </div>
+              )}
             </div>
           </div>
         </section>
 
-        {/* Choose Your Plan */}
-        <section className="w-full py-16 bg-gray-50">
+        {/* Choose Your Plan - web only, no payment on native */}
+        {!isNative && <section className="w-full py-16 bg-gray-50">
           <div className="container px-4 md:px-6 mx-auto max-w-6xl">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">Choose Your Plan</h2>
@@ -243,7 +249,7 @@ export default function Home() {
               <Link href="/pricing" className="text-teal-600 hover:underline">Compare all plans</Link>
             </p>
           </div>
-        </section>
+        </section>}
 
         {/* App Screenshots */}
         <section className="w-full py-16 bg-white">
@@ -363,8 +369,8 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Pricing Preview */}
-        <section className="w-full py-16 bg-white">
+        {/* Pricing Preview - web only */}
+        {!isNative && <section className="w-full py-16 bg-white">
           <div className="container px-4 md:px-6 mx-auto max-w-4xl">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">Simple, Transparent Pricing</h2>
@@ -411,10 +417,10 @@ export default function Home() {
               <Link href="/pricing" className="text-teal-600 hover:text-teal-700 font-medium">View all plans including yearly & lifetime options →</Link>
             </div>
           </div>
-        </section>
+        </section>}
 
-        {/* Email Signup */}
-        <section className="w-full py-16 bg-gradient-to-br from-teal-50 to-blue-50">
+        {/* Email Signup - web only */}
+        {!isNative && <section className="w-full py-16 bg-gradient-to-br from-teal-50 to-blue-50">
           <div className="container px-4 md:px-6 mx-auto max-w-2xl">
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">Join the Beta Waitlist</h2>
@@ -430,10 +436,10 @@ export default function Home() {
               </CardContent>
             </Card>
           </div>
-        </section>
+        </section>}
 
-        {/* Final CTA */}
-        <section className="w-full py-16 bg-white">
+        {/* Final CTA - web only */}
+        {!isNative && <section className="w-full py-16 bg-white">
           <div className="container px-4 md:px-6 mx-auto max-w-4xl text-center">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Ready to Start Your Mental Wellness Journey?</h2>
             <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">Join thousands of users who are taking control of their mental health with AI-powered music therapy.</p>
@@ -446,7 +452,7 @@ export default function Home() {
               </div>
             )}
           </div>
-        </section>
+        </section>}
       </main>
 
       <footer className="flex flex-col gap-4 sm:flex-row py-8 w-full shrink-0 items-center px-4 md:px-6 border-t border-gray-200 bg-gray-50">

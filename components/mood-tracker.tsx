@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Calendar, Clock, ArrowUpDown } from "lucide-react"
 import RewardsSystem from "./rewards-system"
 import VirtualGarden from "./virtual-garden"
+import { useHaptics } from "@/hooks/use-haptics"
 
 interface MoodTrackerProps {
   userData: {
@@ -21,6 +22,7 @@ interface MoodTrackerProps {
 
 export default function MoodTracker({ userData }: MoodTrackerProps) {
   const { toast } = useToast()
+  const { triggerLight, triggerSuccess } = useHaptics()
   const [selectedMood, setSelectedMood] = useState<number | null>(null)
   const [showFollowUp, setShowFollowUp] = useState(false)
   const [followUpResponse, setFollowUpResponse] = useState("")
@@ -50,6 +52,8 @@ export default function MoodTracker({ userData }: MoodTrackerProps) {
 
   const handleMoodSelection = (mood: number) => {
     setSelectedMood(mood)
+    // Provide haptic feedback on native iOS
+    triggerLight()
 
     // If mood is below 4, show follow-up question
     if (mood < 4) {

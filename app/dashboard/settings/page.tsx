@@ -20,6 +20,7 @@ import { AuthGuard } from "@/components/auth-guard"
 import SpotifyIntegration from "@/components/spotify-integration"
 import ProfileSharing from "@/components/profile-sharing"
 import MoodDataExport from "@/components/mood-data-export"
+import { scheduleNativeMoodReminder, cancelNativeMoodReminders, requestNativeNotificationPermission } from "@/lib/native-notifications"
 
 export default function SettingsPage() {
   const { toast } = useToast()
@@ -448,29 +449,51 @@ export default function SettingsPage() {
     }
   }
 
-  const handleNotificationToggle = (enabled: boolean) => {
-    if (enabled && "Notification" in window) {
-      Notification.requestPermission().then((permission) => {
-        if (permission === "granted") {
+  const handleNotificationToggle = async (enabled: boolean) => {
+    if (enabled) {
+      if (isNative) {
+        // On native iOS use @capacitor/local-notifications
+        const granted = await requestNativeNotificationPermission()
+        if (granted) {
           const newSettings = {
             ...settings,
             notifications: { ...settings.notifications, enabled: true },
           }
           updateSettings(newSettings)
+          await scheduleNativeMoodReminder(newSettings.notifications.frequency)
         } else {
           toast({
             title: "Notification permission denied",
-            description: "Please enable notifications in your browser settings to receive mood reminders.",
+            description: "Please enable notifications for Melodica in your device Settings.",
             variant: "destructive",
           })
         }
-      })
+      } else if ("Notification" in window) {
+        Notification.requestPermission().then((permission) => {
+          if (permission === "granted") {
+            const newSettings = {
+              ...settings,
+              notifications: { ...settings.notifications, enabled: true },
+            }
+            updateSettings(newSettings)
+          } else {
+            toast({
+              title: "Notification permission denied",
+              description: "Please enable notifications in your browser settings to receive mood reminders.",
+              variant: "destructive",
+            })
+          }
+        })
+      }
     } else {
       const newSettings = {
         ...settings,
         notifications: { ...settings.notifications, enabled },
       }
       updateSettings(newSettings)
+      if (isNative) {
+        await cancelNativeMoodReminders()
+      }
     }
   }
 
@@ -847,10 +870,16 @@ export default function SettingsPage() {
                   <Label className="text-base">Enable Notifications</Label>
                   <div className="text-sm text-gray-500 dark:text-gray-400">
                     Receive regular reminders to check in with your mood
-                    <span className="block text-xs text-yellow-500 mt-1">⚠️ Temporarily disabled</span>
+                    {!isNative && (
+                      <span className="block text-xs text-yellow-500 mt-1">⚠️ Web notifications temporarily disabled — use the iOS app for reminders</span>
+                    )}
                   </div>
                 </div>
-                <Switch checked={false} disabled onCheckedChange={() => {}} />
+                <Switch
+                  checked={isNative ? settings.notifications.enabled : false}
+                  disabled={!isNative}
+                  onCheckedChange={isNative ? handleNotificationToggle : () => {}}
+                />
               </div>
 
               {settings.notifications.enabled && (

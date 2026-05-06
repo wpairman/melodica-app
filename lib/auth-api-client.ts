@@ -8,6 +8,22 @@ import { signInWithEmailAndPassword, signOut } from "firebase/auth"
 import { auth } from "@/lib/firebase-config"
 import type { FirebaseUser } from "@/lib/firebase-users"
 
+/**
+ * On native iOS (Capacitor with iosScheme:'https'), the app is served from
+ * https://localhost with no port. Relative URLs like /.netlify/functions/…
+ * would resolve to https://localhost/… which doesn't exist.
+ * Use the absolute production URL instead.
+ */
+function getApiBase(): string {
+  if (typeof window === "undefined") return ""
+  const { hostname, port } = window.location
+  // Native iOS: hostname is localhost with no port (or port 443)
+  if (hostname === "localhost" && (port === "" || port === "443")) {
+    return "https://melodicaapp.com"
+  }
+  return ""
+}
+
 export type AuthApiPublicUser = {
   id: string
   name: string
@@ -42,7 +58,7 @@ export async function postEmailPasswordLogin(
     const cred = await signInWithEmailAndPassword(auth, email, password)
     const idToken = await cred.user.getIdToken()
 
-    const res = await fetch("/.netlify/functions/auth-login", {
+    const res = await fetch(`${getApiBase()}/.netlify/functions/auth-login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ idToken }),
@@ -78,7 +94,7 @@ export async function postProfileByIdToken(
   idToken: string
 ): Promise<{ success: true; user: AuthApiPublicUser } | { success: false; error: string }> {
   try {
-    const res = await fetch("/.netlify/functions/auth-profile", {
+    const res = await fetch(`${getApiBase()}/.netlify/functions/auth-profile`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ idToken }),

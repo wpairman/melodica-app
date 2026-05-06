@@ -16,11 +16,23 @@ if (!getApps().length) {
 const adminAuth = getAuth()
 const adminDb = getFirestore()
 
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Content-Type": "application/json",
+}
+
 export const handler: Handler = async (event) => {
+  // Handle CORS preflight
+  if (event.httpMethod === "OPTIONS") {
+    return { statusCode: 204, headers: CORS, body: "" }
+  }
+
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
-      headers: { "Content-Type": "application/json" },
+      headers: CORS,
       body: JSON.stringify({ error: "Method not allowed" }),
     }
   }
@@ -36,7 +48,7 @@ export const handler: Handler = async (event) => {
     if (!email || !password || !name) {
       return {
         statusCode: 400,
-        headers: { "Content-Type": "application/json" },
+        headers: CORS,
         body: JSON.stringify({ error: "Name, email, and password are required" }),
       }
     }
@@ -44,7 +56,7 @@ export const handler: Handler = async (event) => {
     if (password.length < 6) {
       return {
         statusCode: 400,
-        headers: { "Content-Type": "application/json" },
+        headers: CORS,
         body: JSON.stringify({ error: "Password must be at least 6 characters" }),
       }
     }
@@ -80,7 +92,7 @@ export const handler: Handler = async (event) => {
 
     return {
       statusCode: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: CORS,
       body: JSON.stringify({
         success: true,
         customToken,
@@ -97,14 +109,14 @@ export const handler: Handler = async (event) => {
     if (error.code === "auth/email-already-exists") {
       return {
         statusCode: 409,
-        headers: { "Content-Type": "application/json" },
+        headers: CORS,
         body: JSON.stringify({ error: "An account with this email already exists" }),
       }
     }
 
     return {
       statusCode: 500,
-      headers: { "Content-Type": "application/json" },
+      headers: CORS,
       body: JSON.stringify({ error: error.message || "Registration failed" }),
     }
   }

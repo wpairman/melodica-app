@@ -16,11 +16,23 @@ if (!getApps().length) {
 const adminAuth = getAuth()
 const adminDb = getFirestore()
 
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Content-Type": "application/json",
+}
+
 export const handler: Handler = async (event) => {
+  // Handle CORS preflight
+  if (event.httpMethod === "OPTIONS") {
+    return { statusCode: 204, headers: CORS, body: "" }
+  }
+
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
-      headers: { "Content-Type": "application/json" },
+      headers: CORS,
       body: JSON.stringify({ error: "Method not allowed" }),
     }
   }
@@ -32,7 +44,7 @@ export const handler: Handler = async (event) => {
     if (!idToken) {
       return {
         statusCode: 400,
-        headers: { "Content-Type": "application/json" },
+        headers: CORS,
         body: JSON.stringify({ error: "ID token is required" }),
       }
     }
@@ -47,7 +59,7 @@ export const handler: Handler = async (event) => {
     if (!docSnap.exists) {
       return {
         statusCode: 404,
-        headers: { "Content-Type": "application/json" },
+        headers: CORS,
         body: JSON.stringify({ error: "User profile not found" }),
       }
     }
@@ -56,7 +68,7 @@ export const handler: Handler = async (event) => {
 
     return {
       statusCode: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: CORS,
       body: JSON.stringify({
         success: true,
         user: {
@@ -79,7 +91,7 @@ export const handler: Handler = async (event) => {
     console.error("Auth login error:", error)
     return {
       statusCode: 401,
-      headers: { "Content-Type": "application/json" },
+      headers: CORS,
       body: JSON.stringify({ error: "Invalid or expired token" }),
     }
   }

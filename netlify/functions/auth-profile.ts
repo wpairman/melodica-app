@@ -1,11 +1,23 @@
 import type { Handler } from "@netlify/functions"
 import { loadProfileByIdToken } from "@/lib/server/auth-handlers"
 
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Content-Type": "application/json",
+}
+
 export const handler: Handler = async (event) => {
+  // Handle CORS preflight
+  if (event.httpMethod === "OPTIONS") {
+    return { statusCode: 204, headers: CORS, body: "" }
+  }
+
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
-      headers: { "Content-Type": "application/json" },
+      headers: CORS,
       body: JSON.stringify({ error: "Method not allowed" }),
     }
   }
@@ -18,14 +30,14 @@ export const handler: Handler = async (event) => {
     if (!result.success) {
       return {
         statusCode: result.status,
-        headers: { "Content-Type": "application/json" },
+        headers: CORS,
         body: JSON.stringify({ error: result.error }),
       }
     }
 
     return {
       statusCode: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: CORS,
       body: JSON.stringify({ success: true, user: result.user }),
     }
   } catch (error: unknown) {
@@ -33,7 +45,7 @@ export const handler: Handler = async (event) => {
     const message = error instanceof Error ? error.message : "Failed to load profile"
     return {
       statusCode: 401,
-      headers: { "Content-Type": "application/json" },
+      headers: CORS,
       body: JSON.stringify({ error: message }),
     }
   }

@@ -159,15 +159,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const firebaseAuth = auth
 
+    // Safety net: if Firebase doesn't respond within 8 seconds, show the app
+    // anyway using any locally saved session. Prevents infinite loading screen.
+    const safetyTimer = setTimeout(() => {
+      setIsLoading(false)
+      setIsInitialized(true)
+    }, 8000)
+
     const unsub = onAuthStateChanged(firebaseAuth, async (firebaseUser: FirebaseAuthUser | null) => {
       try {
         if (firebaseUser) {
           const idToken = await firebaseUser.getIdToken()
-          const res = await postProfileByIdToken(idToken)
+          // Timeout the profile fetch after 6 seconds so the app never hangs
+          const res = await Promise.race([
+            postProfileByIdToken(idToken),
+            new Promise<{ success: false; error: string }>((resolve) =>
+              setTimeout(() => resolve({ success: false, error: "timeout" }), 6000)
+            ),
+          ])
           if (res.success) {
             applySession(apiPublicUserToUser(res.user))
           } else {
-            await firebaseSignOut(firebaseAuth)
+            await firebaseSignOut(firebaseAuth).catch(() => {})
             await restoreLocalSession()
           }
         } else {
@@ -177,12 +190,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error("Auth state error:", e)
         await restoreLocalSession()
       } finally {
+        clearTimeout(safetyTimer)
         setIsLoading(false)
         setIsInitialized(true)
       }
     })
 
-    return () => unsub()
+    return () => {
+      unsub()
+      clearTimeout(safetyTimer)
+    }
   }, [applySession, restoreLocalSession])
 
   const loginWithPassword = useCallback<LoginWithCredentials>(

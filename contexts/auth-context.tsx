@@ -52,6 +52,7 @@ interface AuthContextType {
   login: LoginWithCredentials & LoginWithUser
   loginWithGoogle: () => Promise<LoginResult>
   logout: () => void
+  deleteAccount: () => Promise<{ success: boolean; error?: string }>
   isAuthenticated: boolean
   isLoading: boolean
 }
@@ -316,9 +317,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
+  const deleteAccount = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
+    try {
+      if (!auth || !auth.currentUser) {
+        return { success: false, error: "Not signed in" }
+      }
+
+      const idToken = await auth.currentUser.getIdToken()
+      const apiBase =
+        typeof window !== "undefined" &&
+        window.location.hostname === "localhost" &&
+        (window.location.port === "" || window.location.port === "443")
+          ? "https://melodicaapp.com"
+          : ""
+
+      const res = await fetch(`${apiBase}/.netlify/functions/delete-account`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken }),
+      })
+
+      const data = await res.json().catch(() => ({}))
+
+      if (!res.ok || !data.success) {
+        return { success: false, error: data.error || "Failed to delete account" }
+      }
+
+      // Clear local session after successful server-side deletion
+      setUser(null)
+      setIsAuthenticated(false)
+      if (typeof window !== "undefined") {
+        localStorage.clear()
+      }
+
+      return { success: true }
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "Failed to delete account"
+      return { success: false, error: message }
+    }
+  }, [])
+
   const contextValue = useMemo(
-    () => ({ user, login, loginWithGoogle, logout, isAuthenticated, isLoading }),
-    [user, login, loginWithGoogle, logout, isAuthenticated, isLoading]
+    () => ({ user, login, loginWithGoogle, logout, deleteAccount, isAuthenticated, isLoading }),
+    [user, login, loginWithGoogle, logout, deleteAccount, isAuthenticated, isLoading]
   )
 
   if (!isInitialized) {

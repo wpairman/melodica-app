@@ -1,27 +1,38 @@
 "use client"
 
 import Link from "next/link"
-import { Heart } from "lucide-react"
+import { Heart, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import PricingHeader from "@/components/pricing/pricing-header"
 import PricingTabs from "@/components/pricing/pricing-tabs"
 import { useIsNative } from "@/hooks/use-is-native"
 
 export default function PricingPage() {
-  const { isNative, isLoading } = useIsNative()
+  const { isNative } = useIsNative()
 
-  if (!isLoading && isNative) {
+  // On native iOS: show NO pricing details — just a button to open the website.
+  // Showing prices or plan details inside a native app violates guideline 3.1.1.
+  if (isNative) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-gray-800 p-6">
-        <Heart className="h-12 w-12 text-rose-500 mb-4" />
-        <h1 className="text-2xl font-bold text-white mb-2">Subscribe to Melodica</h1>
-        <p className="text-gray-300 text-center mb-6">
-          To view plans and subscribe, visit our website. Then log in here with your account.
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-gray-800 p-8">
+        <Heart className="h-14 w-14 text-rose-500 mb-6" />
+        <h1 className="text-2xl font-bold text-white mb-3 text-center">Subscribe to Melodica</h1>
+        <p className="text-gray-300 text-center mb-8 max-w-xs">
+          To view plans and subscribe, visit our website on your browser.
         </p>
-        <p className="text-teal-400 font-medium text-lg mb-8">melodica.app</p>
-        <Link href="/login">
-          <Button className="w-full bg-teal-600 hover:bg-teal-700">Already have an account? Log in</Button>
-        </Link>
+        <Button
+          className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-4 text-lg flex items-center gap-2"
+          onClick={() => window.open("https://melodicaapp.com", "_system")}
+        >
+          <ExternalLink className="h-5 w-5" />
+          Visit melodicaapp.com
+        </Button>
+        <p className="text-gray-500 text-sm mt-6 text-center">
+          Already subscribed?{" "}
+          <Link href="/login" className="text-teal-400 underline">
+            Log in here
+          </Link>
+        </p>
       </div>
     )
   }
@@ -37,7 +48,7 @@ export default function PricingPage() {
           <Link href="/login" className="text-sm font-medium hover:underline underline-offset-4 text-black">
             Login
           </Link>
-          <Link href="/pricing" className="text-sm font-medium hover:underline underline-offset-4 text-black">
+          <Link href="/register" className="text-sm font-medium hover:underline underline-offset-4 text-black">
             Register
           </Link>
         </nav>
@@ -48,7 +59,7 @@ export default function PricingPage() {
           <PricingTabs />
         </div>
       </main>
-      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full border-t items-center px-4 md:px-6 border-t">
+      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full border-t items-center px-4 md:px-6">
         <p className="text-xs text-black">© 2025 Melodica. All rights reserved.</p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
           <Link href="/terms" className="text-xs hover:underline underline-offset-4 text-black">

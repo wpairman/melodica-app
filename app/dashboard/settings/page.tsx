@@ -8,13 +8,16 @@ import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import Link from "next/link"
-import { Bell, Clock, Moon, Volume2, Palette, Eye, MapPin, Shield, Calendar, Music, Info, CreditCard, ArrowRight, Smartphone } from "lucide-react"
+import { Bell, Clock, Moon, Volume2, Palette, Eye, MapPin, Shield, Calendar, Music, Info, CreditCard, ArrowRight, Smartphone, Trash2 } from "lucide-react"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
 import { ColorCustomizationPanel } from "@/components/settings/color-customization-panel"
 import { AccountSync } from "@/components/account-sync"
 import { useToast } from "@/hooks/use-toast"
 import { useIsNative } from "@/hooks/use-is-native"
+import { useAuth } from "@/contexts/auth-context"
 import { useTheme } from "next-themes"
+import { useRouter } from "next/navigation"
+import { Input } from "@/components/ui/input"
 import { MenuButton } from "@/components/navigation-sidebar"
 import { AuthGuard } from "@/components/auth-guard"
 import SpotifyIntegration from "@/components/spotify-integration"
@@ -31,10 +34,15 @@ export default function SettingsPage() {
   const { toast } = useToast()
   const { theme, setTheme } = useTheme()
   const { isNative } = useIsNative()
+  const { deleteAccount } = useAuth()
+  const router = useRouter()
   const [userData, setUserData] = useState<any>(null)
   const [nativeNotificationsEnabled, setNativeNotificationsEnabled] = useState(false)
   const [nativeReminderHour, setNativeReminderHour] = useState(9) // default 9 AM
   const [nativeNotifPermission, setNativeNotifPermission] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState("")
+  const [isDeleting, setIsDeleting] = useState(false)
   const [settings, setSettings] = useState({
     notifications: {
       enabled: true,
@@ -639,7 +647,7 @@ export default function SettingsPage() {
                   )}
                   {isNative ? (
                     <p className="text-sm text-gray-400">
-                      To change your plan, visit <span className="text-teal-400">melodica.app</span>
+                      To change your plan, visit <a href="https://melodicaapp.com" className="text-teal-400 underline">melodicaapp.com</a>
                     </p>
                   ) : (
                     <Link href="/pricing">
@@ -1253,9 +1261,91 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </div>
+
+          {/* Delete Account */}
+          <Card className="border-red-200 bg-red-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-red-700">
+                <Trash2 className="h-5 w-5" />
+                Delete Account
+              </CardTitle>
+              <CardDescription className="text-red-600">
+                Permanently delete your account and all associated data. This cannot be undone.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="destructive"
+                onClick={() => setShowDeleteModal(true)}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                Delete My Account
+              </Button>
+            </CardContent>
+          </Card>
           </div>
         </div>
       </div>
+
+      {/* Delete Account Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="bg-red-100 p-2 rounded-full">
+                <Trash2 className="h-6 w-6 text-red-600" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900">Delete Account</h2>
+            </div>
+            <p className="text-gray-600 mb-2">
+              This will <strong>permanently delete</strong> your account, all mood data, journal entries, and profile information.
+            </p>
+            <p className="text-gray-600 mb-4">
+              <strong>This action cannot be undone.</strong>
+            </p>
+            <p className="text-sm text-gray-500 mb-2">Type <strong>DELETE</strong> to confirm:</p>
+            <Input
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder="Type DELETE to confirm"
+              className="mb-4 border-red-300 focus:border-red-500"
+            />
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => { setShowDeleteModal(false); setDeleteConfirmText("") }}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                className="flex-1 bg-red-600 hover:bg-red-700"
+                disabled={deleteConfirmText !== "DELETE" || isDeleting}
+                onClick={async () => {
+                  setIsDeleting(true)
+                  const result = await deleteAccount()
+                  setIsDeleting(false)
+                  if (result.success) {
+                    setShowDeleteModal(false)
+                    router.push("/")
+                  } else {
+                    toast({
+                      title: "Failed to delete account",
+                      description: result.error || "Please try again.",
+                      variant: "destructive",
+                    })
+                  }
+                }}
+              >
+                {isDeleting ? "Deleting..." : "Permanently Delete"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </DashboardLayout>
     </AuthGuard>
   )

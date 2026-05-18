@@ -20,8 +20,10 @@ import {
 } from "@/components/ui/alert-dialog"
 import { CreditCard, Calendar, CheckCircle, AlertCircle, ArrowUpRight } from "lucide-react"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
+import { useIsNative } from "@/hooks/use-is-native"
 
 export default function ManageSubscriptionPage() {
+  const { isNative } = useIsNative()
   const [userData, setUserData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
@@ -83,6 +85,22 @@ export default function ManageSubscriptionPage() {
       <DashboardLayout>
         <div className="flex items-center justify-center h-64">
           <p>Please log in to view your subscription.</p>
+        </div>
+      </DashboardLayout>
+    )
+  }
+
+  if (isNative) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center h-64 gap-4">
+          <p className="text-white text-lg">Manage your subscription at our website.</p>
+          <Button onClick={() => window.open("https://melodicaapp.com", "_system")} className="bg-teal-600 hover:bg-teal-700">
+            Visit melodicaapp.com
+          </Button>
+          <Link href="/dashboard">
+            <Button variant="outline" className="border-gray-600 text-gray-300">Back to Dashboard</Button>
+          </Link>
         </div>
       </DashboardLayout>
     )

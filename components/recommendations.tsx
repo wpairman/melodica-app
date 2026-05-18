@@ -11,6 +11,7 @@ import { saveInteraction } from "@/lib/interactions"
 import { useToast } from "@/hooks/use-toast"
 import { getUserPlan, getPlanLimits, type PlanType } from "@/lib/plan-features"
 import { UpgradePrompt } from "@/components/upgrade-prompt"
+import { useIsNative } from "@/hooks/use-is-native"
 
 interface RecommendationsProps {
   userData: {
@@ -191,6 +192,7 @@ export default function Recommendations({ userData }: RecommendationsProps) {
   const [currentMood, setCurrentMood] = useState<"low" | "neutral" | "high">("neutral")
   const [moodHistory, setMoodHistory] = useState<Array<{ mood: number; timestamp: Date }>>([])
   const { toast } = useToast()
+  const { isNative } = useIsNative()
   const [ratingOpen, setRatingOpen] = useState(false)
   const [ratingTarget, setRatingTarget] = useState<RatingTarget | null>(null)
   const [userPlan, setUserPlan] = useState<PlanType>("free")
@@ -241,14 +243,14 @@ export default function Recommendations({ userData }: RecommendationsProps) {
     const dailyRecs = getDailyRecommendations(currentMood)
     const baseRecommendations = dailyRecs.music
     const limits = getPlanLimits(userPlan)
-    
-    // For free plans, limit recommendations
-    const recommendations = userPlan === 'free' 
+
+    // For free plans, limit recommendations (skip limit on native iOS)
+    const recommendations = (userPlan === 'free' && !isNative)
       ? baseRecommendations.slice(0, limits.maxMusicRecommendations)
       : baseRecommendations
-    
+
     let personalizedRecs = recommendations
-    if (userPlan !== 'free') {
+    if (userPlan !== 'free' || isNative) {
       const favoriteArtists = (userData.favoriteArtists || "").split(',').map((a: string) => a.trim()).filter(Boolean)
       const musicGenres = (userData.musicGenres || "").split(',').map((g: string) => g.trim().toLowerCase()).filter(Boolean)
       const hasMentalHealthConsideration = userData.mentalIllnesses && userData.mentalIllnesses !== "No"
@@ -294,7 +296,7 @@ export default function Recommendations({ userData }: RecommendationsProps) {
     const hasMentalHealthConsideration = userData.mentalIllnesses && userData.mentalIllnesses !== "No"
     const calmingActivities = ["yoga", "meditation", "deep breathing", "mindfulness", "stretching", "gratitude journaling", "light stretching"]
 
-    if (userPlan !== 'free') {
+    if (userPlan !== 'free' || isNative) {
       const personalizedRecs = baseRecommendations.map((rec: { name: string; description: string; duration: string }) => {
         let score = 0
         if (favoriteActivities.length > 0) {
@@ -316,7 +318,7 @@ export default function Recommendations({ userData }: RecommendationsProps) {
   }
 
   const handleFeatureAccess = (featureName: string, requiredPlanType: PlanType) => {
-    if (userPlan === 'free' && requiredPlanType !== 'free') {
+    if (!isNative && userPlan === 'free' && requiredPlanType !== 'free') {
       setUpgradeFeature(featureName)
       setRequiredPlan(requiredPlanType)
       setShowUpgrade(true)

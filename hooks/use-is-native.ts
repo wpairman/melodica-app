@@ -2,32 +2,48 @@
 
 import { useState, useEffect } from "react"
 
-// Synchronously detect native platform on first render to avoid flash.
-// Capacitor sets window.Capacitor before any JS runs in a native WebView,
-// so we can check it synchronously without waiting for an async import.
+// Detect native platform synchronously using multiple reliable signals.
+// capacitor.config.ts sets iosScheme: 'https', so the app is served from
+// https://localhost (no port) on native iOS — never from a real domain.
 function detectNativeSync(): boolean {
   if (typeof window === "undefined") return false
   try {
-    // @ts-ignore – Capacitor injects this global in the native WebView
-    return !!(window.Capacitor && window.Capacitor.isNativePlatform())
+    // Primary: Capacitor global injected by native bridge before any JS runs
+    const cap = (window as any).Capacitor
+    if (cap && typeof cap.isNativePlatform === "function") {
+      return cap.isNativePlatform()
+    }
+    // Fallback: with iosScheme: 'https', native iOS serves from https://localhost (no port).
+    // Production web is always a real domain. Local dev uses a port (e.g. :3000).
+    // So hostname=localhost + no port = definitively native.
+    if (
+      window.location.hostname === "localhost" &&
+      (window.location.port === "" || window.location.port === "443")
+    ) {
+      return true
+    }
   } catch {
     return false
   }
+  return false
 }
 
-/**
- * Returns { isNative, isLoading }.
- *
- * The synchronous check makes isLoading start as false on native platforms
- * so that callers never render a blank loading state in the Capacitor WebView,
- * which previously caused the iPad flash-back-to-homepage issue (2.1a).
- */
 export function useIsNative(): { isNative: boolean; isLoading: boolean } {
-  // Initialize synchronously so the very first render already knows the platform.
-  const [isNative] = useState<boolean>(() => detectNativeSync())
-  // isLoading is always false because we detect synchronously.
-  // Kept in the return value for backward compatibility with existing callers.
-  const [isLoading] = useState(false)
+  const [isNative, setIsNative] = useState<boolean>(() => detectNativeSync())
+  const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    // Confirm via the full Capacitor module after hydration
+    import("@capacitor/core")
+      .then(({ Capacitor }) => {
+        setIsNative(Capacitor.isNativePlatform())
+      })
+      .catch(() => {
+        // If module fails, keep the sync result but also try hostname check
+        setIsNative(detectNativeSync())
+      })
+      .finally(() => setIsLoading(false))
+  }, [])
 
   return { isNative, isLoading }
 }

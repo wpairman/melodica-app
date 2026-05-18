@@ -14,6 +14,7 @@ import {
 import { Crown, Sparkles, Music, TrendingUp, Activity } from "lucide-react"
 import Link from "next/link"
 import type { PlanType } from "@/lib/plan-features"
+import { useIsNative } from "@/hooks/use-is-native"
 
 interface UpgradePromptProps {
   feature: string
@@ -22,14 +23,18 @@ interface UpgradePromptProps {
   onClose?: () => void
 }
 
-export function UpgradePrompt({ 
-  feature, 
-  requiredPlan, 
+export function UpgradePrompt({
+  feature,
+  requiredPlan,
   currentPlan,
-  onClose 
+  onClose
 }: UpgradePromptProps) {
   const router = useRouter()
+  const { isNative } = useIsNative()
   const [open, setOpen] = useState(true)
+
+  // On native iOS, never show upgrade prompts
+  if (isNative) return null
 
   const handleUpgrade = () => {
     setOpen(false)

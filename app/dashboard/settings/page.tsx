@@ -604,65 +604,61 @@ export default function SettingsPage() {
           <div className="flex flex-col gap-6">
 
         <div className="grid gap-6">
-          {/* Subscription & Plan */}
-          <Card className="bg-gray-800 border-gray-700">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <CreditCard className="h-5 w-5" />
-                Subscription & Plan
-              </CardTitle>
-              <CardDescription className="text-gray-300">
-                View your current plan and change or upgrade your subscription
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {userData ? (
-                <>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-400">Current plan</p>
-                      <p className="text-lg font-semibold text-white">
-                        {userData.subscription?.plan || "Select plan"}
-                      </p>
+          {/* Subscription & Plan — hidden on native iOS */}
+          {!isNative && (
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <CreditCard className="h-5 w-5" />
+                  Subscription & Plan
+                </CardTitle>
+                <CardDescription className="text-gray-300">
+                  View your current plan and change or upgrade your subscription
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {userData ? (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-400">Current plan</p>
+                        <p className="text-lg font-semibold text-white">
+                          {userData.subscription?.plan || "Select plan"}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-gray-400">Status</p>
+                        <p className="text-sm text-white">
+                          {userData.subscription?.isLifetime
+                            ? "Lifetime Access"
+                            : userData.subscription?.status === "active"
+                              ? "Active"
+                              : userData.subscription?.status === "canceled"
+                                ? "Canceled"
+                                : "Active"}
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-400">Status</p>
-                      <p className="text-sm text-white">
-                        {userData.subscription?.isLifetime
-                          ? "Lifetime Access"
-                          : userData.subscription?.status === "active"
-                            ? "Active"
-                            : userData.subscription?.status === "canceled"
-                              ? "Canceled"
-                              : "Active"}
+                    {userData.subscription?.currentPeriodEnd && !userData.subscription?.isLifetime && (
+                      <p className="text-sm text-gray-400">
+                        {userData.subscription?.status === "canceled"
+                          ? `Access until ${new Date(userData.subscription.currentPeriodEnd).toLocaleDateString()}`
+                          : `Current period ends ${new Date(userData.subscription.currentPeriodEnd).toLocaleDateString()}`}
                       </p>
-                    </div>
-                  </div>
-                  {userData.subscription?.currentPeriodEnd && !userData.subscription?.isLifetime && (
-                    <p className="text-sm text-gray-400">
-                      {userData.subscription?.status === "canceled"
-                        ? `Access until ${new Date(userData.subscription.currentPeriodEnd).toLocaleDateString()}`
-                        : `Current period ends ${new Date(userData.subscription.currentPeriodEnd).toLocaleDateString()}`}
-                    </p>
-                  )}
-                  {isNative ? (
-                    <p className="text-sm text-gray-400">
-                      To change your plan, visit <a href="https://melodicaapp.com" className="text-teal-400 underline">melodicaapp.com</a>
-                    </p>
-                  ) : (
+                    )}
                     <Link href="/pricing">
                       <Button className="w-full sm:w-auto">
                         Change plan
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
                     </Link>
-                  )}
-                </>
-              ) : (
-                <p className="text-gray-400">Loading...</p>
-              )}
-            </CardContent>
-          </Card>
+                  </>
+                ) : (
+                  <p className="text-gray-400">Loading...</p>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Calendar Settings */}
           <Card className="bg-gray-800 border-gray-700">

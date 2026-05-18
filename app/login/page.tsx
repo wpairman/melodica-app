@@ -208,9 +208,19 @@ export default function Login() {
           <CardFooter className="flex flex-col space-y-2">
             <div className="text-sm text-center text-gray-300">
               Don&apos;t have an account?{" "}
-              <Link href="/pricing" className="text-teal-400 hover:underline">
-                Sign up
-              </Link>
+              {isNative ? (
+                <button
+                  type="button"
+                  onClick={() => window.open("https://melodicaapp.com", "_system")}
+                  className="text-teal-400 hover:underline"
+                >
+                  Sign up
+                </button>
+              ) : (
+                <Link href="/pricing" className="text-teal-400 hover:underline">
+                  Sign up
+                </Link>
+              )}
             </div>
           </CardFooter>
         </Card>

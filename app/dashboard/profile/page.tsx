@@ -14,6 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { Camera, Lock, User, Heart, Music, Activity, Save } from "lucide-react"
+import { useIsNative } from "@/hooks/use-is-native"
 import { useToast } from "@/hooks/use-toast"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
 import { MenuButton } from "@/components/navigation-sidebar"
@@ -22,6 +23,7 @@ import { saveUserToFirebase } from "@/lib/firebase-users"
 
 export default function ProfilePage() {
   const { toast } = useToast()
+  const { isNative } = useIsNative()
   const [userData, setUserData] = useState<any>(null)
   const [profileImage, setProfileImage] = useState<string>("")
   const [formData, setFormData] = useState({
@@ -527,15 +529,17 @@ export default function ProfilePage() {
                     <Label className="text-sm text-gray-400">Account Status</Label>
                     <Badge className="bg-green-100 text-green-800">Active</Badge>
                   </div>
-                  <div>
-                    <Label className="text-sm text-gray-400">Subscription</Label>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">{userData.subscription?.plan || "Select plan"}</Badge>
-                      <Link href="/dashboard/settings" className="text-sm text-teal-600 hover:underline">
-                        Change plan
-                      </Link>
+                  {!isNative && (
+                    <div>
+                      <Label className="text-sm text-gray-400">Subscription</Label>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">{userData.subscription?.plan || "Select plan"}</Badge>
+                        <Link href="/dashboard/settings" className="text-sm text-teal-600 hover:underline">
+                          Change plan
+                        </Link>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

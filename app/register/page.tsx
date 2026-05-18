@@ -132,7 +132,8 @@ export default function RegisterPage() {
     try {
       const normalizedEmail = form.email.toLowerCase().trim()
 
-      const response = await fetch("/.netlify/functions/auth-register", {
+      const apiBase = typeof window !== "undefined" && window.location.hostname === "localhost" && (window.location.port === "" || window.location.port === "443") ? "https://melodicaapp.com" : ""
+      const response = await fetch(`${apiBase}/.netlify/functions/auth-register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -210,7 +211,7 @@ export default function RegisterPage() {
         <p className="text-gray-300 text-center mb-6">
           Sign up and subscribe at our website, then log in here to access your account.
         </p>
-        <p className="text-teal-400 font-medium text-lg mb-8">melodica.app</p>
+        <a href="https://melodicaapp.com" className="text-teal-400 font-medium text-lg mb-8 underline">melodicaapp.com</a>
         <Link href="/login">
           <Button className="w-full bg-teal-600 hover:bg-teal-700">Already have an account? Log in</Button>
         </Link>

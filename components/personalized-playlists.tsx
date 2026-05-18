@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Music, Plus, Trash2, ExternalLink, Share2, Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { getUserPlan, getPlanLimits } from "@/lib/plan-features"
+import { useIsNative } from "@/hooks/use-is-native"
 import {
   Dialog,
   DialogContent,
@@ -42,6 +43,7 @@ interface PersonalizedPlaylistsProps {
 
 export default function PersonalizedPlaylists({ userData, currentMood = 5 }: PersonalizedPlaylistsProps) {
   const { toast } = useToast()
+  const { isNative } = useIsNative()
   const [playlists, setPlaylists] = useState<Playlist[]>([])
   const [isCreating, setIsCreating] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
@@ -145,16 +147,19 @@ export default function PersonalizedPlaylists({ userData, currentMood = 5 }: Per
       return
     }
 
-    const limits = getPlanLimits(userPlan)
-    if (limits.maxPlaylistsPerWeek !== Infinity) {
-      const weeklyCount = getWeeklyPlaylistCount()
-      if (weeklyCount >= limits.maxPlaylistsPerWeek) {
-        toast({
-          title: "Weekly Playlist Limit Reached",
-          description: `Your ${userPlan} plan allows ${limits.maxPlaylistsPerWeek} playlist${limits.maxPlaylistsPerWeek === 1 ? "" : "s"} per week. Upgrade to Ultimate for unlimited playlists.`,
-          variant: "destructive",
-        })
-        return
+    // On native iOS, skip all plan-based limits
+    if (!isNative) {
+      const limits = getPlanLimits(userPlan)
+      if (limits.maxPlaylistsPerWeek !== Infinity) {
+        const weeklyCount = getWeeklyPlaylistCount()
+        if (weeklyCount >= limits.maxPlaylistsPerWeek) {
+          toast({
+            title: "Weekly Playlist Limit Reached",
+            description: `Your ${userPlan} plan allows ${limits.maxPlaylistsPerWeek} playlist${limits.maxPlaylistsPerWeek === 1 ? "" : "s"} per week. Upgrade to Ultimate for unlimited playlists.`,
+            variant: "destructive",
+          })
+          return
+        }
       }
     }
 

@@ -11,6 +11,7 @@ import { Activity, Plus, Trash2, CheckCircle2, Clock, Calendar } from "lucide-re
 import { useToast } from "@/hooks/use-toast"
 import { getUserPlan, hasFeatureAccess } from "@/lib/plan-features"
 import { UpgradePrompt } from "@/components/upgrade-prompt"
+import { useIsNative } from "@/hooks/use-is-native"
 import {
   Dialog,
   DialogContent,
@@ -38,6 +39,7 @@ interface ActivityProgram {
 
 export default function CustomActivityPrograms() {
   const { toast } = useToast()
+  const { isNative } = useIsNative()
   const [programs, setPrograms] = useState<ActivityProgram[]>([])
   const [isCreating, setIsCreating] = useState(false)
   const [userPlan, setUserPlan] = useState<string>("free")
@@ -81,7 +83,7 @@ export default function CustomActivityPrograms() {
   }
 
   const handleCreateProgram = () => {
-    if (!hasFeatureAccess(userPlan as any, "customActivityPrograms")) {
+    if (!isNative && !hasFeatureAccess(userPlan as any, "customActivityPrograms")) {
       setShowUpgrade(true)
       return
     }
@@ -199,7 +201,7 @@ export default function CustomActivityPrograms() {
     })
   }
 
-  if (!hasFeatureAccess(userPlan as any, "customActivityPrograms")) {
+  if (!isNative && !hasFeatureAccess(userPlan as any, "customActivityPrograms")) {
     return (
       <>
         <Card className="bg-gray-800 border-gray-700">

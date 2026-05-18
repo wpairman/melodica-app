@@ -461,8 +461,8 @@ export default function PeriodTrackerPage() {
     )
   }
 
-  // Period tracking is Ultimate-only
-  if (userPlan !== 'ultimate' && userPlan !== 'lifetime') {
+  // Period tracking is Ultimate-only (skip on native iOS — show to all logged-in female users)
+  if (userPlan !== 'ultimate' && userPlan !== 'lifetime' && !isNative) {
     return (
       <AuthGuard>
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 p-4">
@@ -514,7 +514,7 @@ export default function PeriodTrackerPage() {
                 </Link>
               ) : (
                 <p className="text-sm text-center text-purple-700">
-                  Upgrade to Ultimate at <span className="text-teal-600 font-medium">melodica.app</span>
+                  Upgrade to Ultimate at <a href="https://melodicaapp.com" className="text-teal-600 font-medium underline">melodicaapp.com</a>
                 </p>
               )}
             </CardContent>

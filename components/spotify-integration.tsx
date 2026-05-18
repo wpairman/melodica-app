@@ -8,9 +8,11 @@ import { Music, ExternalLink, CheckCircle2, XCircle, Loader2 } from "lucide-reac
 import { useToast } from "@/hooks/use-toast"
 import { getUserPlan, hasFeatureAccess } from "@/lib/plan-features"
 import { UpgradePrompt } from "@/components/upgrade-prompt"
+import { useIsNative } from "@/hooks/use-is-native"
 
 export default function SpotifyIntegration() {
   const { toast } = useToast()
+  const { isNative } = useIsNative()
   const [isConnected, setIsConnected] = useState(false)
   const [isConnecting, setIsConnecting] = useState(false)
   const [userPlan, setUserPlan] = useState<string>("free")
@@ -40,7 +42,7 @@ export default function SpotifyIntegration() {
   }, [])
 
   const handleConnectSpotify = async () => {
-    if (!hasFeatureAccess(userPlan as any, "spotifySongPreviews") && !hasFeatureAccess(userPlan as any, "fullSpotifyIntegration")) {
+    if (!isNative && !hasFeatureAccess(userPlan as any, "spotifySongPreviews") && !hasFeatureAccess(userPlan as any, "fullSpotifyIntegration")) {
       setShowUpgrade(true)
       return
     }
@@ -112,7 +114,7 @@ export default function SpotifyIntegration() {
     })
   }
 
-  if (!hasFeatureAccess(userPlan as any, "spotifySongPreviews") && !hasFeatureAccess(userPlan as any, "fullSpotifyIntegration")) {
+  if (!isNative && !hasFeatureAccess(userPlan as any, "spotifySongPreviews") && !hasFeatureAccess(userPlan as any, "fullSpotifyIntegration")) {
     return (
       <>
         <Card className="bg-gray-800 border-gray-700">

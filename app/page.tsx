@@ -10,16 +10,26 @@ import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
 
-// Detect native platform synchronously before first render to avoid flash.
-// Capacitor injects window.Capacitor in the WebView before JS runs.
-function isNativePlatform(): boolean {
+// Synchronous check used only for splash/mount initialisation.
+function detectNativeSync(): boolean {
   if (typeof window === "undefined") return false
   try {
-    // @ts-ignore
-    return !!(window.Capacitor && window.Capacitor.isNativePlatform())
+    const cap = (window as any).Capacitor
+    if (cap && typeof cap.isNativePlatform === "function") {
+      return cap.isNativePlatform()
+    }
+    // iosScheme:'https' → native iOS served from https://localhost (no port).
+    // Local dev uses a port (e.g. :3000); production web uses a real domain.
+    if (
+      window.location.hostname === "localhost" &&
+      (window.location.port === "" || window.location.port === "443")
+    ) {
+      return true
+    }
   } catch {
     return false
   }
+  return false
 }
 
 export default function Home() {
@@ -28,13 +38,27 @@ export default function Home() {
   const { isAuthenticated, user, logout } = useAuth()
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
-  // On native platforms Capacitor already shows a splash screen, so skip the
-  // JS-level splash entirely to avoid a double-flash on iPad/iPhone.
-  const isNative = isNativePlatform()
-  const [showSplash, setShowSplash] = useState(!isNative)
-  // isMounted prevents hydration mismatches on web. In native WebViews there is
-  // no SSR, so we can treat as mounted immediately.
-  const [isMounted, setIsMounted] = useState(isNative)
+
+  // For content gating (hide pricing/payment on native):
+  // Default to TRUE so pricing is NEVER shown until we confirm it's a real web browser.
+  // This prevents any flash of pricing on Apple's test devices.
+  const [isNative, setIsNative] = useState(true)
+
+  useEffect(() => {
+    // Try the full Capacitor module first
+    import("@capacitor/core")
+      .then(({ Capacitor }) => {
+        setIsNative(Capacitor.isNativePlatform())
+      })
+      .catch(() => {
+        setIsNative(detectNativeSync())
+      })
+  }, [])
+
+  // For splash/mount behaviour use the sync check so first render is correct.
+  const nativeSync = detectNativeSync()
+  const [showSplash, setShowSplash] = useState(!nativeSync)
+  const [isMounted, setIsMounted] = useState(nativeSync)
 
   useEffect(() => {
     setIsMounted(true)
@@ -155,63 +179,74 @@ export default function Home() {
                       <Button size="lg" className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-6 text-lg" asChild>
                         <Link href="/dashboard">Go to dashboard<ArrowRight className="ml-2 h-5 w-5" /></Link>
                       </Button>
-                      <Button size="lg" variant="outline" className="px-8 py-6 text-lg border-2" onClick={handleHeroViewPricingClick}>View Plans</Button>
+                      {!isNative && <Button size="lg" variant="outline" className="px-8 py-6 text-lg border-2" onClick={handleHeroViewPricingClick}>View Plans</Button>}
                     </>
                   ) : (
                     <>
-                      <Button size="lg" className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-6 text-lg" onClick={handleHeroStartFreeClick}>
-                        Start Free Trial<ArrowRight className="ml-2 h-5 w-5" />
-                      </Button>
-                      <Button size="lg" variant="outline" className="px-8 py-6 text-lg border-2" onClick={handleHeroViewPricingClick}>View Plans</Button>
+                      {!isNative && (
+                        <Button size="lg" className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-6 text-lg" onClick={handleHeroStartFreeClick}>
+                          Start Free Trial<ArrowRight className="ml-2 h-5 w-5" />
+                        </Button>
+                      )}
+                      {!isNative && <Button size="lg" variant="outline" className="px-8 py-6 text-lg border-2" onClick={handleHeroViewPricingClick}>View Plans</Button>}
+                      {isNative && (
+                        <Button size="lg" className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-6 text-lg" asChild>
+                          <Link href="/login">Log In<ArrowRight className="ml-2 h-5 w-5" /></Link>
+                        </Button>
+                      )}
                     </>
                   )}
                 </div>
               )}
 
-              <div className="pt-6">
-                <p className="text-sm text-gray-500 mb-4">Now Available on iOS</p>
-                <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
-                  <Button variant="outline" size="lg" className="border-2 border-gray-300 hover:border-gray-400 bg-white px-6 py-4" disabled>
-                    <Apple className="h-6 w-6 mr-2" />
-                    <div className="text-left"><div className="text-xs text-gray-500">Download on the</div><div className="text-sm font-semibold">App Store</div></div>
-                  </Button>
+              {!isNative && (
+                <div className="pt-6">
+                  <p className="text-sm text-gray-500 mb-4">Now Available on iOS</p>
+                  <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
+                    <Button variant="outline" size="lg" className="border-2 border-gray-300 hover:border-gray-400 bg-white px-6 py-4" disabled>
+                      <Apple className="h-6 w-6 mr-2" />
+                      <div className="text-left"><div className="text-xs text-gray-500">Download on the</div><div className="text-sm font-semibold">App Store</div></div>
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">Available on iPhone and iPad</p>
                 </div>
-                <p className="text-xs text-gray-400 mt-2">Available on iPhone and iPad</p>
-              </div>
+              )}
 
-              <div className="mt-10 pt-10 border-t border-gray-200 w-full max-w-2xl">
-                <div className="flex items-center gap-2 justify-center mb-4">
-                  <Smartphone className="h-5 w-5 text-teal-600" />
-                  <h3 className="text-lg font-semibold text-gray-900">Use Melodica Like an App</h3>
-                </div>
-                <p className="text-sm text-gray-600 mb-6 text-center">Add this website to your home screen for quick access — it works like a native app.</p>
-                <div className="grid gap-4 sm:grid-cols-2 text-left">
-                  <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-                    <div className="flex items-center gap-2 mb-2"><Apple className="h-5 w-5 text-gray-700" /><span className="font-medium text-gray-900">iPhone / iPad</span></div>
-                    <ol className="text-sm text-gray-600 space-y-1 list-decimal list-inside">
-                      <li>Open in <strong>Safari</strong></li>
-                      <li>Tap the Share button (square with arrow)</li>
-                      <li>Scroll and tap <strong>Add to Home Screen</strong></li>
-                      <li>Tap <strong>Add</strong></li>
-                    </ol>
+              {!isNative && (
+                <div className="mt-10 pt-10 border-t border-gray-200 w-full max-w-2xl">
+                  <div className="flex items-center gap-2 justify-center mb-4">
+                    <Smartphone className="h-5 w-5 text-teal-600" />
+                    <h3 className="text-lg font-semibold text-gray-900">Use Melodica Like an App</h3>
                   </div>
-                  <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-                    <div className="flex items-center gap-2 mb-2"><Smartphone className="h-5 w-5 text-gray-700" /><span className="font-medium text-gray-900">Desktop</span></div>
-                    <ol className="text-sm text-gray-600 space-y-1 list-decimal list-inside">
-                      <li>Open in <strong>Chrome</strong> or <strong>Edge</strong></li>
-                      <li>Click the install icon in the address bar</li>
-                      <li>Or: Menu → <strong>Install Melodica</strong></li>
-                      <li>Click <strong>Install</strong></li>
-                    </ol>
+                  <p className="text-sm text-gray-600 mb-6 text-center">Add this website to your home screen for quick access — it works like a native app.</p>
+                  <div className="grid gap-4 sm:grid-cols-2 text-left">
+                    <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+                      <div className="flex items-center gap-2 mb-2"><Apple className="h-5 w-5 text-gray-700" /><span className="font-medium text-gray-900">iPhone / iPad</span></div>
+                      <ol className="text-sm text-gray-600 space-y-1 list-decimal list-inside">
+                        <li>Open in <strong>Safari</strong></li>
+                        <li>Tap the Share button (square with arrow)</li>
+                        <li>Scroll and tap <strong>Add to Home Screen</strong></li>
+                        <li>Tap <strong>Add</strong></li>
+                      </ol>
+                    </div>
+                    <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+                      <div className="flex items-center gap-2 mb-2"><Smartphone className="h-5 w-5 text-gray-700" /><span className="font-medium text-gray-900">Desktop</span></div>
+                      <ol className="text-sm text-gray-600 space-y-1 list-decimal list-inside">
+                        <li>Open in <strong>Chrome</strong> or <strong>Edge</strong></li>
+                        <li>Click the install icon in the address bar</li>
+                        <li>Or: Menu → <strong>Install Melodica</strong></li>
+                        <li>Click <strong>Install</strong></li>
+                      </ol>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </section>
 
-        {/* Choose Your Plan */}
-        <section className="w-full py-16 bg-gray-50">
+        {/* Choose Your Plan — web only */}
+        {!isNative && <section className="w-full py-16 bg-gray-50">
           <div className="container px-4 md:px-6 mx-auto max-w-6xl">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">Choose Your Plan</h2>
@@ -253,7 +288,7 @@ export default function Home() {
               <Link href="/pricing" className="text-teal-600 hover:underline">Compare all plans</Link>
             </p>
           </div>
-        </section>
+        </section>}
 
         {/* App Screenshots */}
         <section className="w-full py-16 bg-white">
@@ -373,8 +408,8 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Pricing Preview */}
-        <section className="w-full py-16 bg-white">
+        {/* Pricing Preview — web only */}
+        {!isNative && <section className="w-full py-16 bg-white">
           <div className="container px-4 md:px-6 mx-auto max-w-4xl">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">Simple, Transparent Pricing</h2>
@@ -421,42 +456,46 @@ export default function Home() {
               <Link href="/pricing" className="text-teal-600 hover:text-teal-700 font-medium">View all plans including yearly & lifetime options →</Link>
             </div>
           </div>
-        </section>
+        </section>}
 
-        {/* Email Signup */}
-        <section className="w-full py-16 bg-gradient-to-br from-teal-50 to-blue-50">
-          <div className="container px-4 md:px-6 mx-auto max-w-2xl">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Join the Beta Waitlist</h2>
-              <p className="text-lg text-gray-600">Be the first to know about new Melodica features and updates. Get exclusive early access and special pricing.</p>
-            </div>
-            <Card className="border-gray-200 shadow-lg bg-white">
-              <CardContent className="pt-6">
-                <form onSubmit={handleEmailSignup} className="flex flex-col sm:flex-row gap-3">
-                  <Input type="email" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} className="flex-1" required />
-                  <Button type="submit" disabled={loading} className="bg-teal-600 hover:bg-teal-700 text-white">{loading ? "Joining..." : "Get Notified"}</Button>
-                </form>
-                <p className="text-xs text-gray-500 mt-3 text-center">We'll never spam you. Unsubscribe anytime.</p>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-
-        {/* Final CTA */}
-        <section className="w-full py-16 bg-white">
-          <div className="container px-4 md:px-6 mx-auto max-w-4xl text-center">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Ready to Start Your Mental Wellness Journey?</h2>
-            <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">Join thousands of users who are taking control of their mental health with AI-powered music therapy.</p>
-            {isMounted && (
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-6 text-lg" onClick={handleFinalCTASignupClick}>
-                  Start Your Free Trial<ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-                <Button size="lg" variant="outline" className="px-8 py-6 text-lg border-2" onClick={handleFinalCTAPricingClick}>Compare Plans</Button>
+        {/* Email Signup — web only */}
+        {!isNative && (
+          <section className="w-full py-16 bg-gradient-to-br from-teal-50 to-blue-50">
+            <div className="container px-4 md:px-6 mx-auto max-w-2xl">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">Join the Beta Waitlist</h2>
+                <p className="text-lg text-gray-600">Be the first to know about new Melodica features and updates. Get exclusive early access and special pricing.</p>
               </div>
-            )}
-          </div>
-        </section>
+              <Card className="border-gray-200 shadow-lg bg-white">
+                <CardContent className="pt-6">
+                  <form onSubmit={handleEmailSignup} className="flex flex-col sm:flex-row gap-3">
+                    <Input type="email" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} className="flex-1" required />
+                    <Button type="submit" disabled={loading} className="bg-teal-600 hover:bg-teal-700 text-white">{loading ? "Joining..." : "Get Notified"}</Button>
+                  </form>
+                  <p className="text-xs text-gray-500 mt-3 text-center">We'll never spam you. Unsubscribe anytime.</p>
+                </CardContent>
+              </Card>
+            </div>
+          </section>
+        )}
+
+        {/* Final CTA — web only */}
+        {!isNative && (
+          <section className="w-full py-16 bg-white">
+            <div className="container px-4 md:px-6 mx-auto max-w-4xl text-center">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Ready to Start Your Mental Wellness Journey?</h2>
+              <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">Join thousands of users who are taking control of their mental health with AI-powered music therapy.</p>
+              {isMounted && (
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Button size="lg" className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-6 text-lg" onClick={handleFinalCTASignupClick}>
+                    Start Your Free Trial<ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                  <Button size="lg" variant="outline" className="px-8 py-6 text-lg border-2" onClick={handleFinalCTAPricingClick}>Compare Plans</Button>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
       </main>
 
       <footer className="flex flex-col gap-4 sm:flex-row py-8 w-full shrink-0 items-center px-4 md:px-6 border-t border-gray-200 bg-gray-50">

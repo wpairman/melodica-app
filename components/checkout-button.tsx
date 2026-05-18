@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createStripeCheckoutSession } from "@/lib/api-utils";
+import { useIsNative } from "@/hooks/use-is-native";
 
 type CheckoutButtonProps = {
   plan: "premium" | "ultimate";
@@ -13,10 +14,17 @@ type CheckoutButtonProps = {
 const CheckoutButton = ({ plan, interval, className, children }: CheckoutButtonProps) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { isNative } = useIsNative();
 
   const handleCheckout = async () => {
     // Client-side safety check
     if (typeof window === 'undefined') return;
+
+    // On native iOS, open website in Safari instead of checkout flow
+    if (isNative) {
+      window.open("https://melodicaapp.com", "_system");
+      return;
+    }
     
     setLoading(true);
     setError(null);

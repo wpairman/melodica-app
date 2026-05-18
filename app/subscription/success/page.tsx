@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { getUserByEmailFromFirebase, saveUserToFirebase, updateUserSubscriptionInFirebase } from "@/lib/firebase-users"
 import { hashPassword } from "@/lib/password-utils"
 import { useToast } from "@/hooks/use-toast"
+import { useIsNative } from "@/hooks/use-is-native"
 
 export default function SubscriptionSuccessPage() {
   const searchParams = useSearchParams()
@@ -20,6 +21,7 @@ export default function SubscriptionSuccessPage() {
   const { login } = useAuth()
   const { toast } = useToast()
   const sessionId = searchParams?.get("session_id") || null
+  const { isNative } = useIsNative()
   const [loading, setLoading] = useState(true)
   const [subscription, setSubscription] = useState<any>(null)
   const [needsAccount, setNeedsAccount] = useState(false)
@@ -212,6 +214,22 @@ export default function SubscriptionSuccessPage() {
       toast({ title: "Error creating account", description: error.message, variant: "destructive" })
       setIsSubmitting(false)
     }
+  }
+
+  if (isNative) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center h-64 gap-4">
+          <p className="text-white text-lg text-center">Manage your subscription at our website.</p>
+          <Button onClick={() => window.open("https://melodicaapp.com", "_system")} className="bg-teal-600 hover:bg-teal-700">
+            Visit melodicaapp.com
+          </Button>
+          <Link href="/dashboard">
+            <Button variant="outline" className="border-gray-600 text-gray-300">Back to Dashboard</Button>
+          </Link>
+        </div>
+      </DashboardLayout>
+    )
   }
 
   if (loading) {

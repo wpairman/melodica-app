@@ -8,6 +8,7 @@ import { Download, Share2, FileText, Mail, Calendar, BarChart3 } from "lucide-re
 import { useToast } from "@/hooks/use-toast"
 import { getUserPlan, hasFeatureAccess } from "@/lib/plan-features"
 import { UpgradePrompt } from "@/components/upgrade-prompt"
+import { useIsNative } from "@/hooks/use-is-native"
 import {
   Select,
   SelectContent,
@@ -26,6 +27,7 @@ interface ExportOptions {
 
 export default function MoodDataExport() {
   const { toast } = useToast()
+  const { isNative } = useIsNative()
   const [moodHistory, setMoodHistory] = useState<Array<{ mood: number; timestamp: Date; notes?: string; activities?: string[] }>>([])
   const [userPlan, setUserPlan] = useState<string>("free")
   const [showUpgrade, setShowUpgrade] = useState(false)
@@ -178,7 +180,7 @@ export default function MoodDataExport() {
   }
 
   const handleExport = async () => {
-    if (!hasFeatureAccess(userPlan as any, "exportMoodData")) {
+    if (!isNative && !hasFeatureAccess(userPlan as any, "exportMoodData")) {
       setShowUpgrade(true)
       return
     }
@@ -262,7 +264,7 @@ export default function MoodDataExport() {
   }
 
   const handleShare = async () => {
-    if (!hasFeatureAccess(userPlan as any, "exportMoodData")) {
+    if (!isNative && !hasFeatureAccess(userPlan as any, "exportMoodData")) {
       setShowUpgrade(true)
       return
     }
@@ -312,7 +314,7 @@ export default function MoodDataExport() {
     }
   }
 
-  if (!hasFeatureAccess(userPlan as any, "exportMoodData")) {
+  if (!isNative && !hasFeatureAccess(userPlan as any, "exportMoodData")) {
     return (
       <>
         <Card className="bg-gray-800 border-gray-700">

@@ -11,6 +11,7 @@ import { User, Share2, Users, Copy, CheckCircle2, Lock, Globe } from "lucide-rea
 import { useToast } from "@/hooks/use-toast"
 import { getUserPlan, hasFeatureAccess } from "@/lib/plan-features"
 import { UpgradePrompt } from "@/components/upgrade-prompt"
+import { useIsNative } from "@/hooks/use-is-native"
 
 interface SharedProfile {
   id: string
@@ -28,6 +29,7 @@ interface SharedProfile {
 
 export default function ProfileSharing() {
   const { toast } = useToast()
+  const { isNative } = useIsNative()
   const [isSharingEnabled, setIsSharingEnabled] = useState(false)
   const [shareSettings, setShareSettings] = useState({
     moodTrends: true,
@@ -90,7 +92,7 @@ export default function ProfileSharing() {
   }
 
   const handleToggleSharing = (enabled: boolean) => {
-    if (!hasFeatureAccess(userPlan as any, "profileSharing")) {
+    if (!isNative && !hasFeatureAccess(userPlan as any, "profileSharing")) {
       setShowUpgrade(true)
       return
     }
@@ -158,7 +160,7 @@ export default function ProfileSharing() {
     })
   }
 
-  if (!hasFeatureAccess(userPlan as any, "profileSharing")) {
+  if (!isNative && !hasFeatureAccess(userPlan as any, "profileSharing")) {
     return (
       <>
         <Card className="bg-gray-800 border-gray-700">

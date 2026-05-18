@@ -144,8 +144,8 @@ export default function AnalyticsPage() {
     )
   }
 
-  // Premium analytics - show upgrade prompt for free users
-  if (userPlan === 'free') {
+  // Premium analytics - show upgrade prompt for free users (skip on native iOS)
+  if (userPlan === 'free' && !isNative) {
     return (
       <AuthGuard>
         <DashboardLayout>
@@ -202,7 +202,7 @@ export default function AnalyticsPage() {
                   )}
                   {isNative && (
                     <p className="text-sm text-center text-gray-400">
-                      Upgrade at <span className="text-teal-400">melodica.app</span>
+                      Upgrade at <a href="https://melodicaapp.com" className="text-teal-400 underline">melodicaapp.com</a>
                     </p>
                   )}
                 </CardContent>

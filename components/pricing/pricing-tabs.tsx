@@ -22,8 +22,10 @@ import {
   Zap,
 } from "lucide-react";
 import Link from "next/link";
+import { useIsNative } from "@/hooks/use-is-native";
 
 export default function PricingTabs() {
+  const { isNative } = useIsNative();
 
   const plans = [
     {
@@ -132,6 +134,7 @@ export default function PricingTabs() {
                 price={plan.monthlyPrice ?? "$0"}
                 billingCycle="monthly"
                 popular={plan.popular}
+                isNative={isNative}
               />
             ))}
           <PricingCard
@@ -140,6 +143,7 @@ export default function PricingTabs() {
             price={plans.find((p) => p.name === "Lifetime")!.oneTimePrice!}
             billingCycle="lifetime"
             popular={false}
+            isNative={isNative}
           />
         </div>
       </div>
@@ -160,6 +164,7 @@ export default function PricingTabs() {
                 price={plan.yearlyPrice ?? "$0"}
                 billingCycle="yearly"
                 popular={plan.popular}
+                isNative={isNative}
               />
             ))}
           <PricingCard
@@ -168,6 +173,7 @@ export default function PricingTabs() {
             price={plans.find((p) => p.name === "Lifetime")!.oneTimePrice!}
             billingCycle="lifetime"
             popular={false}
+            isNative={isNative}
           />
         </div>
       </div>
@@ -208,12 +214,24 @@ interface PricingCardProps {
   price: string;
   billingCycle: "monthly" | "yearly" | "lifetime";
   popular: boolean;
+  isNative: boolean;
 }
 
-function PricingCard({ plan, price, billingCycle, popular }: PricingCardProps) {
+function PricingCard({ plan, price, billingCycle, popular, isNative }: PricingCardProps) {
   const Icon = plan.icon;
   const isPaidPlan = ["Premium", "Ultimate"].includes(plan.name);
   const isLifetimePlan = plan.name === "Lifetime";
+
+  // On native iOS, all subscribe buttons open melodicaapp.com in Safari
+  const handleNativeSubscribe = () => {
+    window.open("https://melodicaapp.com", "_system");
+  };
+
+  const nativeButton = (label: string, className: string) => (
+    <Button className={`w-full text-white ${className}`} onClick={handleNativeSubscribe}>
+      {label}
+    </Button>
+  );
 
   return (
     <Card className={`flex flex-col border-2 ${popular ? "border-teal-600 shadow-lg relative" : "border-gray-200"} h-full`}>
@@ -253,14 +271,14 @@ function PricingCard({ plan, price, billingCycle, popular }: PricingCardProps) {
         </ul>
       </CardContent>
       <CardFooter>
-        {isPaidPlan ? (
-          <Link
-            href={`/register?plan=${plan.name.toLowerCase()}&interval=${billingCycle}`}
-            className="w-full"
-          >
-            <Button
-              className={`w-full text-white ${popular ? "bg-teal-600 hover:bg-teal-700" : "bg-gray-900 hover:bg-gray-800"}`}
-            >
+        {isNative ? (
+          // Native iOS: open melodicaapp.com in Safari — no in-app purchases
+          isLifetimePlan
+            ? nativeButton(plan.cta, "bg-yellow-600 hover:bg-yellow-700")
+            : nativeButton(plan.cta, popular ? "bg-teal-600 hover:bg-teal-700" : "bg-gray-900 hover:bg-gray-800")
+        ) : isPaidPlan ? (
+          <Link href={`/register?plan=${plan.name.toLowerCase()}&interval=${billingCycle}`} className="w-full">
+            <Button className={`w-full text-white ${popular ? "bg-teal-600 hover:bg-teal-700" : "bg-gray-900 hover:bg-gray-800"}`}>
               {plan.cta}
             </Button>
           </Link>
